@@ -31,20 +31,37 @@ public class BusTuning : ScriptableObject {
     public float rearSidewaysStiffness = 1.6f;
 
     [Header("Drive (per rear wheel)")]
-    public float maxMotorTorque = 4500f;
-    // Torque multiplier over speed / maxSpeed
-    public AnimationCurve torqueCurve = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.5f, 0.8f), new Keyframe(1f, 0.2f));
-    public float maxSpeedKmh = 80f;
-    public float reverseTorque = 2500f;
-    public float reverseMaxSpeedKmh = 15f;
+    public float maxMotorTorque = 5200f;
+    // Torque multiplier over speed / maxSpeed — firm launch, then taper
+    public AnimationCurve torqueCurve = new AnimationCurve(
+        new Keyframe(0f, 0.85f),
+        new Keyframe(0.2f, 1f),
+        new Keyframe(0.7f, 0.7f),
+        new Keyframe(1f, 0.2f));
+    public float maxSpeedKmh = 70f;
+    public float reverseTorque = 2400f;
+    public float reverseMaxSpeedKmh = 12f;
+    // How fast motor torque can climb / fall (Nm per second, per wheel)
+    public float motorTorqueRise = 9000f;
+    public float motorTorqueFall = 7000f;
 
     [Header("Brakes (per wheel)")]
-    public float frontBrakeTorque = 7000f;
-    public float rearBrakeTorque = 5000f;
-    public float handbrakeTorque = 15000f;
-    public float coastBrakeTorque = 150f;
-    public float autoHoldTorque = 3000f;
-    public float autoHoldSpeed = 0.3f;
+    public float frontBrakeTorque = 4500f;
+    public float rearBrakeTorque = 3200f;
+    public float handbrakeTorque = 12000f;
+    // Gentle drag when rolling with no pedal — natural coast-down
+    public float coastBrakeTorque = 450f;
+    public float autoHoldTorque = 2500f;
+    public float autoHoldSpeed = 0.4f;
+    public float brakeTorqueRise = 9000f;
+    public float brakeTorqueFall = 12000f;
+
+    [Header("Input smoothing")]
+    // How fast pedal input ramps 0→1 (units per second)
+    public float accelRise = 2.2f;
+    public float accelFall = 1.6f;
+    public float brakeRise = 1.4f;
+    public float brakeFall = 2.2f;
 
     [Header("Gears")]
     // m/s under which the bus counts as stopped

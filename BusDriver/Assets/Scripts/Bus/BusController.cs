@@ -24,6 +24,11 @@ public class BusController : MonoBehaviour {
     float accelInput;
     bool handbrakeInput;
     float standstillTimer;
+    float smoothThrottle;
+    float smoothBrake;
+    float appliedMotor;
+    float appliedFrontBrake;
+    float appliedRearBrake;
     Vector3[] frontLocalPos, rearLocalPos;
     Quaternion[] frontLocalRot, rearLocalRot;
 
@@ -50,6 +55,9 @@ public class BusController : MonoBehaviour {
         IsParked = parked;
         if (parked) {
             CurrentGear = Gear.Neutral;
+            smoothThrottle = 0f;
+            smoothBrake = 0f;
+            appliedMotor = 0f;
         }
     }
 
@@ -63,6 +71,11 @@ public class BusController : MonoBehaviour {
         rb.position = rb.position + Vector3.up * 1f;
         rb.rotation = Quaternion.LookRotation(forward.normalized, Vector3.up);
         SteerAngle = 0f;
+        smoothThrottle = 0f;
+        smoothBrake = 0f;
+        appliedMotor = 0f;
+        appliedFrontBrake = 0f;
+        appliedRearBrake = 0f;
     }
 
     public void ApplyTuning() {
@@ -126,31 +139,34 @@ public class BusController : MonoBehaviour {
             standstillTimer = 0f;
         }
 
-        float throttle = 0f;
-        float brake = 0f;
+        float throttleTarget = 0f;
+        float brakeTarget = 0f;
         float accel = IsParked ? 0f : accelInput;
 
         // Automatic gears: S brakes to a stop and then reverses, W while reversing brakes first
         if (accel > 0.01f) {
             if (CurrentGear == Gear.Reverse && ForwardSpeed < -tuning.standstillSpeed) {
-                brake = accel;
+                brakeTarget = accel;
             }else {
                 CurrentGear = Gear.Drive;
-                throttle = accel;
+                throttleTarget = accel;
             }
         }else if (accel < -0.01f) {
             if (CurrentGear == Gear.Reverse) {
-                throttle = -accel;
+                throttleTarget = -accel;
             }else if (ForwardSpeed <= tuning.standstillSpeed && standstillTimer >= tuning.reverseDelay) {
                 CurrentGear = Gear.Reverse;
-                throttle = -accel;
+                throttleTarget = -accel;
             }else {
-                brake = -accel;
+                brakeTarget = -accel;
             }
         }
 
-        ApplyDrive(throttle, absSpeed);
-        ApplyBrakes(throttle, brake, absSpeed);
+        smoothThrottle = MovePedal(smoothThrottle, throttleTarget, tuning.accelRise, tuning.accelFall);
+        smoothBrake = MovePedal(smoothBrake, brakeTarget, tuning.brakeRise, tuning.brakeFall);
+
+        ApplyDrive(smoothThrottle, absSpeed);
+        ApplyBrakes(smoothThrottle, smoothBrake, absSpeed);
         ApplySteering();
         IsGrounded = false;
         ApplyAntiRoll(frontWheels, tuning.frontAntiRoll);
@@ -160,46 +176,59 @@ public class BusController : MonoBehaviour {
         CachePoses(rearWheels, rearLocalPos, rearLocalRot);
     }
 
+    float MovePedal(float current, float target, float rise, float fall) {
+        float rate = target > current ? rise : fall;
+        return Mathf.MoveTowards(current, target, rate * Time.fixedDeltaTime);
+    }
+
     void ApplyDrive(float throttle, float absSpeed) {
-        float motor = 0f;
-        if (throttle > 0f) {
+        float motorTarget = 0f;
+        if (throttle > 0.001f) {
             if (CurrentGear == Gear.Drive) {
                 float maxSpeed = tuning.maxSpeedKmh / 3.6f;
-                motor = throttle * tuning.maxMotorTorque * tuning.torqueCurve.Evaluate(Mathf.Clamp01(absSpeed / maxSpeed));
+                motorTarget = throttle * tuning.maxMotorTorque
+                    * tuning.torqueCurve.Evaluate(Mathf.Clamp01(absSpeed / maxSpeed));
                 if (ForwardSpeed >= maxSpeed) {
-                    motor = 0f;
+                    motorTarget = 0f;
                 }
             }else {
                 float maxSpeed = tuning.reverseMaxSpeedKmh / 3.6f;
-                motor = -throttle * tuning.reverseTorque * (1f - Mathf.Clamp01(absSpeed / maxSpeed));
+                motorTarget = -throttle * tuning.reverseTorque * (1f - Mathf.Clamp01(absSpeed / maxSpeed));
             }
         }
+        float ramp = Mathf.Abs(motorTarget) > Mathf.Abs(appliedMotor)
+            ? tuning.motorTorqueRise : tuning.motorTorqueFall;
+        appliedMotor = Mathf.MoveTowards(appliedMotor, motorTarget, ramp * Time.fixedDeltaTime);
         // Wheels can stick when motor and brake torque are both exactly zero
-        if (motor == 0f) {
-            motor = 0.0001f;
-        }
+        float motor = appliedMotor == 0f ? 0.0001f : appliedMotor;
         foreach (WheelCollider wheel in rearWheels) {
             wheel.motorTorque = motor;
         }
     }
 
     void ApplyBrakes(float throttle, float brake, float absSpeed) {
-        float front = brake * tuning.frontBrakeTorque;
-        float rear = brake * tuning.rearBrakeTorque;
-        if (throttle <= 0f && brake <= 0f) {
-            // Engine braking while rolling, auto-hold at a standstill so the bus never creeps
+        float frontTarget = brake * tuning.frontBrakeTorque;
+        float rearTarget = brake * tuning.rearBrakeTorque;
+        if (throttle <= 0.001f && brake <= 0.001f) {
+            // Soft engine/coast drag while rolling; firmer hold only near a stop
             float hold = absSpeed < tuning.autoHoldSpeed ? tuning.autoHoldTorque : tuning.coastBrakeTorque;
-            front = hold;
-            rear = hold;
+            frontTarget = hold;
+            rearTarget = hold;
         }
         if (handbrakeInput || IsParked) {
-            rear = Mathf.Max(rear, tuning.handbrakeTorque);
+            rearTarget = Mathf.Max(rearTarget, tuning.handbrakeTorque);
         }
+
+        float frontRamp = frontTarget > appliedFrontBrake ? tuning.brakeTorqueRise : tuning.brakeTorqueFall;
+        float rearRamp = rearTarget > appliedRearBrake ? tuning.brakeTorqueRise : tuning.brakeTorqueFall;
+        appliedFrontBrake = Mathf.MoveTowards(appliedFrontBrake, frontTarget, frontRamp * Time.fixedDeltaTime);
+        appliedRearBrake = Mathf.MoveTowards(appliedRearBrake, rearTarget, rearRamp * Time.fixedDeltaTime);
+
         foreach (WheelCollider wheel in frontWheels) {
-            wheel.brakeTorque = front;
+            wheel.brakeTorque = appliedFrontBrake;
         }
         foreach (WheelCollider wheel in rearWheels) {
-            wheel.brakeTorque = rear;
+            wheel.brakeTorque = appliedRearBrake;
         }
     }
 
