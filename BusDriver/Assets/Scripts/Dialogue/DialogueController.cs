@@ -55,7 +55,9 @@ public class DialogueController : MonoBehaviour {
                 dialogue.audioSource.PlayOneShot(dialogue.audioSource.clip);
             }else {
                 if (textSound != null) {
-                    SceneController.Instance.soundController.PlayOneShot(textSound);
+                    if (PlayerModeController.Instance != null && PlayerModeController.Instance.soundController != null) {
+                        PlayerModeController.Instance.soundController.PlayOneShot(textSound);
+                    }
                 }
             }
             yield return new WaitForSeconds(0.01f);

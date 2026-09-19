@@ -24,12 +24,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4094859852860548584}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4094859852860548585
 MonoBehaviour:
@@ -60,6 +61,42 @@ MonoBehaviour:
     pitch: 1.4
     spatialBlend: 0
     loop: 0
+    music: 0
+    group: {fileID: 24300002, guid: f47922c61f176ea40b87b83231abdcde, type: 2}
+    source: {fileID: 0}
+  - name: Wind Ambience
+    clip: {fileID: 8300000, guid: 49443748d1fd4ff46aa3d85706353703, type: 3}
+    volume: 0.45
+    pitch: 1
+    spatialBlend: 0
+    loop: 1
+    music: 1
+    group: {fileID: 24300002, guid: f47922c61f176ea40b87b83231abdcde, type: 2}
+    source: {fileID: 0}
+  - name: Bus Engine
+    clip: {fileID: 8300000, guid: 5fdcd35124752354dbadece96ee266ce, type: 3}
+    volume: 0.01
+    pitch: 1
+    spatialBlend: 0
+    loop: 1
+    music: 0
+    group: {fileID: 24300002, guid: f47922c61f176ea40b87b83231abdcde, type: 2}
+    source: {fileID: 0}
+  - name: Bus Engine
+    clip: {fileID: 8300000, guid: 5fdcd35124752354dbadece96ee266ce, type: 3}
+    volume: 0.01
+    pitch: 1
+    spatialBlend: 0
+    loop: 1
+    music: 0
+    group: {fileID: 24300002, guid: f47922c61f176ea40b87b83231abdcde, type: 2}
+    source: {fileID: 0}
+  - name: Card Tap
+    clip: {fileID: 8300000, guid: eb78901d87f998648bd29ae06abde7ca, type: 3}
+    volume: 1
+    pitch: 1
+    spatialBlend: 0
+    loop: 1
     music: 0
     group: {fileID: 24300002, guid: f47922c61f176ea40b87b83231abdcde, type: 2}
     source: {fileID: 0}

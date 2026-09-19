@@ -118,6 +118,16 @@ public class SoundController : MonoBehaviour {
         }
     }
 
+    public void UnPauseAll() {
+        foreach (AudioSource s in allSounds) {
+            if (s != null) {
+                if (!CheckASisMusic(s)) {
+                    s.UnPause();
+                }
+            }
+        }
+    }
+
     private bool CheckASisMusic(AudioSource l) {
         foreach (Sound s in specialSounds) {
             if (l == s.source && s.music) {

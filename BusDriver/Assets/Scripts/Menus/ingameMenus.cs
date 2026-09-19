@@ -18,7 +18,9 @@ public class ingameMenus : MonoBehaviour {
 
     private void Update() {
         if (Input.GetKeyDown(pauseKey) && !pausedGame) {
-            SceneController.Instance.soundController.PauseAll();
+            if (PlayerModeController.Instance != null && PlayerModeController.Instance.soundController != null) {
+                PlayerModeController.Instance.soundController.PauseAll();
+            }
             inGameUI.SetActive(false);
             Pause();
         }
@@ -29,11 +31,11 @@ public class ingameMenus : MonoBehaviour {
         pauseMenuUI.SetActive(false);
         Time.timeScale = 1;
         pausedGame = false;
-        SceneController.Instance.soundController.Play("UI Click");
+        PlayUISound();
     }
 
     public void Pause() {
-        SceneController.Instance.soundController.Play("UI Click");
+        PlayUISound();
         pauseMenuUI.SetActive(true);
         Time.timeScale = 0;
         pausedGame = true;
@@ -45,6 +47,8 @@ public class ingameMenus : MonoBehaviour {
     }
 
     public void PlayUISound() {
-        SceneController.Instance.soundController.Play("UI Click");
+        if (PlayerModeController.Instance != null && PlayerModeController.Instance.soundController != null) {
+            PlayerModeController.Instance.soundController.Play("UI Click");
+        }
     }
 }

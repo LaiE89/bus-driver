@@ -17,8 +17,8 @@ public class ControlsMenu : MonoBehaviour {
 
     public void Awake() {
         waitingForKey = false;
-        if (SceneController.Instance) {
-            soundController = SceneController.Instance.soundController;
+        if (PlayerModeController.Instance != null) {
+            soundController = PlayerModeController.Instance.soundController;
         }else {
             soundController = MainMenu.soundController;
         }

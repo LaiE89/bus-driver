@@ -508,6 +508,8 @@ public static class BusDriverSceneBuilder {
         BusController controller = bus.AddComponent<BusController>();
         bus.AddComponent<CrashDetector>();
         BusInput input = bus.AddComponent<BusInput>();
+        BusEngineSound engineSound = bus.AddComponent<BusEngineSound>();
+        SetRef(engineSound, "bus", controller);
 
         // Scaled primitives stay under Visuals, wheel colliders must not inherit any scale
         Transform visuals = Group("Visuals", root).transform;
@@ -796,9 +798,17 @@ public static class BusDriverSceneBuilder {
         SetRef(mode, "busInput", bus.GetComponent<BusInput>());
         SetRef(mode, "driverLook", look);
         SetRef(mode, "cctv", cctv);
+
+        GameObject soundObject = PrefabUtility.InstantiatePrefab(
+            AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/Prefabs/Level Essentials/Sound Controller.prefab")) as GameObject;
+        if (soundObject != null) {
+            soundObject.name = "Sound Controller";
+            SetRef(mode, "soundController", soundObject.GetComponent<SoundController>());
+        }
     }
 
-    // Named "Canvas" with a "HUD" child so SceneController and ingameMenus can adopt it later
+    // Named "Canvas" with a "HUD" child so ingameMenus can adopt it later
     static DrivingHUD BuildHUD() {
         GameObject canvasObject = new GameObject("Canvas", typeof(RectTransform));
         canvasObject.layer = UILayer;

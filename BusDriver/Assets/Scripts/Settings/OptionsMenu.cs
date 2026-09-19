@@ -26,8 +26,8 @@ public class OptionsMenu : MonoBehaviour {
     [SerializeField] TMP_Dropdown targetFPSDropdown;
 
     private void Awake() {
-        if (SceneController.Instance) {
-            soundController = SceneController.Instance.soundController;
+        if (PlayerModeController.Instance != null) {
+            soundController = PlayerModeController.Instance.soundController;
         }else {
             soundController = MainMenu.soundController;
         }

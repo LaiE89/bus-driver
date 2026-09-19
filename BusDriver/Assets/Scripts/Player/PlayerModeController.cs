@@ -5,13 +5,23 @@ using UnityEngine.SceneManagement;
 
 public enum PlayerMode { Driving, OnFoot }
 
-// Owns which control scheme is live, the cursor, and a stand-in pause until the
-// real ingameMenus UI is added to this scene. The stub writes the same
-// ingameMenus.pausedGame flag, so gameplay scripts won't change when it's swapped.
+// Scene hub for the bus route: control scheme, pause, cursor, and shared services
+// (sound / optional dialogue) that menus and triggers used to get from SceneController.
 public class PlayerModeController : MonoBehaviour {
+    public static PlayerModeController Instance { get; private set; }
+
+    [Header("Driving")]
     [SerializeField] BusInput busInput;
     [SerializeField] DriverLook driverLook;
     [SerializeField] CCTVSystem cctv;
+
+    [Header("Services")]
+    public SoundController soundController;
+    [SerializeField] string ambienceSound = "Wind Ambience";
+    public DialogueController dialogueController;
+    public DialogueController objectivesController;
+
+    [Header("Input")]
     [SerializeField] KeyCode pauseKey = KeyCode.Escape;
     [SerializeField] KeyCode menuKey = KeyCode.M;
 
@@ -19,14 +29,42 @@ public class PlayerModeController : MonoBehaviour {
     public event Action<PlayerMode> OnModeChanged;
 
     void Awake() {
+        if (Instance != null && Instance != this) {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+
         ingameMenus.pausedGame = false;
         Time.timeScale = 1;
         ApplySavedSettingsIfNeeded();
+        CacheServices();
+    }
+
+    void CacheServices() {
+        if (soundController == null) {
+            soundController = FindAnyObjectByType<SoundController>();
+        }
+        if (dialogueController == null) {
+            GameObject go = GameObject.Find("Dialogue Controller");
+            if (go != null) {
+                dialogueController = go.GetComponent<DialogueController>();
+            }
+        }
+        if (objectivesController == null) {
+            GameObject go = GameObject.Find("Objectives Controller");
+            if (go != null) {
+                objectivesController = go.GetComponent<DialogueController>();
+            }
+        }
     }
 
     void Start() {
         SetMode(PlayerMode.Driving);
         ApplyCursor();
+        if (soundController != null && !string.IsNullOrEmpty(ambienceSound)) {
+            soundController.Play(ambienceSound);
+        }
     }
 
     public void SetMode(PlayerMode mode) {
@@ -45,10 +83,7 @@ public class PlayerModeController : MonoBehaviour {
         if (Input.GetKeyDown(pauseKey)) {
             SetPaused(!ingameMenus.pausedGame);
         }else if (ingameMenus.pausedGame && Input.GetKeyDown(menuKey)) {
-            SetPaused(false);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-            SceneManager.LoadScene("Menu");
+            BackToMainMenu();
         }
     }
 
@@ -56,6 +91,21 @@ public class PlayerModeController : MonoBehaviour {
         ingameMenus.pausedGame = paused;
         Time.timeScale = paused ? 0 : 1;
         ApplyCursor();
+        if (soundController == null) {
+            return;
+        }
+        if (paused) {
+            soundController.PauseAll();
+        }else {
+            soundController.UnPauseAll();
+        }
+    }
+
+    public void BackToMainMenu() {
+        SetPaused(false);
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        SceneManager.LoadScene("Menu");
     }
 
     void ApplyCursor() {
@@ -70,6 +120,9 @@ public class PlayerModeController : MonoBehaviour {
     }
 
     void OnDestroy() {
+        if (Instance == this) {
+            Instance = null;
+        }
         ingameMenus.pausedGame = false;
         Time.timeScale = 1;
     }
