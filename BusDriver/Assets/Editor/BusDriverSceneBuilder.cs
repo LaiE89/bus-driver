@@ -19,6 +19,11 @@ public static class BusDriverSceneBuilder {
     const string SampleScenePath = "Assets/Scenes/SampleScene.unity";
     const string MaterialFolder = "Assets/Materials/Greybox";
     const string TuningPath = "Assets/Settings/BusTuning.asset";
+    // Regenerated on every build. Real art should live somewhere else.
+    const string PrefabFolder = "Assets/Prefabs/Greybox";
+    // Where the test monster waits. Remove these two with StaringMonster.
+    const int MonsterStopIndex = 0;
+    const int MonsterSlot = 1;
     const int UILayer = 5;
 
     // Road
@@ -53,6 +58,9 @@ public static class BusDriverSceneBuilder {
     }
 
     static Dictionary<string, Material> mats;
+    static GameObject passengerPrefab;
+    static GameObject monsterPrefab;
+    static List<BusStop> busStops;
     static List<RoadSample> samples;
     static List<RoadArc> arcs;
     static Vector3 turtlePos;
@@ -68,9 +76,12 @@ public static class BusDriverSceneBuilder {
         EnsureFolder(MaterialFolder);
         EnsureFolder("Assets/Settings");
         EnsureFolder("Assets/Scenes");
+        EnsureFolder("Assets/Prefabs");
+        EnsureFolder(PrefabFolder);
 
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         CreateMaterials();
+        BuildGreyboxPrefabs();
         BusTuning tuning = GetOrCreateTuning();
 
         BuildEnvironment();
@@ -133,6 +144,8 @@ public static class BusDriverSceneBuilder {
         AddMaterial("PassengerOdd", new Color(0.25f, 0.2f, 0.22f));
         AddMaterial("LampWhite", Color.white, new Color(1f, 0.95f, 0.8f) * 3f);
         AddMaterial("LampRed", new Color(0.8f, 0.05f, 0.05f), new Color(1f, 0.05f, 0.05f) * 2f);
+        AddMaterial("Door", new Color(0.3f, 0.33f, 0.36f));
+        AddMaterial("Face", new Color(0.04f, 0.04f, 0.04f));
     }
 
     static void AddMaterial(string name, Color baseColor, Color? emission = null) {
@@ -156,6 +169,48 @@ public static class BusDriverSceneBuilder {
         }
         EditorUtility.SetDirty(mat);
         mats[name] = mat;
+    }
+
+    static void BuildGreyboxPrefabs() {
+        passengerPrefab = BuildPassengerPrefab<Passenger>("Passenger", "Passenger");
+        // Looks like everyone else on purpose, the head is the only tell
+        monsterPrefab = BuildPassengerPrefab<StaringMonster>("StaringMonster", "Passenger");
+    }
+
+    // Root at the feet. Passenger.SetPose moves the body and head between standing and seated.
+    static GameObject BuildPassengerPrefab<T>(string name, string material) where T : Passenger {
+        GameObject root = new GameObject(name);
+        T passenger = root.AddComponent<T>();
+
+        // Only there for the player's interaction ray, and only enabled while the bus is walkable
+        CapsuleCollider reach = root.AddComponent<CapsuleCollider>();
+        reach.isTrigger = true;
+        reach.center = new Vector3(0f, 0.65f, 0f);
+        reach.radius = 0.32f;
+        reach.height = 1.4f;
+        reach.enabled = false;
+
+        GameObject body = Prim(PrimitiveType.Capsule, "Body", root.transform, new Vector3(0f, 0.75f, 0f), new Vector3(0.42f, 0.75f, 0.42f), material);
+        GameObject head = Prim(PrimitiveType.Sphere, "Head", root.transform, new Vector3(0f, 1.62f, 0f), Vector3.one * 0.26f, material);
+        // Without a face nobody could tell which way a sphere is looking
+        Box("Face", head.transform, new Vector3(0f, 0.08f, 0.46f), new Vector3(0.6f, 0.2f, 0.15f), "Face");
+
+        SetRef(passenger, "head", head.transform);
+        SetRef(passenger, "body", body.transform);
+        SetRef(passenger, "interactCollider", reach);
+
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabFolder + "/" + name + ".prefab");
+        Object.DestroyImmediate(root);
+        return prefab;
+    }
+
+    static GameObject SpawnPassenger(GameObject prefab, string name, Transform parent, Vector3 localPos, Quaternion localRot) {
+        GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+        instance.name = name;
+        instance.transform.SetParent(parent, false);
+        instance.transform.localPosition = localPos;
+        instance.transform.localRotation = localRot;
+        return instance;
     }
 
     static BusTuning GetOrCreateTuning() {
@@ -240,6 +295,16 @@ public static class BusDriverSceneBuilder {
         for (int i = 0; i < values.Length; i++) {
             property.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
         }
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    static void SetVector(Object target, string prop, Vector3 value) {
+        SerializedObject so = new SerializedObject(target);
+        SerializedProperty property = FindProp(so, prop);
+        if (property == null) {
+            return;
+        }
+        property.vector3Value = value;
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
@@ -473,8 +538,12 @@ public static class BusDriverSceneBuilder {
     // Markers only for now, there is no bus stop logic yet
     static void BuildBusStops(Transform environment) {
         Transform stops = Group("Bus Stops", environment).transform;
-        foreach (float distance in new[] { 150f, 420f, 640f }) {
-            RoadSample sample = SampleAt(distance);
+        busStops = new List<BusStop>();
+        // The first one is a short roll from the spawn point so boarding is quick to test
+        float[] distances = { 60f, 420f, 640f };
+        int[] waitingCounts = { 3, 2, 2 };
+        for (int stopIndex = 0; stopIndex < distances.Length; stopIndex++) {
+            RoadSample sample = SampleAt(distances[stopIndex]);
             Transform stop = Group("Bus Stop", stops).transform;
             stop.SetPositionAndRotation(RoadPoint(sample, 0f, 0f), Quaternion.Euler(0f, sample.heading, 0f));
 
@@ -485,6 +554,18 @@ public static class BusDriverSceneBuilder {
             Box("Shelter Back", stop, new Vector3(edge + 2.6f, 1.2f, 0f), new Vector3(0.1f, 2.4f, 4f), "Wall", true).isStatic = true;
             Box("Shelter Roof", stop, new Vector3(edge + 1.9f, 2.45f, 0f), new Vector3(1.6f, 0.1f, 4f), "Wall").isStatic = true;
             StreetLamp(stop, stop.TransformPoint(new Vector3(edge + 1.2f, 0f, -4f)), -Right(sample.heading));
+
+            // Waiting in front of the shelter, facing the road
+            BusStop busStop = stop.gameObject.AddComponent<BusStop>();
+            List<Object> waiting = new List<Object>();
+            for (int slot = 0; slot < waitingCounts[stopIndex]; slot++) {
+                bool monster = stopIndex == MonsterStopIndex && slot == MonsterSlot;
+                Vector3 spot = new Vector3(edge + 1.2f + 0.3f * slot, 0f, -1.2f + 1.2f * slot);
+                GameObject waiter = SpawnPassenger(monster ? monsterPrefab : passengerPrefab, monster ? "Staring Monster" : "Passenger", stop, spot, Quaternion.Euler(0f, -90f, 0f));
+                waiting.Add(waiter.GetComponent<Passenger>());
+            }
+            SetRefArray(busStop, "waiting", waiting.ToArray());
+            busStops.Add(busStop);
         }
     }
 
@@ -515,7 +596,7 @@ public static class BusDriverSceneBuilder {
         Transform visuals = Group("Visuals", root).transform;
         BuildShell(visuals);
         BuildInterior(visuals);
-        BuildPassengers(root);
+        BuildCabin(bus, controller);
 
         Transform com = Group("COM", root).transform;
         com.localPosition = new Vector3(0f, 0.9f, 0.2f);
@@ -619,26 +700,103 @@ public static class BusDriverSceneBuilder {
         }
     }
 
-    // Placeholders so the CCTV has something to watch
-    static void BuildPassengers(Transform root) {
-        Transform passengers = Group("Passengers", root).transform;
-        Vector3[] seats = {
-            new Vector3(-1f, 0f, 1.8f),
-            new Vector3(0.6f, 0f, -0.2f),
-            new Vector3(-0.6f, 0f, -2.2f),
-            new Vector3(1f, 0f, -3.2f),
-            new Vector3(-1f, 0f, -5.2f)
-        };
+    // Seats, the path through the door, the colliders the player walks on, and the
+    // passengers who are already riding when the shift starts
+    static BusCabin BuildCabin(GameObject bus, BusController controller) {
+        Transform root = bus.transform;
+        const float floorTop = HullBottom + 0.1f;
         const float seatTop = 1.06f;
-        for (int i = 0; i < seats.Length; i++) {
-            bool odd = i == seats.Length - 1;
-            string material = odd ? "PassengerOdd" : "Passenger";
-            Transform passenger = Group("Passenger " + (i + 1), passengers).transform;
-            passenger.localPosition = new Vector3(seats[i].x, seatTop, seats[i].z);
-            float size = odd ? 0.5f : 0.42f;
-            Prim(PrimitiveType.Capsule, "Body", passenger, new Vector3(0f, size, 0f), Vector3.one * size, material);
-            Prim(PrimitiveType.Sphere, "Head", passenger, new Vector3(0f, size * 2f + 0.1f, 0f), Vector3.one * 0.26f, material);
+        const float doorZ = 4.8f;
+
+        // Two seats per bench, matching the benches in BuildInterior
+        Transform seatRoot = Group("Seats", root).transform;
+        List<Object> seats = new List<Object>();
+        for (float z = -5.2f; z <= 2.9f; z += 1f) {
+            foreach (float x in new[] { -1f, -0.6f, 0.6f, 1f }) {
+                Transform seat = Group("Seat", seatRoot).transform;
+                seat.localPosition = new Vector3(x, seatTop, z);
+                seats.Add(seat.gameObject.AddComponent<BusSeat>());
+            }
         }
+
+        Transform nodes = Group("CabinNodes", root).transform;
+        Transform aisleAtDoor = Node(nodes, "AisleAtDoor", new Vector3(0f, floorTop, doorZ));
+        Transform doorStep = Node(nodes, "DoorStep", new Vector3(1f, floorTop, doorZ));
+        // Height is found with a raycast at run time: road or kerb
+        Transform doorOutside = Node(nodes, "DoorOutside", new Vector3(1.9f, 0f, doorZ));
+        Transform standPoint = Node(nodes, "StandPoint", new Vector3(0.15f, floorTop, 4.5f));
+
+        GameObject interior = BuildInteriorColliders(root);
+
+        GameObject doorPanel = Box("Door Panel", root, new Vector3(1.3f, 1.6f, doorZ), new Vector3(0.06f, 2.1f, 1.4f), "Door");
+        BusDoors doors = bus.AddComponent<BusDoors>();
+        SetRef(doors, "bus", controller);
+        SetRef(doors, "panel", doorPanel.transform);
+        SetVector(doors, "closedLocalPos", doorPanel.transform.localPosition);
+        // Slides back along the outside of the body
+        SetVector(doors, "openLocalPos", new Vector3(1.34f, 1.6f, doorZ - 1.4f));
+
+        Transform passengerRoot = Group("Passengers", root).transform;
+        Vector3[] riders = {
+            new Vector3(-1f, seatTop, 1.8f),
+            new Vector3(0.6f, seatTop, -0.2f),
+            new Vector3(-0.6f, seatTop, -2.2f),
+            new Vector3(1f, seatTop, -3.2f)
+        };
+        List<Object> initial = new List<Object>();
+        foreach (Vector3 rider in riders) {
+            initial.Add(SpawnPassenger(passengerPrefab, "Passenger", passengerRoot, rider, Quaternion.identity).GetComponent<Passenger>());
+        }
+
+        BusCabin cabin = bus.AddComponent<BusCabin>();
+        SetRef(cabin, "bus", controller);
+        SetRef(cabin, "doors", doors);
+        SetRefArray(cabin, "seats", seats.ToArray());
+        SetRef(cabin, "passengerRoot", passengerRoot);
+        SetRef(cabin, "interiorColliders", interior);
+        SetRefArray(cabin, "stops", busStops.ToArray());
+        SetRefArray(cabin, "initialPassengers", initial.ToArray());
+        SetRef(cabin, "aisleAtDoor", aisleAtDoor);
+        SetRef(cabin, "doorStep", doorStep);
+        SetRef(cabin, "doorOutside", doorOutside);
+        SetRef(cabin, "standPoint", standPoint);
+        return cabin;
+    }
+
+    static Transform Node(Transform parent, string name, Vector3 localPos) {
+        Transform node = Group(name, parent).transform;
+        node.localPosition = localPos;
+        return node;
+    }
+
+    // Saved inactive and only switched on while the bus is frozen for walking, so these
+    // never join the hull's compound collider or change the driving inertia tensor.
+    // Unscaled empties with sized BoxColliders, floor top at 0.55.
+    static GameObject BuildInteriorColliders(Transform root) {
+        Transform interior = Group("InteriorColliders", root).transform;
+        InteriorBox(interior, "Floor", new Vector3(0f, 0.35f, 0f), new Vector3(BusWidth, 0.4f, BusLength));
+        InteriorBox(interior, "Wall L", new Vector3(-1.29f, 1.95f, 0f), new Vector3(0.2f, 2.8f, BusLength));
+        InteriorBox(interior, "Wall R Rear", new Vector3(1.29f, 1.95f, -0.95f), new Vector3(0.2f, 2.8f, 10.1f));
+        InteriorBox(interior, "Wall R Front", new Vector3(1.29f, 1.95f, 5.75f), new Vector3(0.2f, 2.8f, 0.5f));
+        // Separate so a later step can let the player off the bus by disabling it
+        InteriorBox(interior, "Doorway Blocker", new Vector3(1.29f, 1.95f, 4.8f), new Vector3(0.2f, 2.8f, 1.4f));
+        InteriorBox(interior, "Rear", new Vector3(0f, 1.95f, -5.95f), new Vector3(BusWidth, 2.8f, 0.1f));
+        InteriorBox(interior, "Front Dash", new Vector3(0f, 1.95f, 5.6f), new Vector3(BusWidth, 2.8f, 0.8f));
+        // One long box per side, an 0.8 m aisle with no gaps between rows to snag on
+        InteriorBox(interior, "Bench L", new Vector3(-0.8175f, 1.175f, -1.425f), new Vector3(0.835f, 1.25f, 8.95f));
+        InteriorBox(interior, "Bench R", new Vector3(0.8175f, 1.175f, -1.425f), new Vector3(0.835f, 1.25f, 8.95f));
+        InteriorBox(interior, "Arch FL", new Vector3(-TrackHalf, 0.875f, FrontAxleZ), new Vector3(0.45f, 0.65f, 1.4f));
+        InteriorBox(interior, "Arch FR", new Vector3(TrackHalf, 0.875f, FrontAxleZ), new Vector3(0.45f, 0.65f, 1.4f));
+        InteriorBox(interior, "Driver Seat", new Vector3(-0.7f, 1.25f, 4.675f), new Vector3(0.6f, 1.4f, 1.05f)).AddComponent<DriverSeat>();
+        interior.gameObject.SetActive(false);
+        return interior.gameObject;
+    }
+
+    static GameObject InteriorBox(Transform parent, string name, Vector3 center, Vector3 size) {
+        GameObject go = Group(name, parent);
+        go.transform.localPosition = center;
+        go.AddComponent<BoxCollider>().size = size;
+        return go;
     }
 
     static void BuildWheels(Transform root, BusTuning tuning, out WheelCollider[] front, out WheelCollider[] rear, out Transform[] frontVisuals, out Transform[] rearVisuals) {
@@ -773,7 +931,9 @@ public static class BusDriverSceneBuilder {
         driverCamera.tag = "MainCamera";
 
         // The only AudioListener. Never on a camera, so switching views can't leave zero or two.
-        Group("Driver Ears", anchor).AddComponent<AudioListener>();
+        // PlayerModeController moves it to the on-foot head and back.
+        Transform ears = Group("Driver Ears", anchor).transform;
+        ears.gameObject.AddComponent<AudioListener>();
 
         GameObject cctvObject = Group("CCTV", root);
         Camera[] cctvCameras = {
@@ -790,7 +950,35 @@ public static class BusDriverSceneBuilder {
         SetStringArray(cctv, "cameraLabels", new[] { "CAM 1  FRONT", "CAM 2  MID", "CAM 3  REAR" });
         SetRef(look, "cctv", cctv);
 
+        BusCabin cabin = bus.GetComponent<BusCabin>();
+        SetRef(cabin, "cctv", cctv);
+
+        // At the scene root rather than under the bus, see OnFootController
+        GameObject rig = new GameObject("OnFootRig");
+        CharacterController body = rig.AddComponent<CharacterController>();
+        body.height = 1.7f;
+        body.radius = 0.28f;
+        body.center = new Vector3(0f, 0.85f, 0f);
+        body.stepOffset = 0.2f;
+        body.skinWidth = 0.03f;
+        body.slopeLimit = 45f;
+        body.minMoveDistance = 0f;
+        OnFootController onFoot = rig.AddComponent<OnFootController>();
+        Transform footHead = Group("Head", rig.transform).transform;
+        footHead.localPosition = new Vector3(0f, 1.6f, 0f);
+        Camera onFootCamera = CreateCamera("OnFootCamera", footHead, Vector3.zero, Vector3.zero, 70f);
+        onFootCamera.tag = "MainCamera";
+        onFootCamera.enabled = false;
+        PlayerInteractor interactor = rig.AddComponent<PlayerInteractor>();
+        SetRef(onFoot, "head", footHead);
+        SetRefArray(onFoot, "ignoredColliders", new Object[] { bus.GetComponent<BoxCollider>() });
+        SetRef(interactor, "viewCamera", onFootCamera);
+        rig.SetActive(false);
+
         DrivingHUD hud = BuildHUD();
+        SetRef(hud, "interactor", interactor);
+        SetRef(hud, "doors", bus.GetComponent<BusDoors>());
+        SetRef(hud, "cabin", cabin);
         SetRef(hud, "bus", bus.GetComponent<BusController>());
         SetRef(hud, "cctv", cctv);
 
@@ -798,6 +986,15 @@ public static class BusDriverSceneBuilder {
         SetRef(mode, "busInput", bus.GetComponent<BusInput>());
         SetRef(mode, "driverLook", look);
         SetRef(mode, "cctv", cctv);
+        SetRef(mode, "bus", bus.GetComponent<BusController>());
+        SetRef(mode, "cabin", cabin);
+        SetRef(mode, "doors", bus.GetComponent<BusDoors>());
+        SetRef(mode, "onFoot", onFoot);
+        SetRef(mode, "driverCamera", driverCamera);
+        SetRef(mode, "onFootCamera", onFootCamera);
+        SetRef(mode, "ears", ears);
+        SetRef(mode, "earsSeatParent", anchor);
+        SetRef(hud, "mode", mode);
 
         GameObject soundObject = PrefabUtility.InstantiatePrefab(
             AssetDatabase.LoadAssetAtPath<GameObject>(
@@ -851,6 +1048,20 @@ public static class BusDriverSceneBuilder {
         dim.raycastTarget = false;
         Label("PauseText", pausePanel, "PAUSED\n<size=36>ESC  resume      M  main menu</size>", 80f, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1400f, 300f), Color.white);
 
+        RectTransform onFootPanel = UIPanel("OnFootPanel", hudRoot);
+        GameObject crosshair = new GameObject("Crosshair", typeof(RectTransform));
+        crosshair.layer = UILayer;
+        crosshair.transform.SetParent(onFootPanel, false);
+        crosshair.GetComponent<RectTransform>().sizeDelta = new Vector2(6f, 6f);
+        Image dot = crosshair.AddComponent<Image>();
+        dot.color = new Color(1f, 1f, 1f, 0.7f);
+        dot.raycastTarget = false;
+
+        // Shared by the seat and on-foot views
+        TMP_Text prompt = Label("PromptText", hudRoot, "", 36f, TextAlignmentOptions.Bottom, new Vector2(0.5f, 0f), new Vector2(0f, 220f), new Vector2(1200f, 110f), new Color(1f, 1f, 1f, 0.9f));
+        TMP_Text status = Label("StatusText", hudRoot, "", 32f, TextAlignmentOptions.Top, new Vector2(0.5f, 1f), new Vector2(0f, -50f), new Vector2(600f, 50f), new Color(1f, 0.75f, 0.2f, 0.95f));
+
+        onFootPanel.gameObject.SetActive(false);
         cctvPanel.gameObject.SetActive(false);
         pausePanel.gameObject.SetActive(false);
 
@@ -864,6 +1075,9 @@ public static class BusDriverSceneBuilder {
         SetRef(hud, "timestampText", timestamp);
         SetRef(hud, "recText", rec);
         SetRef(hud, "scanlines", scanlines);
+        SetRef(hud, "onFootPanel", onFootPanel.gameObject);
+        SetRef(hud, "promptText", prompt);
+        SetRef(hud, "statusText", status);
         return hud;
     }
 

@@ -52,6 +52,11 @@ public class BusTuning : ScriptableObject {
     // Seconds stopped with brake held before reverse engages
     public float reverseDelay = 0.3f;
 
+    [Header("Complete stop")]
+    // m/s, low enough that the speedometer already reads 0
+    public float fullStopSpeed = 0.1f;
+    public float fullStopHold = 0.25f;
+
     [Header("Steering")]
     public float lowSpeedSteerAngle = 38f;
     public float highSpeedSteerAngle = 8f;
