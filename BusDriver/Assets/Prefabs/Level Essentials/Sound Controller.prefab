@@ -66,7 +66,7 @@ MonoBehaviour:
     source: {fileID: 0}
   - name: Wind Ambience
     clip: {fileID: 8300000, guid: 49443748d1fd4ff46aa3d85706353703, type: 3}
-    volume: 0.45
+    volume: 0.5
     pitch: 1
     spatialBlend: 0
     loop: 1
@@ -84,7 +84,7 @@ MonoBehaviour:
     source: {fileID: 0}
   - name: Bus Engine
     clip: {fileID: 8300000, guid: 5fdcd35124752354dbadece96ee266ce, type: 3}
-    volume: 0.01
+    volume: 1
     pitch: 1
     spatialBlend: 0
     loop: 1

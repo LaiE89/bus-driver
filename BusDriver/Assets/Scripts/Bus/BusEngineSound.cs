@@ -1,15 +1,14 @@
 using UnityEngine;
 
 // Drives the looping "Bus Engine" clip on SoundController from bus speed.
+// Volume stays flat (set on the Sound Controller entry); only pitch follows speed.
 public class BusEngineSound : MonoBehaviour {
     [SerializeField] BusController bus;
     [SerializeField] string soundName = "Bus Engine";
-    [SerializeField] float audibleFromKmh = 0.5f;
     [SerializeField] float fullSpeedKmh = 50f;
-    [SerializeField] float idleVolume = 0.12f;
-    [SerializeField] float maxVolumeScale = 1f;
-    [SerializeField] float minPitch = 0.75f;
-    [SerializeField] float maxPitch = 1.35f;
+    [SerializeField] float minPitch = 0.85f;
+    [SerializeField] float maxPitch = 1.25f;
+    [SerializeField] float pitchSmooth = 1.5f;
 
     AudioSource source;
     float baseVolume = 1f;
@@ -39,9 +38,8 @@ public class BusEngineSound : MonoBehaviour {
         baseVolume = source.volume;
         source.loop = true;
         source.volume = 0f;
-        if (!source.isPlaying) {
-            source.Play();
-        }
+        source.pitch = minPitch;
+        source.Stop();
     }
 
     void Update() {
@@ -62,22 +60,19 @@ public class BusEngineSound : MonoBehaviour {
             }
         }
 
-        float speed = bus.SpeedKmh;
-        float speed01 = Mathf.Clamp01(Mathf.InverseLerp(audibleFromKmh, fullSpeedKmh, speed));
-        bool moving = speed >= audibleFromKmh && !bus.IsParked;
+        bool running = !bus.IsParked && bus.SpeedKmh > 0.05f;
+        source.volume = running ? baseVolume : 0f;
 
-        float targetVol = moving
-            ? Mathf.Lerp(idleVolume, baseVolume * maxVolumeScale, speed01)
-            : 0f;
-        float targetPitch = moving
-            ? Mathf.Lerp(minPitch, maxPitch, speed01)
-            : minPitch;
+        float speed01 = Mathf.Clamp01(bus.SpeedKmh / Mathf.Max(0.01f, fullSpeedKmh));
+        float targetPitch = Mathf.Lerp(minPitch, maxPitch, speed01);
+        source.pitch = Mathf.MoveTowards(source.pitch, targetPitch, Time.deltaTime * pitchSmooth);
 
-        source.volume = Mathf.MoveTowards(source.volume, targetVol, Time.deltaTime * 2.5f);
-        source.pitch = Mathf.MoveTowards(source.pitch, targetPitch, Time.deltaTime * 1.5f);
-
-        if (moving && !source.isPlaying) {
-            source.Play();
+        if (running) {
+            if (!source.isPlaying) {
+                source.Play();
+            }
+        }else if (source.isPlaying) {
+            source.Stop();
         }
     }
 

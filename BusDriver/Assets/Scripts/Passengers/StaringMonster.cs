@@ -4,7 +4,9 @@ using UnityEngine;
 // is watching the cabin, be it the active CCTV camera, the driver, or the player on foot.
 // To remove it: delete this file, its prefab, and MonsterStopIndex in the scene builder.
 public class StaringMonster : Monster {
-    [SerializeField] float turnSpeed = 25f;
+    // Not "turnSpeed": Passenger already serializes a field with that name, and Unity
+    // rejects the same serialized name in a class and its parent
+    [SerializeField] float headTurnSpeed = 25f;
     [SerializeField] float yawLimit = 110f;
     [SerializeField] float pitchLimit = 35f;
 
@@ -20,7 +22,7 @@ public class StaringMonster : Monster {
         float yaw = Mathf.Clamp(Mathf.Atan2(toWatcher.x, toWatcher.z) * Mathf.Rad2Deg, -yawLimit, yawLimit);
         float flat = new Vector2(toWatcher.x, toWatcher.z).magnitude;
         float pitch = Mathf.Clamp(-Mathf.Atan2(toWatcher.y, flat) * Mathf.Rad2Deg, -pitchLimit, pitchLimit);
-        head.localRotation = Quaternion.RotateTowards(head.localRotation, Quaternion.Euler(pitch, yaw, 0f), turnSpeed * deltaTime);
+        head.localRotation = Quaternion.RotateTowards(head.localRotation, Quaternion.Euler(pitch, yaw, 0f), headTurnSpeed * deltaTime);
     }
 
     protected override void OnLeaving(bool kicked) {

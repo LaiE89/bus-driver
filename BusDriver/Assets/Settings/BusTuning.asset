@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: BusTuning
   m_EditorClassIdentifier: Assembly-CSharp::BusTuning
   mass: 11000
-  linearDamping: 0.03
-  angularDamping: 0.3
+  linearDamping: 0.05
+  angularDamping: 0.35
   solverIterations: 12
   wheelRadius: 0.5
   wheelMass: 120
-  wheelDampingRate: 1
+  wheelDampingRate: 1.2
   forceAppPointDistance: 0.4
   suspensionDistance: 0.3
   suspensionSpring: 200000
@@ -28,51 +28,68 @@ MonoBehaviour:
   rearForwardStiffness: 1.4
   frontSidewaysStiffness: 1.3
   rearSidewaysStiffness: 1.6
-  maxMotorTorque: 4500
+  maxMotorTorque: 5200
   torqueCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
+      value: 0.85
+      inSlope: 1.2
+      outSlope: 1.2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.2
       value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0
-      outWeight: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.5
-      value: 0.8
-      inSlope: 0
-      outSlope: 0
+      time: 0.7
+      value: 0.7
+      inSlope: -0.7
+      outSlope: -0.7
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0
-      outWeight: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
     - serializedVersion: 3
       time: 1
       value: 0.2
-      inSlope: 0
-      outSlope: 0
+      inSlope: -1.2
+      outSlope: -1.2
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0
-      outWeight: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  maxSpeedKmh: 80
-  reverseTorque: 2500
-  reverseMaxSpeedKmh: 15
-  frontBrakeTorque: 7000
-  rearBrakeTorque: 5000
-  handbrakeTorque: 15000
-  coastBrakeTorque: 150
-  autoHoldTorque: 3000
-  autoHoldSpeed: 0.3
+  maxSpeedKmh: 70
+  reverseTorque: 2400
+  reverseMaxSpeedKmh: 12
+  motorTorqueRise: 9000
+  motorTorqueFall: 7000
+  frontBrakeTorque: 4500
+  rearBrakeTorque: 3200
+  handbrakeTorque: 12000
+  coastBrakeTorque: 450
+  autoHoldTorque: 2500
+  autoHoldSpeed: 0.4
+  brakeTorqueRise: 9000
+  brakeTorqueFall: 12000
+  accelRise: 2.2
+  accelFall: 1.6
+  brakeRise: 1.4
+  brakeFall: 2.2
   standstillSpeed: 0.5
-  reverseDelay: 0.3
+  reverseDelay: 0.35
   lowSpeedSteerAngle: 38
   highSpeedSteerAngle: 8
   steerLowKmh: 5
