@@ -21,6 +21,10 @@ public class CCTVSystem : MonoBehaviour {
             return ActiveIndex < cameraLabels.Length ? cameraLabels[ActiveIndex] : "CAM " + (ActiveIndex + 1);
         }
     }
+    // Whichever camera is rendering right now
+    public Camera ActiveCamera { get { return IsViewingCCTV ? cctvCameras[ActiveIndex] : homeCamera; } }
+    // CCTV cameras plus the home view, one full cycle
+    public int ViewCount { get { return cctvCameras.Length + 1; } }
     public event Action<int> OnViewChanged;
 
     Volume cctvVolume;

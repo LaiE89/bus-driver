@@ -1,4 +1,10 @@
+using System;
 using UnityEngine;
+
+// Why the bus refuses to drive. Separate reasons so getting back in the seat can
+// never release the lock held by open doors.
+[Flags]
+public enum DriveLock { None = 0, SeatEmpty = 1, DoorsOpen = 2, Scripted = 4 }
 
 [RequireComponent(typeof(Rigidbody))]
 public class BusController : MonoBehaviour {
@@ -16,14 +22,22 @@ public class BusController : MonoBehaviour {
     public float SpeedKmh { get { return Mathf.Abs(ForwardSpeed) * 3.6f; } }
     public Gear CurrentGear { get; private set; }
     public float SteerAngle { get; private set; }
-    public bool IsParked { get; private set; }
+    public bool IsParked { get { return locks != DriveLock.None; } }
     public bool IsGrounded { get; private set; }
+    // Kinematic and ignoring input, so the player can walk around inside
+    public bool IsFrozen { get; private set; }
+    // The one definition of a complete stop, shared by the seat and the doors
+    public bool IsStopped { get { return IsFrozen || stoppedTimer >= tuning.fullStopHold; } }
 
     Rigidbody rb;
     float steerInput;
     float accelInput;
     bool handbrakeInput;
     float standstillTimer;
+    float stoppedTimer;
+    DriveLock locks;
+    Vector3 cachedInertiaTensor;
+    Quaternion cachedInertiaRotation;
     float smoothThrottle;
     float smoothBrake;
     float appliedMotor;
@@ -42,6 +56,8 @@ public class BusController : MonoBehaviour {
         ApplyTuning();
         CachePoses(frontWheels, frontLocalPos, frontLocalRot);
         CachePoses(rearWheels, rearLocalPos, rearLocalRot);
+        cachedInertiaTensor = rb.inertiaTensor;
+        cachedInertiaRotation = rb.inertiaTensorRotation;
     }
 
     public void SetInput(float steer, float accel, bool handbrake) {
@@ -50,18 +66,53 @@ public class BusController : MonoBehaviour {
         handbrakeInput = handbrake;
     }
 
-    // Full handbrake and no drive, for when the driver leaves the seat
-    public void Park(bool parked) {
-        IsParked = parked;
-        if (parked) {
+    // Full handbrake and no drive while any lock is held
+    public void SetDriveLock(DriveLock reason, bool locked) {
+        if (locked) {
+            locks |= reason;
             CurrentGear = Gear.Neutral;
             smoothThrottle = 0f;
             smoothBrake = 0f;
             appliedMotor = 0f;
+        }else {
+            locks &= ~reason;
         }
     }
 
+    // Nobody in the driver's seat
+    public void Park(bool parked) {
+        SetDriveLock(DriveLock.SeatEmpty, parked);
+    }
+
+    // The interior colliders the player walks on only exist while frozen. They must be
+    // switched off again before unfreezing, or they join the hull's compound collider.
+    public void SetFrozen(bool frozen) {
+        if (frozen == IsFrozen) {
+            return;
+        }
+        IsFrozen = frozen;
+        if (frozen) {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+            ForwardSpeed = 0f;
+            return;
+        }
+        rb.isKinematic = false;
+        if ((rb.inertiaTensor - cachedInertiaTensor).magnitude > cachedInertiaTensor.magnitude * 0.001f) {
+            Debug.LogWarning("Bus inertia tensor changed while frozen, restoring it");
+            rb.inertiaTensor = cachedInertiaTensor;
+            rb.inertiaTensorRotation = cachedInertiaRotation;
+        }
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.WakeUp();
+    }
+
     public void ResetUpright() {
+        if (IsFrozen) {
+            return;
+        }
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
         Vector3 forward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
@@ -131,8 +182,17 @@ public class BusController : MonoBehaviour {
     }
 
     void FixedUpdate() {
+        // No forces on a kinematic body
+        if (IsFrozen) {
+            return;
+        }
         ForwardSpeed = Vector3.Dot(rb.linearVelocity, transform.forward);
         float absSpeed = Mathf.Abs(ForwardSpeed);
+        if (rb.linearVelocity.magnitude < tuning.fullStopSpeed && rb.angularVelocity.magnitude < 0.05f) {
+            stoppedTimer += Time.fixedDeltaTime;
+        }else {
+            stoppedTimer = 0f;
+        }
         if (absSpeed < tuning.standstillSpeed) {
             standstillTimer += Time.fixedDeltaTime;
         }else {

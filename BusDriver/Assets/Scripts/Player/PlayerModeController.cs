@@ -15,6 +15,17 @@ public class PlayerModeController : MonoBehaviour {
     [SerializeField] DriverLook driverLook;
     [SerializeField] CCTVSystem cctv;
 
+    [Header("On foot")]
+    [SerializeField] BusController bus;
+    [SerializeField] BusCabin cabin;
+    [SerializeField] BusDoors doors;
+    [SerializeField] OnFootController onFoot;
+    [SerializeField] Camera driverCamera;
+    [SerializeField] Camera onFootCamera;
+    // The single AudioListener follows whichever body the player is in
+    [SerializeField] Transform ears;
+    [SerializeField] Transform earsSeatParent;
+
     [Header("Services")]
     public SoundController soundController;
     [SerializeField] string ambienceSound = "Wind Ambience";
@@ -27,6 +38,10 @@ public class PlayerModeController : MonoBehaviour {
 
     public PlayerMode Mode { get; private set; }
     public event Action<PlayerMode> OnModeChanged;
+    public Camera OnFootCamera { get { return onFootCamera; } }
+    // Only from a complete stop, and not while the screen is showing a CCTV feed
+    public bool CanLeaveSeat { get { return Mode == PlayerMode.Driving && bus.IsStopped && !cctv.IsViewingCCTV; } }
+    public bool CanUseDoors { get { return Mode == PlayerMode.Driving && doors.CanToggle && !cctv.IsViewingCCTV; } }
 
     void Awake() {
         if (Instance != null && Instance != this) {
@@ -67,14 +82,46 @@ public class PlayerModeController : MonoBehaviour {
         }
     }
 
+    public bool TryLeaveSeat() {
+        if (!CanLeaveSeat) {
+            return false;
+        }
+        SetMode(PlayerMode.OnFoot);
+        return true;
+    }
+
+    public bool TrySitDown() {
+        if (Mode != PlayerMode.OnFoot) {
+            return false;
+        }
+        SetMode(PlayerMode.Driving);
+        return true;
+    }
+
+    // Order matters. Going on foot: the bus is frozen before the interior colliders
+    // appear. Coming back is the exact reverse, so the colliders are gone again before
+    // the bus turns back into a dynamic body.
     public void SetMode(PlayerMode mode) {
         Mode = mode;
-        bool driving = mode == PlayerMode.Driving;
-        busInput.enabled = driving;
-        driverLook.enabled = driving;
-        cctv.enabled = driving;
-        if (!driving) {
-            Debug.LogWarning("On foot mode is not implemented yet");
+        if (mode == PlayerMode.OnFoot) {
+            busInput.enabled = false;
+            driverLook.enabled = false;
+            cctv.enabled = false;
+            bus.SetFrozen(true);
+            cabin.SetWalkable(true);
+            onFoot.Place(cabin.StandPointWorld + Vector3.up * 0.05f, bus.transform.eulerAngles.y + 180f);
+            onFoot.gameObject.SetActive(true);
+            cctv.SetHomeCamera(onFootCamera);
+            ears.SetParent(onFoot.Head, false);
+        }else {
+            ears.SetParent(earsSeatParent, false);
+            cctv.SetHomeCamera(driverCamera);
+            onFoot.gameObject.SetActive(false);
+            cabin.SetWalkable(false);
+            bus.SetFrozen(false);
+            busInput.enabled = true;
+            driverLook.enabled = true;
+            cctv.enabled = true;
         }
         OnModeChanged?.Invoke(mode);
     }
@@ -84,6 +131,15 @@ public class PlayerModeController : MonoBehaviour {
             SetPaused(!ingameMenus.pausedGame);
         }else if (ingameMenus.pausedGame && Input.GetKeyDown(menuKey)) {
             BackToMainMenu();
+        }
+        if (ingameMenus.pausedGame || Mode != PlayerMode.Driving) {
+            return;
+        }
+        // Seated there is nothing to point at, so these two don't go through the interactor
+        if (Input.GetKeyDown(GameKeys.interact)) {
+            TryLeaveSeat();
+        }else if (Input.GetKeyDown(GameKeys.doors) && CanUseDoors) {
+            doors.TryToggle();
         }
     }
 

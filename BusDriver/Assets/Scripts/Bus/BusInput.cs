@@ -5,12 +5,15 @@ public class BusInput : MonoBehaviour {
     [SerializeField] KeyCode handbrakeKey = KeyCode.LeftShift;
     [SerializeField] KeyCode resetKey = KeyCode.R;
 
+    // Something else (the smoke test) calls bus.SetInput. Parking on disable still applies.
+    public bool ExternalControl { get; set; }
+
     void OnEnable() {
         bus.Park(false);
     }
 
     void Update() {
-        if (ingameMenus.pausedGame) {
+        if (ingameMenus.pausedGame || ExternalControl) {
             return;
         }
         // Raw axes, BusController does its own steering smoothing
