@@ -97,6 +97,16 @@ public class PlayerModeController : MonoBehaviour {
         SetMode(PlayerMode.Driving);
         return true;
     }
+    public Vector3 PlayerPosition
+    {
+        get
+        {
+            if (Mode == PlayerMode.OnFoot)
+                return onFoot.transform.position;
+
+            return driverCamera.transform.position;
+        }
+    }
 
     // Order matters. Going on foot: the bus is frozen before the interior colliders
     // appear. Coming back is the exact reverse, so the colliders are gone again before

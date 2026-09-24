@@ -174,7 +174,8 @@ public static class BusDriverSceneBuilder {
     static void BuildGreyboxPrefabs() {
         passengerPrefab = BuildPassengerPrefab<Passenger>("Passenger", "Passenger");
         // Looks like everyone else on purpose, the head is the only tell
-        monsterPrefab = BuildPassengerPrefab<StaringMonster>("StaringMonster", "Passenger");
+        // monsterPrefab = BuildPassengerPrefab<StaringMonster>("StaringMonster", "Passenger");
+        monsterPrefab = BuildPassengerPrefab<WeepingAngel>("WeepingAngel", "Passenger");
     }
 
     // Root at the feet. Passenger.SetPose moves the body and head between standing and seated.
