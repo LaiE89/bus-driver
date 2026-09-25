@@ -2,8 +2,7 @@ using UnityEngine;
 
 public class WeepingAngel : Monster
 {
-    [SerializeField] float moveSpeed = 0.01f;
-    [SerializeField] float lookDistance = 30f;
+    [SerializeField] float moveSpeed = 0.2f;
 
     protected override void Tick(float deltaTime)
     {
