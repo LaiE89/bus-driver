@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -33,6 +34,8 @@ public class BusCabin : MonoBehaviour {
     public BusDoors Doors { get { return doors; } }
     public Transform PassengerRoot { get { return passengerRoot; } }
     public IReadOnlyList<Passenger> Passengers { get { return passengers; } }
+    // Route order, as laid out by the scene builder. A passenger's destination is picked from this.
+    public IReadOnlyList<BusStop> Stops { get { return stops; } }
     public bool IsWalkable { get; private set; }
     // The camera currently looking into the bus: a CCTV camera, the driver, or the player on foot
     public Camera ViewCamera { get { return cctv != null ? cctv.ActiveCamera : null; } }
@@ -171,8 +174,27 @@ public class BusCabin : MonoBehaviour {
         }
         BusStop stop = CurrentStop;
         if (stop != null) {
-            stop.BeginBoarding(this);
+            StartCoroutine(HandleArrival(stop));
         }
+    }
+
+    // Anyone whose stop this is gets off first; only once they're actually off the bus
+    // does the stop start boarding the people waiting on the kerb.
+    IEnumerator HandleArrival(BusStop stop) {
+        bool isFinalStop = stops.Length > 0 && stop == stops[stops.Length - 1];
+        List<Passenger> departing = new List<Passenger>();
+        foreach (Passenger passenger in passengers) {
+            if (passenger != null && passenger.State == PassengerState.Seated && passenger.ShouldDisembarkAt(stop, isFinalStop)) {
+                departing.Add(passenger);
+            }
+        }
+        foreach (Passenger passenger in departing) {
+            passenger.Leave();
+        }
+        while (departing.Exists(passenger => passenger != null && passenger.IsAboard)) {
+            yield return null;
+        }
+        stop.BeginBoarding(this);
     }
 
     public void Register(Passenger passenger) {
