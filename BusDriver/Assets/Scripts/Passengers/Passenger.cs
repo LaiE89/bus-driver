@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum PassengerState { Waiting, Boarding, Seated, Leaving, Gone }
@@ -24,6 +25,8 @@ public class Passenger : MonoBehaviour, IInteractable {
     public bool IsAboard { get; private set; }
     public bool WasKicked { get; private set; }
     public string DisplayName { get { return displayName; } }
+    // The stop this passenger will get off at on their own. Null means they never leave by themselves.
+    public BusStop DestinationStop { get; private set; }
 
     BusStop homeStop;
     Vector3 waitPosition;
@@ -46,6 +49,29 @@ public class Passenger : MonoBehaviour, IInteractable {
 
     // Which seat to head for. A quirk could be "always sits right behind the driver".
     protected virtual BusSeat ChooseSeat(BusCabin cabin) { return cabin.FindFreeSeat(); }
+    // Which stop to get off at by themselves, given where they boarded (null if boarding
+    // cold, e.g. already seated when the scene starts). Null means they ride until kicked.
+    // Monsters override this to stay put instead of hopping off automatically.
+    protected virtual BusStop ChooseDestination(BusCabin cabin, BusStop boardingStop) {
+        IReadOnlyList<BusStop> stops = cabin.Stops;
+        int boardingIndex = -1;
+        for (int i = 0; i < stops.Count; i++) {
+            if (stops[i] == boardingStop) {
+                boardingIndex = i;
+                break;
+            }
+        }
+        List<BusStop> candidates = new List<BusStop>();
+        for (int i = boardingIndex + 1; i < stops.Count; i++) {
+            if (stops[i] != null) {
+                candidates.Add(stops[i]);
+            }
+        }
+        if (candidates.Count == 0) {
+            return null;
+        }
+        return candidates[UnityEngine.Random.Range(0, candidates.Count)];
+    }
     // Through the door and standing in the aisle
     protected virtual void OnBoarded() { }
     protected virtual void OnSeated() { }
@@ -61,6 +87,13 @@ public class Passenger : MonoBehaviour, IInteractable {
 
     public virtual string Prompt { get { return "Kick out"; } }
     public virtual bool CanInteract { get { return State == PassengerState.Seated; } }
+
+    // Whether this passenger should get off by themselves once the doors open at this stop.
+    // isFinalStop covers a rider whose own stop got skipped (doors never opened there): by the
+    // last stop everyone with a destination gets off regardless, so nobody normal is left aboard.
+    public virtual bool ShouldDisembarkAt(BusStop stop, bool isFinalStop) {
+        return DestinationStop != null && (DestinationStop == stop || isFinalStop);
+    }
 
     public void Interact() {
         Kick();
@@ -89,6 +122,7 @@ public class Passenger : MonoBehaviour, IInteractable {
         Cabin = cabin;
         Seat = seat;
         homeStop = stop;
+        DestinationStop = ChooseDestination(cabin, stop);
         waitPosition = transform.position;
         waitRotation = transform.rotation;
         abortRequested = false;
@@ -105,6 +139,7 @@ public class Passenger : MonoBehaviour, IInteractable {
         Cabin = cabin;
         Seat = seat;
         IsAboard = true;
+        DestinationStop = ChooseDestination(cabin, null);
         cabin.Register(this);
         transform.SetParent(cabin.PassengerRoot, true);
         transform.localPosition = cabin.SeatLocal(seat);
@@ -184,6 +219,7 @@ public class Passenger : MonoBehaviour, IInteractable {
     IEnumerator ReturnToStop() {
         Seat.Release(this);
         Seat = null;
+        DestinationStop = null;
         yield return WalkWorld(() => waitPosition, null);
         transform.rotation = waitRotation;
         State = PassengerState.Waiting;
