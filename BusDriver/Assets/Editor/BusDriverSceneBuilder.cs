@@ -540,8 +540,8 @@ public static class BusDriverSceneBuilder {
         Transform stops = Group("Bus Stops", environment).transform;
         busStops = new List<BusStop>();
         // The first one is a short roll from the spawn point so boarding is quick to test
-        float[] distances = { 60f, 420f, 640f };
-        int[] waitingCounts = { 3, 2, 2 };
+        float[] distances = { 60f, 200f, 420f, 530f, 640f };
+        int[] waitingCounts = { 3, 1, 2, 1, 2 };
         for (int stopIndex = 0; stopIndex < distances.Length; stopIndex++) {
             RoadSample sample = SampleAt(distances[stopIndex]);
             Transform stop = Group("Bus Stop", stops).transform;
@@ -738,10 +738,6 @@ public static class BusDriverSceneBuilder {
 
         Transform passengerRoot = Group("Passengers", root).transform;
         Vector3[] riders = {
-            new Vector3(-1f, seatTop, 1.8f),
-            new Vector3(0.6f, seatTop, -0.2f),
-            new Vector3(-0.6f, seatTop, -2.2f),
-            new Vector3(1f, seatTop, -3.2f)
         };
         List<Object> initial = new List<Object>();
         foreach (Vector3 rider in riders) {
