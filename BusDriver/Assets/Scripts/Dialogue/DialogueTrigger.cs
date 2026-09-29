@@ -15,16 +15,16 @@ public class DialogueTrigger : MonoBehaviour {
     }
 
     public void TriggerDialogue() {
-        if (PlayerModeController.Instance == null) {
-            Debug.LogWarning("DialogueTrigger needs a PlayerModeController in the scene");
+        if (SceneController.Instance == null) {
+            Debug.LogWarning("DialogueTrigger needs a SceneController in the scene");
             return;
         }
         if (dialogue.isObjective) {
-            if (PlayerModeController.Instance.objectivesController != null) {
-                PlayerModeController.Instance.objectivesController.StartDialogue(dialogue);
+            if (SceneController.Instance.objectivesController != null) {
+                SceneController.Instance.objectivesController.StartDialogue(dialogue);
             }
-        }else if (PlayerModeController.Instance.dialogueController != null) {
-            PlayerModeController.Instance.dialogueController.StartDialogue(dialogue);
+        }else if (SceneController.Instance.dialogueController != null) {
+            SceneController.Instance.dialogueController.StartDialogue(dialogue);
         }
     }
 }

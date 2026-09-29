@@ -6,6 +6,11 @@ using UnityEngine;
 // when the bus door (not just its nose) is lined up with the stop and the doors open.
 public class BusStop : MonoBehaviour {
     [SerializeField] List<Passenger> waiting = new List<Passenger>();
+    [Header("Spawning")]
+    [SerializeField] int spawnCount = 2;
+    [SerializeField] Vector3 firstWaitLocal = new Vector3(5.2f, 0f, -1.2f);
+    [SerializeField] Vector3 waitLocalStep = new Vector3(0.3f, 0f, 1.2f);
+
     [Header("Zone the bus door has to be in, stop-local")]
     [SerializeField] float zoneMinX = 1.8f;
     [SerializeField] float zoneMaxX = 4.4f;
@@ -13,6 +18,11 @@ public class BusStop : MonoBehaviour {
     [SerializeField] float boardInterval = 1.2f;
 
     public int WaitingCount { get { return waiting.Count; } }
+    public int SpawnCount { get { return Mathf.Max(0, spawnCount); } }
+
+    public Vector3 WaitLocalPosition(int slot) {
+        return firstWaitLocal + waitLocalStep * slot;
+    }
 
     Coroutine boarding;
 

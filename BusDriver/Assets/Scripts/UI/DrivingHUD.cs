@@ -5,7 +5,7 @@ using TMPro;
 public class DrivingHUD : MonoBehaviour {
     [SerializeField] BusController bus;
     [SerializeField] CCTVSystem cctv;
-    [SerializeField] PlayerModeController mode;
+    [SerializeField] SceneController mode;
     [SerializeField] PlayerInteractor interactor;
     [SerializeField] BusDoors doors;
     [SerializeField] BusCabin cabin;
@@ -59,7 +59,15 @@ public class DrivingHUD : MonoBehaviour {
     }
 
     void Start() {
-        controlsText.text = $"W/S DRIVE   A/D STEER   SHIFT HANDBRAKE   {ControlsMenu.switchCameraKey.ToString().ToUpper()} CAMERAS   {GameKeys.doors} DOORS   {GameKeys.interact} LEAVE SEAT";
+        RefreshControlsHint();
+    }
+
+    public void RefreshControlsHint() {
+        if (controlsText == null) {
+            return;
+        }
+        controlsText.text =
+            $"W/S DRIVE   A/D STEER   {GameKeys.Label(GameKeys.handbrake)} HANDBRAKE   {GameKeys.Label(ControlsMenu.switchCameraKey)} CAMERAS   {GameKeys.Label(GameKeys.doors)} DOORS   {GameKeys.Label(GameKeys.leaveSeat)} LEAVE SEAT";
     }
 
     void HandleViewChanged(int index) {
@@ -72,7 +80,6 @@ public class DrivingHUD : MonoBehaviour {
     }
 
     void Update() {
-        pausePanel.SetActive(ingameMenus.pausedGame);
         clock += Time.deltaTime;
         promptText.text = BuildPrompt();
         statusText.text = doors.IsClosed ? "" : "DOORS OPEN";
@@ -97,20 +104,21 @@ public class DrivingHUD : MonoBehaviour {
             return "";
         }
         if (mode.Mode == PlayerMode.OnFoot) {
-            string prompt = interactor.CurrentPrompt;
-            return prompt == "" ? "" : $"{GameKeys.interact}   {prompt}";
+            string prompt = interactor != null ? interactor.CurrentPrompt : "";
+            return prompt == "" ? "" : $"{GameKeys.Label(GameKeys.interact)}   {prompt}";
         }
         string text = "";
         if (mode.CanLeaveSeat) {
-            text = $"{GameKeys.interact}   Leave seat";
+            text = $"{GameKeys.Label(GameKeys.leaveSeat)}   Leave seat";
         }
         if (mode.CanUseDoors) {
             string doorLine;
             if (doors.IsOpenWanted) {
-                doorLine = $"{GameKeys.doors}   Close doors";
+                doorLine = $"{GameKeys.Label(GameKeys.doors)}   Close doors";
             }else {
-                BusStop stop = cabin.CurrentStop;
-                doorLine = $"{GameKeys.doors}   Open doors" + (stop != null && stop.WaitingCount > 0 ? $"   ({stop.WaitingCount} waiting)" : "");
+                BusStop stop = cabin != null ? cabin.CurrentStop : null;
+                doorLine = $"{GameKeys.Label(GameKeys.doors)}   Open doors"
+                    + (stop != null && stop.WaitingCount > 0 ? $"   ({stop.WaitingCount} waiting)" : "");
             }
             text = text == "" ? doorLine : text + "\n" + doorLine;
         }

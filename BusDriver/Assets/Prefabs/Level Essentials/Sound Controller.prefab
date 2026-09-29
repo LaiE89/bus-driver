@@ -75,16 +75,7 @@ MonoBehaviour:
     source: {fileID: 0}
   - name: Bus Engine
     clip: {fileID: 8300000, guid: 5fdcd35124752354dbadece96ee266ce, type: 3}
-    volume: 0.01
-    pitch: 1
-    spatialBlend: 0
-    loop: 1
-    music: 0
-    group: {fileID: 24300002, guid: f47922c61f176ea40b87b83231abdcde, type: 2}
-    source: {fileID: 0}
-  - name: Bus Engine
-    clip: {fileID: 8300000, guid: 5fdcd35124752354dbadece96ee266ce, type: 3}
-    volume: 1
+    volume: 0.05
     pitch: 1
     spatialBlend: 0
     loop: 1
@@ -96,7 +87,25 @@ MonoBehaviour:
     volume: 1
     pitch: 1
     spatialBlend: 0
-    loop: 1
+    loop: 0
+    music: 0
+    group: {fileID: 24300002, guid: f47922c61f176ea40b87b83231abdcde, type: 2}
+    source: {fileID: 0}
+  - name: Brake
+    clip: {fileID: 8300000, guid: ba1b879ee15dd4a4490449118052c23e, type: 3}
+    volume: 0.1
+    pitch: 1
+    spatialBlend: 0
+    loop: 0
+    music: 0
+    group: {fileID: 24300002, guid: f47922c61f176ea40b87b83231abdcde, type: 2}
+    source: {fileID: 0}
+  - name: Camera
+    clip: {fileID: 8300000, guid: 3fe39c3383d0c7841872e9d76569f485, type: 3}
+    volume: 1
+    pitch: 1
+    spatialBlend: 0
+    loop: 0
     music: 0
     group: {fileID: 24300002, guid: f47922c61f176ea40b87b83231abdcde, type: 2}
     source: {fileID: 0}

@@ -12,11 +12,19 @@ public class CrashDetector : MonoBehaviour {
     // deltaV, isMajor, collision
     public event Action<float, bool, Collision> OnCrash;
 
+    // Speed before the physics response for this frame's collisions (km/h)
+    public float PreCollisionSpeedKmh { get; private set; }
+
     Rigidbody rb;
     float lastCrashTime = -999f;
 
     void Awake() {
         rb = GetComponent<Rigidbody>();
+    }
+
+    void FixedUpdate() {
+        // FixedUpdate runs before the physics step, so this is pre-impact speed
+        PreCollisionSpeedKmh = Mathf.Abs(Vector3.Dot(rb.linearVelocity, transform.forward)) * 3.6f;
     }
 
     void OnCollisionEnter(Collision collision) {

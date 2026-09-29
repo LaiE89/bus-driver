@@ -1,12 +1,5 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
-using System;
 using System.Runtime.Serialization;
-using System.Xml.Linq;
-using System.Text;
 
 [DataContract]
 public class OptionsData {
@@ -27,8 +20,16 @@ public class OptionsData {
     public int targetFPSIndex;
     [DataMember]
     public KeyCode switchCameraKey;
-    
-    public OptionsData () {
+    [DataMember]
+    public KeyCode handbrakeKey;
+    [DataMember]
+    public KeyCode doorsKey;
+    [DataMember]
+    public KeyCode leaveSeatKey;
+    [DataMember]
+    public KeyCode interactKey;
+
+    public OptionsData() {
         sens = OptionsMenu.sens;
         qualityIndex = OptionsMenu.qualityIndex;
         volume = OptionsMenu.volume;
@@ -37,5 +38,9 @@ public class OptionsData {
         brightness = OptionsMenu.brightness;
         targetFPSIndex = OptionsMenu.targetFPSIndex;
         switchCameraKey = ControlsMenu.switchCameraKey;
+        handbrakeKey = GameKeys.handbrake;
+        doorsKey = GameKeys.doors;
+        leaveSeatKey = GameKeys.leaveSeat;
+        interactKey = GameKeys.interact;
     }
 }

@@ -26,8 +26,8 @@ public class OptionsMenu : MonoBehaviour {
     [SerializeField] TMP_Dropdown targetFPSDropdown;
 
     private void Awake() {
-        if (PlayerModeController.Instance != null) {
-            soundController = PlayerModeController.Instance.soundController;
+        if (SceneController.Instance != null) {
+            soundController = SceneController.Instance.soundController;
         }else {
             soundController = MainMenu.soundController;
         }
@@ -45,7 +45,8 @@ public class OptionsMenu : MonoBehaviour {
         List<string> options = new List<string>();
         int currentResolutionIndex = 0;
         for (int i = 0; i < resolutions.Length; i++) {
-            string option = resolutions[i].width + " x " + resolutions[i].height + " " + resolutions[i].refreshRate + "Hz";
+            string option = resolutions[i].width + " x " + resolutions[i].height + " "
+                + Mathf.RoundToInt((float)resolutions[i].refreshRateRatio.value) + "Hz";
             options.Add(option);
 
             if (resolutions[i].width == Screen.currentResolution.width && resolutions[i].height == Screen.currentResolution.height) {
@@ -160,10 +161,22 @@ public class OptionsMenu : MonoBehaviour {
             targetFPSIndex = settings.targetFPSIndex;
             targetFPSDropdown.value = settings.targetFPSIndex;
 
-            // Settings files written before the camera key existed read back as None
+            // Settings files written before a key existed read back as None
             ControlsMenu.switchCameraKey = settings.switchCameraKey == KeyCode.None
                 ? ControlsMenu.defaultSwitchCameraKey
                 : settings.switchCameraKey;
+            GameKeys.handbrake = settings.handbrakeKey == KeyCode.None
+                ? GameKeys.defaultHandbrake
+                : settings.handbrakeKey;
+            GameKeys.doors = settings.doorsKey == KeyCode.None
+                ? GameKeys.defaultDoors
+                : settings.doorsKey;
+            GameKeys.leaveSeat = settings.leaveSeatKey == KeyCode.None
+                ? GameKeys.defaultLeaveSeat
+                : settings.leaveSeatKey;
+            GameKeys.interact = settings.interactKey == KeyCode.None
+                ? GameKeys.defaultInteract
+                : settings.interactKey;
 
         }else {
             sens = 60;
@@ -188,6 +201,7 @@ public class OptionsMenu : MonoBehaviour {
             targetFPSDropdown.value = 3;
 
             ControlsMenu.switchCameraKey = ControlsMenu.defaultSwitchCameraKey;
+            GameKeys.ResetDefaults();
         }
         AdjustSensitivity(sens);
         ChangeQuality(qualityIndex);

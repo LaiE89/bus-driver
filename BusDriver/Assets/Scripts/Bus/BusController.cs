@@ -23,6 +23,7 @@ public class BusController : MonoBehaviour {
     public Gear CurrentGear { get; private set; }
     public float SteerAngle { get; private set; }
     public bool IsParked { get { return locks != DriveLock.None; } }
+    public bool IsHandbrake { get { return handbrakeInput; } }
     public bool IsGrounded { get; private set; }
     // Kinematic and ignoring input, so the player can walk around inside
     public bool IsFrozen { get; private set; }
