@@ -77,6 +77,25 @@ public class Passenger : MonoBehaviour, IInteractable {
 
     // -------------------------------------------------------------- API
 
+    // Reset a pooled passenger so they can wait at a stop again.
+    public void PrepareForWaiting(BusStop stop, Vector3 position, Quaternion rotation) {
+        StopAllCoroutines();
+        Cabin = null;
+        Seat = null;
+        IsAboard = false;
+        WasKicked = false;
+        abortRequested = false;
+        homeStop = stop;
+        waitPosition = position;
+        waitRotation = rotation;
+        transform.SetParent(stop != null ? stop.transform : null, true);
+        transform.SetPositionAndRotation(position, rotation);
+        State = PassengerState.Waiting;
+        SetPose(false);
+        RefreshInteractable();
+        gameObject.SetActive(true);
+    }
+
     // Walk from a stop onto the bus. False when there is no free seat.
     public bool Board(BusCabin cabin, BusStop stop) {
         if (State != PassengerState.Waiting) {
@@ -226,7 +245,11 @@ public class Passenger : MonoBehaviour, IInteractable {
 
         yield return WalkWorld(() => away, null);
         State = PassengerState.Gone;
-        Destroy(gameObject);
+        if (SceneController.Instance != null) {
+            SceneController.Instance.DespawnNpc(this);
+        }else {
+            Destroy(gameObject);
+        }
     }
 
     IEnumerator WalkWorld(Func<Vector3> target, Func<bool> cancel) {
@@ -287,6 +310,16 @@ public class Passenger : MonoBehaviour, IInteractable {
         if (head != null) {
             head.localPosition = new Vector3(0f, seated ? 0.94f : 1.62f, 0f);
         }
+    }
+
+    // Stand up and free the seat so the angel (or similar) can walk the aisle.
+    protected void VacateSeat() {
+        if (Seat != null) {
+            Seat.Release(this);
+            Seat = null;
+        }
+        SetPose(false);
+        RefreshInteractable();
     }
 
     protected virtual void OnDestroy() {

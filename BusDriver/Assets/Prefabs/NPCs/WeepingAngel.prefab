@@ -66,7 +66,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: eb6839214f5b34fa19e1cf4d314dfc16, type: 2}
+  - {fileID: 2100000, guid: f1de6d2d8cc272c49a99dc8e93c86efd, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -236,8 +236,11 @@ MonoBehaviour:
   exitWalkDistance: 2.5
   sitTime: 0.4
   displayName: Passenger
-  moveSpeed: 0.5
-  lookDistance: 30
+  moveSpeed: 0.2
+  aisleReach: 0.08
+  stopDistance: 0.35
+  minHuntDelay: 5
+  maxHuntDelay: 10
 --- !u!136 &964023720703617621
 CapsuleCollider:
   m_ObjectHideFlags: 0

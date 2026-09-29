@@ -1,7 +1,7 @@
 using UnityEngine;
 
-// Drives the looping "Bus Engine" clip on SoundController from bus speed.
-// Volume stays flat (set on the Sound Controller entry); only pitch follows speed.
+// Drives the looping "Bus Engine" clip from bus speed, and plays "Brake" once
+// when a handbrake stop reaches ~0 speed.
 public class BusEngineSound : MonoBehaviour {
     [SerializeField] BusController bus;
     [SerializeField] string soundName = "Bus Engine";
@@ -10,17 +10,24 @@ public class BusEngineSound : MonoBehaviour {
     [SerializeField] float maxPitch = 1.25f;
     [SerializeField] float pitchSmooth = 1.5f;
 
+    [Header("Handbrake cue")]
+    [SerializeField] string brakeSound = "Brake";
+    [Tooltip("Treat the bus as stopped at or below this speed")]
+    [SerializeField] float stoppedKmh = 0.15f;
+
+    SoundController sounds;
     AudioSource source;
     float baseVolume = 1f;
     bool wasPaused;
+    bool brakePlayed;
+    bool handbrakeUsedWhileMoving;
 
     void Start() {
         if (bus == null) {
             bus = GetComponent<BusController>();
         }
-        SoundController sounds = null;
-        if (PlayerModeController.Instance != null) {
-            sounds = PlayerModeController.Instance.soundController;
+        if (SceneController.Instance != null) {
+            sounds = SceneController.Instance.soundController;
         }
         if (sounds == null) {
             sounds = FindAnyObjectByType<SoundController>();
@@ -60,10 +67,13 @@ public class BusEngineSound : MonoBehaviour {
             }
         }
 
-        bool running = !bus.IsParked && bus.SpeedKmh > 0.05f;
+        float speed = bus.SpeedKmh;
+        UpdateBrakeCue(speed);
+
+        bool running = !bus.IsParked && speed > 0.05f;
         source.volume = running ? baseVolume : 0f;
 
-        float speed01 = Mathf.Clamp01(bus.SpeedKmh / Mathf.Max(0.01f, fullSpeedKmh));
+        float speed01 = Mathf.Clamp01(speed / Mathf.Max(0.01f, fullSpeedKmh));
         float targetPitch = Mathf.Lerp(minPitch, maxPitch, speed01);
         source.pitch = Mathf.MoveTowards(source.pitch, targetPitch, Time.deltaTime * pitchSmooth);
 
@@ -73,6 +83,27 @@ public class BusEngineSound : MonoBehaviour {
             }
         }else if (source.isPlaying) {
             source.Stop();
+        }
+    }
+
+    void UpdateBrakeCue(float speedKmh) {
+        if (sounds == null || string.IsNullOrEmpty(brakeSound) || bus.IsFrozen) {
+            return;
+        }
+
+        if (speedKmh > stoppedKmh) {
+            brakePlayed = false;
+            if (bus.IsHandbrake) {
+                handbrakeUsedWhileMoving = true;
+            }
+            return;
+        }
+
+        // Speed is ~0: play once if the handbrake was used during this stop
+        if (!brakePlayed && handbrakeUsedWhileMoving) {
+            sounds.PlayOneShot(brakeSound);
+            brakePlayed = true;
+            handbrakeUsedWhileMoving = false;
         }
     }
 

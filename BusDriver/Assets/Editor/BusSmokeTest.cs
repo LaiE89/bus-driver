@@ -34,12 +34,12 @@ public static class BusSmokeTest {
     static bool midCaptureDone;
 
     // Passenger phases
-    static PlayerModeController mode;
+    static SceneController mode;
     static BusCabin cabin;
     static BusDoors doors;
     static OnFootController onFoot;
     static BusStop stop;
-    static StaringMonster monster;
+    static WeepingAngel monster;
     static float phaseStart;
     static bool stepDone;
     static bool stepDone2;
@@ -109,7 +109,7 @@ public static class BusSmokeTest {
 
     static void Step() {
         if (bus == null) {
-            // Let PlayerModeController.Start run before taking the controls away from it
+            // Let SceneController.Start run before taking the controls away from it
             if (Time.timeSinceLevelLoad < 0.3f) {
                 return;
             }
@@ -119,10 +119,10 @@ public static class BusSmokeTest {
             // The mode controller stays live so seat and door transitions run the real code.
             // Only the keyboard is taken away from the bus.
             bus.GetComponent<BusInput>().ExternalControl = true;
-            mode = UnityEngine.Object.FindAnyObjectByType<PlayerModeController>();
+            mode = UnityEngine.Object.FindAnyObjectByType<SceneController>();
             cabin = bus.GetComponent<BusCabin>();
             doors = bus.GetComponent<BusDoors>();
-            monster = UnityEngine.Object.FindAnyObjectByType<StaringMonster>();
+            monster = UnityEngine.Object.FindAnyObjectByType<WeepingAngel>();
             foreach (BusStop candidate in UnityEngine.Object.FindObjectsByType<BusStop>()) {
                 if (stop == null || candidate.WaitingCount > stop.WaitingCount) {
                     stop = candidate;
@@ -319,15 +319,11 @@ public static class BusSmokeTest {
                 }
                 break;
 
-            case 9: // the test monster stares at the active camera
+            case 9: // monster is aboard while CCTV is active
                 bus.SetInput(0f, 0f, false);
-                if (pt >= 5f) {
-                    Transform head = monster.transform.Find("Head");
-                    Camera watcher = cctv.ActiveCamera;
-                    float angle = Vector3.Angle(head.forward, watcher.transform.position - head.position);
-                    Log($"monster head is {angle:F1} deg off '{watcher.name}'");
-                    Check(angle < 15f, "monster is not staring at the active camera");
-                    Capture("5_cctv_monster_staring", watcher);
+                if (pt >= 2f) {
+                    Check(monster != null && monster.IsAboard, "test monster is not aboard under CCTV");
+                    Capture("5_cctv_monster", cctv.ActiveCamera);
                     cctv.ShowHome();
                     Check(doors.TryClose(), "doors refused to close");
                     Next();

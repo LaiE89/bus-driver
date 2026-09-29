@@ -21,9 +21,6 @@ public static class BusDriverSceneBuilder {
     const string TuningPath = "Assets/Settings/BusTuning.asset";
     // Regenerated on every build. Real art should live somewhere else.
     const string PrefabFolder = "Assets/Prefabs/Greybox";
-    // Where the test monster waits. Remove these two with StaringMonster.
-    const int MonsterStopIndex = 0;
-    const int MonsterSlot = 1;
     const int UILayer = 5;
 
     // Road
@@ -299,6 +296,36 @@ public static class BusDriverSceneBuilder {
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
+    static void SetInt(Object target, string prop, int value) {
+        SerializedObject so = new SerializedObject(target);
+        SerializedProperty property = FindProp(so, prop);
+        if (property == null) {
+            return;
+        }
+        property.intValue = value;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    static void SetFloat(Object target, string prop, float value) {
+        SerializedObject so = new SerializedObject(target);
+        SerializedProperty property = FindProp(so, prop);
+        if (property == null) {
+            return;
+        }
+        property.floatValue = value;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    static void SetBool(Object target, string prop, bool value) {
+        SerializedObject so = new SerializedObject(target);
+        SerializedProperty property = FindProp(so, prop);
+        if (property == null) {
+            return;
+        }
+        property.boolValue = value;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
     static void SetVector(Object target, string prop, Vector3 value) {
         SerializedObject so = new SerializedObject(target);
         SerializedProperty property = FindProp(so, prop);
@@ -556,16 +583,11 @@ public static class BusDriverSceneBuilder {
             Box("Shelter Roof", stop, new Vector3(edge + 1.9f, 2.45f, 0f), new Vector3(1.6f, 0.1f, 4f), "Wall").isStatic = true;
             StreetLamp(stop, stop.TransformPoint(new Vector3(edge + 1.2f, 0f, -4f)), -Right(sample.heading));
 
-            // Waiting in front of the shelter, facing the road
+            // Waiting NPCs are spawned at runtime by SceneController via ObjectPooling
             BusStop busStop = stop.gameObject.AddComponent<BusStop>();
-            List<Object> waiting = new List<Object>();
-            for (int slot = 0; slot < waitingCounts[stopIndex]; slot++) {
-                bool monster = stopIndex == MonsterStopIndex && slot == MonsterSlot;
-                Vector3 spot = new Vector3(edge + 1.2f + 0.3f * slot, 0f, -1.2f + 1.2f * slot);
-                GameObject waiter = SpawnPassenger(monster ? monsterPrefab : passengerPrefab, monster ? "Staring Monster" : "Passenger", stop, spot, Quaternion.Euler(0f, -90f, 0f));
-                waiting.Add(waiter.GetComponent<Passenger>());
-            }
-            SetRefArray(busStop, "waiting", waiting.ToArray());
+            SetInt(busStop, "spawnCount", waitingCounts[stopIndex]);
+            SetVector(busStop, "firstWaitLocal", new Vector3(edge + 1.2f, 0f, -1.2f));
+            SetVector(busStop, "waitLocalStep", new Vector3(0.3f, 0f, 1.2f));
             busStops.Add(busStop);
         }
     }
@@ -932,15 +954,14 @@ public static class BusDriverSceneBuilder {
         driverCamera.tag = "MainCamera";
 
         // The only AudioListener. Never on a camera, so switching views can't leave zero or two.
-        // PlayerModeController moves it to the on-foot head and back.
+        // SceneController moves it to the on-foot head and back.
         Transform ears = Group("Driver Ears", anchor).transform;
         ears.gameObject.AddComponent<AudioListener>();
 
         GameObject cctvObject = Group("CCTV", root);
         Camera[] cctvCameras = {
             CreateCamera("CAM 1 Front", cctvObject.transform, new Vector3(0.3f, 3.2f, 5.3f), new Vector3(22f, 180f, 0f), 95f),
-            CreateCamera("CAM 2 Mid", cctvObject.transform, new Vector3(0f, 3.2f, 0.5f), new Vector3(28f, 180f, 0f), 95f),
-            CreateCamera("CAM 3 Rear", cctvObject.transform, new Vector3(0f, 3.2f, -5.7f), new Vector3(22f, 0f, 0f), 95f)
+            CreateCamera("CAM 2 Rear", cctvObject.transform, new Vector3(0f, 3.2f, -5.7f), new Vector3(22f, 0f, 0f), 95f)
         };
         foreach (Camera cam in cctvCameras) {
             cam.enabled = false;
@@ -948,7 +969,7 @@ public static class BusDriverSceneBuilder {
         CCTVSystem cctv = cctvObject.AddComponent<CCTVSystem>();
         SetRef(cctv, "homeCamera", driverCamera);
         SetRefArray(cctv, "cctvCameras", cctvCameras);
-        SetStringArray(cctv, "cameraLabels", new[] { "CAM 1  FRONT", "CAM 2  MID", "CAM 3  REAR" });
+        SetStringArray(cctv, "cameraLabels", new[] { "CAM 1  FRONT", "CAM 2  REAR" });
         SetRef(look, "cctv", cctv);
 
         BusCabin cabin = bus.GetComponent<BusCabin>();
@@ -983,7 +1004,13 @@ public static class BusDriverSceneBuilder {
         SetRef(hud, "bus", bus.GetComponent<BusController>());
         SetRef(hud, "cctv", cctv);
 
-        PlayerModeController mode = new GameObject("Game Systems").AddComponent<PlayerModeController>();
+        GameObject systems = new GameObject("Game Systems");
+        SceneController mode = systems.AddComponent<SceneController>();
+        ObjectPooling npcPool = systems.AddComponent<ObjectPooling>();
+        ConfigureNpcPools(npcPool, passengerPrefab, monsterPrefab);
+        ConfigureSpawnableNpcs(mode);
+        SetRef(mode, "npcPool", npcPool);
+        SetBool(mode, "populateStopsOnStart", true);
         SetRef(mode, "busInput", bus.GetComponent<BusInput>());
         SetRef(mode, "driverLook", look);
         SetRef(mode, "cctv", cctv);
@@ -1004,6 +1031,42 @@ public static class BusDriverSceneBuilder {
             soundObject.name = "Sound Controller";
             SetRef(mode, "soundController", soundObject.GetComponent<SoundController>());
         }
+    }
+
+    static void ConfigureNpcPools(ObjectPooling pooling, GameObject passenger, GameObject monster) {
+        SerializedObject so = new SerializedObject(pooling);
+        SerializedProperty pools = FindProp(so, "pools");
+        if (pools == null) {
+            return;
+        }
+        pools.arraySize = 2;
+        SetPoolElement(pools.GetArrayElementAtIndex(0), "Passenger", passenger, 16);
+        SetPoolElement(pools.GetArrayElementAtIndex(1), "WeepingAngel", monster, 4);
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    static void SetPoolElement(SerializedProperty element, string id, GameObject prefab, int prewarm) {
+        element.FindPropertyRelative("id").stringValue = id;
+        element.FindPropertyRelative("prefab").objectReferenceValue = prefab;
+        element.FindPropertyRelative("prewarm").intValue = prewarm;
+    }
+
+    static void ConfigureSpawnableNpcs(SceneController controller) {
+        SerializedObject so = new SerializedObject(controller);
+        SerializedProperty list = FindProp(so, "spawnableNpcs");
+        if (list == null) {
+            return;
+        }
+        list.arraySize = 2;
+        list.GetArrayElementAtIndex(0).FindPropertyRelative("poolId").stringValue = "Passenger";
+        list.GetArrayElementAtIndex(0).FindPropertyRelative("weight").floatValue = 10f;
+        list.GetArrayElementAtIndex(1).FindPropertyRelative("poolId").stringValue = "WeepingAngel";
+        list.GetArrayElementAtIndex(1).FindPropertyRelative("weight").floatValue = 1f;
+        SerializedProperty guaranteed = FindProp(so, "guaranteedFirstNpcId");
+        if (guaranteed != null) {
+            guaranteed.stringValue = "WeepingAngel";
+        }
+        so.ApplyModifiedPropertiesWithoutUndo();
     }
 
     // Named "Canvas" with a "HUD" child so ingameMenus can adopt it later

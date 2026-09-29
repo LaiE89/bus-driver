@@ -5,7 +5,7 @@ using TMPro;
 public class DrivingHUD : MonoBehaviour {
     [SerializeField] BusController bus;
     [SerializeField] CCTVSystem cctv;
-    [SerializeField] PlayerModeController mode;
+    [SerializeField] SceneController mode;
     [SerializeField] PlayerInteractor interactor;
     [SerializeField] BusDoors doors;
     [SerializeField] BusCabin cabin;
