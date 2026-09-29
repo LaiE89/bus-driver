@@ -6,10 +6,11 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
-// Generates the greybox MVP scene (Assets/Scenes/BusRoute.unity) from primitives.
+// Generates the MVP scene (Assets/Scenes/BusRoute.unity) from primitives.
 // The scene is rebuilt from scratch on every run, so HAND EDITS TO IT ARE LOST.
 // Tune handling through Assets/Settings/BusTuning.asset, which is never overwritten,
 // and change layout numbers here.
@@ -17,10 +18,11 @@ public static class BusDriverSceneBuilder {
     public const string ScenePath = "Assets/Scenes/BusRoute.unity";
     const string MenuScenePath = "Assets/Scenes/Menu.unity";
     const string SampleScenePath = "Assets/Scenes/SampleScene.unity";
-    const string MaterialFolder = "Assets/Materials/Greybox";
+    const string MapMaterialFolder = "Assets/Materials/Map";
+    const string NpcMaterialFolder = "Assets/Materials/NPCs";
+    const string NpcPrefabFolder = "Assets/Prefabs/NPCs";
+    const string LevelPrefabFolder = "Assets/Prefabs/Level Essentials";
     const string TuningPath = "Assets/Settings/BusTuning.asset";
-    // Regenerated on every build. Real art should live somewhere else.
-    const string PrefabFolder = "Assets/Prefabs/Greybox";
     const int UILayer = 5;
 
     // Road
@@ -70,15 +72,19 @@ public static class BusDriverSceneBuilder {
             return;
         }
         EnsureFolder("Assets/Materials");
-        EnsureFolder(MaterialFolder);
+        EnsureFolder(MapMaterialFolder);
+        EnsureFolder(NpcMaterialFolder);
         EnsureFolder("Assets/Settings");
         EnsureFolder("Assets/Scenes");
         EnsureFolder("Assets/Prefabs");
-        EnsureFolder(PrefabFolder);
+        EnsureFolder(NpcPrefabFolder);
+        EnsureFolder(LevelPrefabFolder);
+        DeleteGreyboxFolders();
+        EnsurePlayerHeadLayer();
 
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         CreateMaterials();
-        BuildGreyboxPrefabs();
+        BuildNpcPrefabs();
         BusTuning tuning = GetOrCreateTuning();
 
         BuildEnvironment();
@@ -120,33 +126,84 @@ public static class BusDriverSceneBuilder {
         AssetDatabase.CreateFolder(Path.GetDirectoryName(path).Replace('\\', '/'), Path.GetFileName(path));
     }
 
-    static void CreateMaterials() {
-        mats = new Dictionary<string, Material>();
-        AddMaterial("Ground", new Color(0.07f, 0.09f, 0.07f));
-        AddMaterial("Asphalt", new Color(0.13f, 0.13f, 0.14f));
-        AddMaterial("Kerb", new Color(0.5f, 0.5f, 0.5f));
-        AddMaterial("LinePaint", new Color(0.9f, 0.9f, 0.85f), new Color(0.9f, 0.9f, 0.8f) * 0.6f);
-        AddMaterial("Post", new Color(0.15f, 0.15f, 0.15f));
-        AddMaterial("Reflector", new Color(1f, 0.6f, 0.1f), new Color(1f, 0.55f, 0.1f) * 1.5f);
-        AddMaterial("StopPad", new Color(0.8f, 0.7f, 0.1f), new Color(0.8f, 0.7f, 0.1f) * 0.5f);
-        AddMaterial("Wall", new Color(0.3f, 0.28f, 0.27f));
-        AddMaterial("Building", new Color(0.18f, 0.18f, 0.2f));
-        AddMaterial("Obstacle", new Color(0.45f, 0.3f, 0.2f));
-        AddMaterial("BusBody", new Color(0.6f, 0.58f, 0.5f));
-        AddMaterial("BusInterior", new Color(0.35f, 0.36f, 0.38f));
-        AddMaterial("Seat", new Color(0.15f, 0.2f, 0.4f));
-        AddMaterial("Dash", new Color(0.08f, 0.08f, 0.09f));
-        AddMaterial("Tyre", new Color(0.04f, 0.04f, 0.04f));
-        AddMaterial("Passenger", new Color(0.65f, 0.55f, 0.5f));
-        AddMaterial("PassengerOdd", new Color(0.25f, 0.2f, 0.22f));
-        AddMaterial("LampWhite", Color.white, new Color(1f, 0.95f, 0.8f) * 3f);
-        AddMaterial("LampRed", new Color(0.8f, 0.05f, 0.05f), new Color(1f, 0.05f, 0.05f) * 2f);
-        AddMaterial("Door", new Color(0.3f, 0.33f, 0.36f));
-        AddMaterial("Face", new Color(0.04f, 0.04f, 0.04f));
+    static void DeleteGreyboxFolders() {
+        string[] greyboxFolders = {
+            "Assets/Materials/Greybox",
+            "Assets/Prefabs/Greybox"
+        };
+        foreach (string folder in greyboxFolders) {
+            if (!AssetDatabase.IsValidFolder(folder)) {
+                continue;
+            }
+            if (!AssetDatabase.DeleteAsset(folder)) {
+                Debug.LogWarning("BusDriverSceneBuilder: failed to delete " + folder);
+            }
+        }
+        AssetDatabase.Refresh();
     }
 
-    static void AddMaterial(string name, Color baseColor, Color? emission = null) {
-        string path = MaterialFolder + "/" + name + ".mat";
+    [InitializeOnLoadMethod]
+    static void EnsureLayersOnLoad() {
+        EnsurePlayerHeadLayer();
+    }
+
+    static void EnsurePlayerHeadLayer() {
+        const string layerName = PlayerAvatarVisuals.HeadLayerName;
+        if (LayerMask.NameToLayer(layerName) >= 0) {
+            return;
+        }
+        SerializedObject tagManager = new SerializedObject(
+            AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+        SerializedProperty layers = tagManager.FindProperty("layers");
+        for (int i = 8; i < layers.arraySize; i++) {
+            SerializedProperty layer = layers.GetArrayElementAtIndex(i);
+            if (!string.IsNullOrEmpty(layer.stringValue)) {
+                continue;
+            }
+            layer.stringValue = layerName;
+            tagManager.ApplyModifiedPropertiesWithoutUndo();
+            return;
+        }
+        Debug.LogWarning("BusDriverSceneBuilder: no free user layer slot for " + layerName);
+    }
+
+    static void CreateMaterials() {
+        mats = new Dictionary<string, Material>();
+        AddMapMaterial("Ground", new Color(0.07f, 0.09f, 0.07f));
+        AddMapMaterial("Asphalt", new Color(0.13f, 0.13f, 0.14f));
+        AddMapMaterial("Kerb", new Color(0.5f, 0.5f, 0.5f));
+        AddMapMaterial("LinePaint", new Color(0.9f, 0.9f, 0.85f), new Color(0.9f, 0.9f, 0.8f) * 0.6f);
+        AddMapMaterial("Post", new Color(0.15f, 0.15f, 0.15f));
+        AddMapMaterial("Reflector", new Color(1f, 0.6f, 0.1f), new Color(1f, 0.55f, 0.1f) * 1.5f);
+        AddMapMaterial("StopPad", new Color(0.8f, 0.7f, 0.1f), new Color(0.8f, 0.7f, 0.1f) * 0.5f);
+        AddMapMaterial("Wall", new Color(0.3f, 0.28f, 0.27f));
+        AddMapMaterial("Building", new Color(0.18f, 0.18f, 0.2f));
+        AddMapMaterial("Obstacle", new Color(0.45f, 0.3f, 0.2f));
+        AddMapMaterial("BusBody", new Color(0.6f, 0.58f, 0.5f));
+        AddMapMaterial("BusInterior", new Color(0.35f, 0.36f, 0.38f));
+        AddMapMaterial("Seat", new Color(0.15f, 0.2f, 0.4f));
+        AddMapMaterial("Dash", new Color(0.08f, 0.08f, 0.09f));
+        AddMapMaterial("Tyre", new Color(0.04f, 0.04f, 0.04f));
+        AddMapMaterial("LampWhite", Color.white, new Color(1f, 0.95f, 0.8f) * 3f);
+        AddMapMaterial("LampRed", new Color(0.8f, 0.05f, 0.05f), new Color(1f, 0.05f, 0.05f) * 2f);
+        AddMapMaterial("Door", new Color(0.3f, 0.33f, 0.36f));
+
+        AddNpcMaterial("Passenger", new Color(0.65f, 0.55f, 0.5f));
+        AddNpcMaterial("PassengerOdd", new Color(0.25f, 0.2f, 0.22f));
+        AddNpcMaterial("Player", new Color(0.35f, 0.55f, 0.85f));
+        AddNpcMaterial("Face", new Color(0.04f, 0.04f, 0.04f));
+    }
+
+    static void AddMapMaterial(string name, Color baseColor, Color? emission = null) {
+        AddMaterial(MapMaterialFolder, name, baseColor, emission);
+    }
+
+    static void AddNpcMaterial(string name, Color baseColor, Color? emission = null) {
+        AddMaterial(NpcMaterialFolder, name, baseColor, emission);
+    }
+
+    static void AddMaterial(string folder, string name, Color baseColor, Color? emission = null) {
+        string path = folder + "/" + name + ".mat";
         Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
         if (mat == null) {
             Shader shader = Shader.Find("Universal Render Pipeline/Lit");
@@ -168,7 +225,7 @@ public static class BusDriverSceneBuilder {
         mats[name] = mat;
     }
 
-    static void BuildGreyboxPrefabs() {
+    static void BuildNpcPrefabs() {
         passengerPrefab = BuildPassengerPrefab<Passenger>("Passenger", "Passenger");
         // Looks like everyone else on purpose, the head is the only tell
         // monsterPrefab = BuildPassengerPrefab<StaringMonster>("StaringMonster", "Passenger");
@@ -197,7 +254,7 @@ public static class BusDriverSceneBuilder {
         SetRef(passenger, "body", body.transform);
         SetRef(passenger, "interactCollider", reach);
 
-        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabFolder + "/" + name + ".prefab");
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, NpcPrefabFolder + "/" + name + ".prefab");
         Object.DestroyImmediate(root);
         return prefab;
     }
@@ -221,7 +278,7 @@ public static class BusDriverSceneBuilder {
     }
 
     static PhysicsMaterial GetOrCreateHullPhysicsMaterial() {
-        string path = MaterialFolder + "/BusHull.asset";
+        string path = MapMaterialFolder + "/BusHull.asset";
         PhysicsMaterial material = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(path);
         if (material == null) {
             material = new PhysicsMaterial("BusHull");
@@ -723,8 +780,8 @@ public static class BusDriverSceneBuilder {
         }
     }
 
-    // Seats, the path through the door, the colliders the player walks on, and the
-    // passengers who are already riding when the shift starts
+    // Seats, the path through the door, and the colliders the player walks on.
+    // The bus starts empty; passengers board from stops at runtime.
     static BusCabin BuildCabin(GameObject bus, BusController controller) {
         Transform root = bus.transform;
         const float floorTop = HullBottom + 0.1f;
@@ -760,16 +817,6 @@ public static class BusDriverSceneBuilder {
         SetVector(doors, "openLocalPos", new Vector3(1.34f, 1.6f, doorZ - 1.4f));
 
         Transform passengerRoot = Group("Passengers", root).transform;
-        Vector3[] riders = {
-            new Vector3(-1f, seatTop, 1.8f),
-            new Vector3(0.6f, seatTop, -0.2f),
-            new Vector3(-0.6f, seatTop, -2.2f),
-            new Vector3(1f, seatTop, -3.2f)
-        };
-        List<Object> initial = new List<Object>();
-        foreach (Vector3 rider in riders) {
-            initial.Add(SpawnPassenger(passengerPrefab, "Passenger", passengerRoot, rider, Quaternion.identity).GetComponent<Passenger>());
-        }
 
         BusCabin cabin = bus.AddComponent<BusCabin>();
         SetRef(cabin, "bus", controller);
@@ -778,7 +825,7 @@ public static class BusDriverSceneBuilder {
         SetRef(cabin, "passengerRoot", passengerRoot);
         SetRef(cabin, "interiorColliders", interior);
         SetRefArray(cabin, "stops", busStops.ToArray());
-        SetRefArray(cabin, "initialPassengers", initial.ToArray());
+        SetRefArray(cabin, "initialPassengers", new Object[0]);
         SetRef(cabin, "aisleAtDoor", aisleAtDoor);
         SetRef(cabin, "doorStep", doorStep);
         SetRef(cabin, "doorOutside", doorOutside);
@@ -905,6 +952,14 @@ public static class BusDriverSceneBuilder {
         dash.shadows = LightShadows.None;
     }
 
+    // Player body under the on-foot rig. Avatar uses PlayerHead layer (hidden from FP cams).
+    // Player body under the on-foot / driver rig. Built only by the scene builder.
+    static Transform BuildPlayerAvatar(Transform rig, Transform head, bool seated) {
+        Material bodyMat = mats.ContainsKey("Player") ? mats["Player"] : null;
+        Material faceMat = mats.ContainsKey("Face") ? mats["Face"] : bodyMat;
+        return PlayerAvatarVisuals.Create(rig, head, seated, bodyMat, faceMat, !seated);
+    }
+
     static Camera CreateCamera(string name, Transform parent, Vector3 localPos, Vector3 localEuler, float fov) {
         Camera cam = Group(name, parent).AddComponent<Camera>();
         cam.transform.localPosition = localPos;
@@ -958,6 +1013,10 @@ public static class BusDriverSceneBuilder {
         Transform ears = Group("Driver Ears", anchor).transform;
         ears.gameObject.AddComponent<AudioListener>();
 
+        GameObject driverAvatarRoot = Group("DriverAvatar", anchor);
+        driverAvatarRoot.transform.localPosition = new Vector3(0f, -0.85f, -0.05f);
+        BuildPlayerAvatar(driverAvatarRoot.transform, null, true);
+
         GameObject cctvObject = Group("CCTV", root);
         Camera[] cctvCameras = {
             CreateCamera("CAM 1 Front", cctvObject.transform, new Vector3(0.3f, 3.2f, 5.3f), new Vector3(22f, 180f, 0f), 95f),
@@ -991,14 +1050,15 @@ public static class BusDriverSceneBuilder {
         Camera onFootCamera = CreateCamera("OnFootCamera", footHead, Vector3.zero, Vector3.zero, 70f);
         onFootCamera.tag = "MainCamera";
         onFootCamera.enabled = false;
-        PlayerInteractor interactor = rig.AddComponent<PlayerInteractor>();
+        Transform avatar = BuildPlayerAvatar(rig.transform, footHead, false);
         SetRef(onFoot, "head", footHead);
+        SetRef(onFoot, "avatarRoot", avatar);
         SetRefArray(onFoot, "ignoredColliders", new Object[] { bus.GetComponent<BoxCollider>() });
-        SetRef(interactor, "viewCamera", onFootCamera);
+        PlayerAvatarVisuals.HideAvatarFromCamera(onFootCamera);
+        PlayerAvatarVisuals.HideAvatarFromCamera(driverCamera);
         rig.SetActive(false);
 
         DrivingHUD hud = BuildHUD();
-        SetRef(hud, "interactor", interactor);
         SetRef(hud, "doors", bus.GetComponent<BusDoors>());
         SetRef(hud, "cabin", cabin);
         SetRef(hud, "bus", bus.GetComponent<BusController>());
@@ -1006,6 +1066,10 @@ public static class BusDriverSceneBuilder {
 
         GameObject systems = new GameObject("Game Systems");
         SceneController mode = systems.AddComponent<SceneController>();
+        PlayerInteractor interactor = systems.AddComponent<PlayerInteractor>();
+        SetRef(interactor, "onFootCamera", onFootCamera);
+        SetRef(interactor, "driverCamera", driverCamera);
+        SetRef(hud, "interactor", interactor);
         ObjectPooling npcPool = systems.AddComponent<ObjectPooling>();
         ConfigureNpcPools(npcPool, passengerPrefab, monsterPrefab);
         ConfigureSpawnableNpcs(mode);
@@ -1022,6 +1086,11 @@ public static class BusDriverSceneBuilder {
         SetRef(mode, "onFootCamera", onFootCamera);
         SetRef(mode, "ears", ears);
         SetRef(mode, "earsSeatParent", anchor);
+        SetRef(mode, "driverAvatar", driverAvatarRoot);
+        PauseMenu pauseMenu = Object.FindAnyObjectByType<PauseMenu>(FindObjectsInactive.Include);
+        if (pauseMenu != null) {
+            SetRef(mode, "pauseMenu", pauseMenu);
+        }
         SetRef(hud, "mode", mode);
 
         GameObject soundObject = PrefabUtility.InstantiatePrefab(
@@ -1108,9 +1177,46 @@ public static class BusDriverSceneBuilder {
         dimObject.transform.SetParent(pausePanel, false);
         Stretch(dimObject.GetComponent<RectTransform>());
         Image dim = dimObject.AddComponent<Image>();
-        dim.color = new Color(0f, 0f, 0f, 0.65f);
-        dim.raycastTarget = false;
-        Label("PauseText", pausePanel, "PAUSED\n<size=36>ESC  resume      M  main menu</size>", 80f, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1400f, 300f), Color.white);
+        dim.sprite = null;
+        dim.type = Image.Type.Sliced;
+        dim.color = new Color(0f, 0f, 0f, 0.392f);
+        dim.raycastTarget = true;
+
+        // Same vertical stack as Menu: Title / Start / Options / Quit
+        Label("PauseTitle", pausePanel, "PAUSED", 120f, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), new Vector2(0f, 304f), new Vector2(1220f, 200f), Color.white);
+        Button resumeButton = MenuButton("Resume Button", pausePanel, "RESUME", new Vector2(0f, 98f), 74f);
+        Button optionsButton = MenuButton("Options Button", pausePanel, "OPTIONS", new Vector2(0f, -40f), 74f);
+        Button mainMenuButton = MenuButton("Main Menu Button", pausePanel, "MAIN MENU", new Vector2(0f, -189f), 72f);
+
+        GameObject optionsRoot = InstantiateMenuPrefab(
+            "Assets/Prefabs/Level Essentials/In Canvas/Options Menu.prefab",
+            canvasObject.transform,
+            "Options Menu");
+        GameObject controlsRoot = InstantiateMenuPrefab(
+            "Assets/Prefabs/Level Essentials/In Canvas/Controls Menu.prefab",
+            canvasObject.transform,
+            "Controls Menu");
+
+        PauseMenu pauseMenu = canvasObject.AddComponent<PauseMenu>();
+        SetRef(pauseMenu, "pauseRoot", pausePanel.gameObject);
+        if (optionsRoot != null) {
+            SetRef(pauseMenu, "optionsRoot", optionsRoot);
+        }
+        if (controlsRoot != null) {
+            SetRef(pauseMenu, "controlsRoot", controlsRoot);
+        }
+        SetRef(pauseMenu, "resumeButton", resumeButton);
+        SetRef(pauseMenu, "optionsButton", optionsButton);
+        SetRef(pauseMenu, "mainMenuButton", mainMenuButton);
+
+        if (Object.FindAnyObjectByType<EventSystem>() == null) {
+            GameObject eventSystem = new GameObject("EventSystem");
+            eventSystem.AddComponent<EventSystem>();
+            eventSystem.AddComponent<StandaloneInputModule>();
+        }
+        if (canvasObject.GetComponent<GraphicRaycaster>() == null) {
+            canvasObject.AddComponent<GraphicRaycaster>();
+        }
 
         RectTransform onFootPanel = UIPanel("OnFootPanel", hudRoot);
         GameObject crosshair = new GameObject("Crosshair", typeof(RectTransform));
@@ -1143,6 +1249,55 @@ public static class BusDriverSceneBuilder {
         SetRef(hud, "promptText", prompt);
         SetRef(hud, "statusText", status);
         return hud;
+    }
+
+    static GameObject InstantiateMenuPrefab(string assetPath, Transform parent, string name) {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+        if (prefab == null) {
+            Debug.LogWarning("BusDriverSceneBuilder: missing menu prefab at " + assetPath);
+            return null;
+        }
+        GameObject instance = PrefabUtility.InstantiatePrefab(prefab, parent) as GameObject;
+        instance.name = name;
+        instance.SetActive(false);
+        return instance;
+    }
+
+    static Button MenuButton(string name, Transform parent, string label, Vector2 anchoredPos, float height) {
+        GameObject go = new GameObject(name, typeof(RectTransform));
+        go.layer = UILayer;
+        go.transform.SetParent(parent, false);
+        RectTransform rect = go.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = anchoredPos;
+        rect.sizeDelta = new Vector2(100f, height);
+
+        Image image = go.AddComponent<Image>();
+        image.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+        image.type = Image.Type.Sliced;
+        image.color = new Color(0.990566f, 0.990566f, 0.990566f, 1f);
+        Button button = go.AddComponent<Button>();
+        ColorBlock colors = button.colors;
+        colors.normalColor = new Color(1f, 1f, 1f, 0f);
+        colors.highlightedColor = new Color(0.9607843f, 0.9607843f, 0.9607843f, 0.23529412f);
+        colors.pressedColor = new Color(0.78431374f, 0.78431374f, 0.78431374f, 0.39215687f);
+        colors.selectedColor = new Color(0.9607843f, 0.9607843f, 0.9607843f, 1f);
+        colors.disabledColor = new Color(0.78431374f, 0.78431374f, 0.78431374f, 0.5019608f);
+        colors.colorMultiplier = 1f;
+        colors.fadeDuration = 0.1f;
+        button.colors = colors;
+        button.targetGraphic = image;
+        button.transition = Selectable.Transition.ColorTint;
+
+        TMP_Text labelText = Label(name + " Text", go.transform, label, 64f, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(100f, height), Color.white);
+        labelText.textWrappingMode = TextWrappingModes.NoWrap;
+        labelText.ForceMeshUpdate();
+        float width = Mathf.Ceil(labelText.GetPreferredValues(label).x);
+        rect.sizeDelta = new Vector2(width, height);
+        labelText.rectTransform.sizeDelta = new Vector2(width, height);
+        return button;
     }
 
     static RectTransform UIPanel(string name, Transform parent) {

@@ -6,6 +6,7 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class OnFootController : MonoBehaviour {
     [SerializeField] Transform head;
+    [SerializeField] Transform avatarRoot;
     // The bus hull is one solid box around the whole interior
     [SerializeField] Collider[] ignoredColliders;
     [SerializeField] float walkSpeed = 2.2f;
@@ -16,6 +17,7 @@ public class OnFootController : MonoBehaviour {
     [SerializeField] float fallbackSens = 60f;
 
     public Transform Head { get { return head; } }
+    public Transform AvatarRoot { get { return avatarRoot; } }
     // The smoke test walks the player with these instead of the keyboard
     public bool ExternalControl { get; set; }
     public Vector2 ExternalMove { get; set; }
@@ -27,6 +29,23 @@ public class OnFootController : MonoBehaviour {
 
     void Awake() {
         controller = GetComponent<CharacterController>();
+        if (head == null) {
+            Transform found = transform.Find("Head");
+            if (found != null) {
+                head = found;
+            }
+        }
+        if (avatarRoot == null) {
+            Transform found = transform.Find("Avatar");
+            if (found != null) {
+                avatarRoot = found;
+            }
+        }
+        if (avatarRoot != null) {
+            PlayerAvatarVisuals.ApplyCullLayer(avatarRoot, head);
+        }else {
+            Debug.LogWarning("OnFootController: no Avatar in the scene. Run Tools/Bus Driver/Build MVP Scene.");
+        }
     }
 
     void OnEnable() {
@@ -61,7 +80,9 @@ public class OnFootController : MonoBehaviour {
             move = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         }
         transform.rotation = Quaternion.Euler(0f, yaw, 0f);
-        head.localRotation = Quaternion.Euler(-pitch, 0f, 0f);
+        if (head != null) {
+            head.localRotation = Quaternion.Euler(-pitch, 0f, 0f);
+        }
 
         Vector3 velocity = (transform.right * move.x + transform.forward * move.y);
         velocity = Vector3.ClampMagnitude(velocity, 1f) * walkSpeed;

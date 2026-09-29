@@ -31,6 +31,8 @@ public class SceneController : MonoBehaviour {
     // The single AudioListener follows whichever body the player is in
     [SerializeField] Transform ears;
     [SerializeField] Transform earsSeatParent;
+    [Tooltip("Seated body shown while driving so CCTV can see the player")]
+    [SerializeField] GameObject driverAvatar;
 
     [Header("Services")]
     public SoundController soundController;
@@ -48,11 +50,13 @@ public class SceneController : MonoBehaviour {
 
     [Header("Input")]
     [SerializeField] KeyCode pauseKey = KeyCode.Escape;
-    [SerializeField] KeyCode menuKey = KeyCode.M;
+    [SerializeField] PauseMenu pauseMenu;
 
     public PlayerMode Mode { get; private set; }
     public event Action<PlayerMode> OnModeChanged;
     public Camera OnFootCamera { get { return onFootCamera; } }
+    public Camera DriverCamera { get { return driverCamera; } }
+    public bool IsViewingCCTV { get { return cctv != null && cctv.IsViewingCCTV; } }
     public ObjectPooling NpcPool { get { return npcPool; } }
     public NpcSpawnEntry[] SpawnableNpcs { get { return spawnableNpcs; } }
 
@@ -61,14 +65,15 @@ public class SceneController : MonoBehaviour {
         get {
             return Mode == PlayerMode.Driving
                 && bus != null && bus.IsStopped
-                && cctv != null && !cctv.IsViewingCCTV;
+                && !IsViewingCCTV;
         }
     }
+
     public bool CanUseDoors {
         get {
             return Mode == PlayerMode.Driving
                 && doors != null && doors.CanToggle
-                && cctv != null && !cctv.IsViewingCCTV;
+                && !IsViewingCCTV;
         }
     }
 
@@ -89,6 +94,14 @@ public class SceneController : MonoBehaviour {
                 npcPool = gameObject.AddComponent<ObjectPooling>();
             }
         }
+        EnsureDriverAvatar();
+        PlayerAvatarVisuals.HideAvatarFromCamera(driverCamera);
+        PlayerAvatarVisuals.HideAvatarFromCamera(onFootCamera);
+        if (pauseMenu == null) {
+            pauseMenu = FindAnyObjectByType<PauseMenu>(FindObjectsInactive.Include);
+        }
+        // Upgrades old text-only pause panels (and loads Options/Controls in editor play)
+        pauseMenu = PauseMenu.EnsureInScene();
     }
 
     void CacheServices() {
@@ -272,6 +285,9 @@ public class SceneController : MonoBehaviour {
             cctv.enabled = false;
             bus.SetFrozen(true);
             cabin.SetWalkable(true);
+            if (driverAvatar != null) {
+                driverAvatar.SetActive(false);
+            }
             onFoot.Place(cabin.StandPointWorld + Vector3.up * 0.05f, bus.transform.eulerAngles.y + 180f);
             onFoot.gameObject.SetActive(true);
             cctv.SetHomeCamera(onFootCamera);
@@ -284,6 +300,9 @@ public class SceneController : MonoBehaviour {
             }
             cctv.SetHomeCamera(driverCamera);
             onFoot.gameObject.SetActive(false);
+            if (driverAvatar != null) {
+                driverAvatar.SetActive(true);
+            }
             cabin.SetWalkable(false);
             bus.SetFrozen(false);
             busInput.enabled = true;
@@ -293,27 +312,49 @@ public class SceneController : MonoBehaviour {
         OnModeChanged?.Invoke(mode);
     }
 
+    void EnsureDriverAvatar() {
+        if (driverAvatar == null && earsSeatParent != null) {
+            Transform existing = earsSeatParent.Find("DriverAvatar");
+            if (existing != null) {
+                driverAvatar = existing.gameObject;
+            }
+        }
+        if (driverAvatar != null) {
+            PlayerAvatarVisuals.ApplyCullLayer(driverAvatar.transform);
+            return;
+        }
+        Debug.LogWarning("SceneController: no DriverAvatar in the scene. Run Tools/Bus Driver/Build MVP Scene.");
+    }
+
     void Update() {
         if (Input.GetKeyDown(pauseKey)) {
-            SetPaused(!ingameMenus.pausedGame);
-        }else if (ingameMenus.pausedGame && Input.GetKeyDown(menuKey)) {
-            BackToMainMenu();
+            if (pauseMenu != null && pauseMenu.OptionsOpen) {
+                pauseMenu.HandleEscapeFromSubmenu();
+            }else {
+                SetPaused(!ingameMenus.pausedGame);
+            }
         }
         if (ingameMenus.pausedGame || Mode != PlayerMode.Driving) {
             return;
         }
-        // Seated there is nothing to point at, so these two don't go through the interactor
-        if (Input.GetKeyDown(GameKeys.interact)) {
+        if (Input.GetKeyDown(GameKeys.leaveSeat)) {
             TryLeaveSeat();
         }else if (Input.GetKeyDown(GameKeys.doors) && CanUseDoors) {
             doors.TryToggle();
         }
     }
 
-    void SetPaused(bool paused) {
+    public void SetPaused(bool paused) {
         ingameMenus.pausedGame = paused;
         Time.timeScale = paused ? 0 : 1;
         ApplyCursor();
+        if (pauseMenu != null) {
+            if (paused) {
+                pauseMenu.Show();
+            }else {
+                pauseMenu.Hide();
+            }
+        }
         if (soundController == null) {
             return;
         }
@@ -361,6 +402,18 @@ public class SceneController : MonoBehaviour {
                 brightness = settings.brightness;
                 if (settings.switchCameraKey != KeyCode.None) {
                     ControlsMenu.switchCameraKey = settings.switchCameraKey;
+                }
+                if (settings.handbrakeKey != KeyCode.None) {
+                    GameKeys.handbrake = settings.handbrakeKey;
+                }
+                if (settings.doorsKey != KeyCode.None) {
+                    GameKeys.doors = settings.doorsKey;
+                }
+                if (settings.leaveSeatKey != KeyCode.None) {
+                    GameKeys.leaveSeat = settings.leaveSeatKey;
+                }
+                if (settings.interactKey != KeyCode.None) {
+                    GameKeys.interact = settings.interactKey;
                 }
             }
         }

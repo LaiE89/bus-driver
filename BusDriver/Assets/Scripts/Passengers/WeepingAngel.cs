@@ -6,8 +6,8 @@ public class WeepingAngel : Monster {
     [SerializeField] float moveSpeed = 0.55f;
     [SerializeField] float aisleReach = 0.08f;
     [SerializeField] float stopDistance = 0.35f;
-    [SerializeField] float minHuntDelay = 5f;
-    [SerializeField] float maxHuntDelay = 10f;
+    [SerializeField] float minHuntDelay = 20f;
+    [SerializeField] float maxHuntDelay = 40f;
 
     bool canHunt;
     bool hunting;

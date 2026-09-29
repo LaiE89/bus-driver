@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class BusInput : MonoBehaviour {
     [SerializeField] BusController bus;
-    [SerializeField] KeyCode handbrakeKey = KeyCode.LeftShift;
     [SerializeField] KeyCode resetKey = KeyCode.R;
 
     // Something else (the smoke test) calls bus.SetInput. Parking on disable still applies.
@@ -19,7 +18,7 @@ public class BusInput : MonoBehaviour {
         // Raw axes, BusController does its own steering smoothing
         float steer = Input.GetAxisRaw("Horizontal");
         float accel = Input.GetAxisRaw("Vertical");
-        bus.SetInput(steer, accel, Input.GetKey(handbrakeKey));
+        bus.SetInput(steer, accel, Input.GetKey(GameKeys.handbrake));
 
         if (Input.GetKeyDown(resetKey)) {
             bus.ResetUpright();

@@ -160,10 +160,22 @@ public class OptionsMenu : MonoBehaviour {
             targetFPSIndex = settings.targetFPSIndex;
             targetFPSDropdown.value = settings.targetFPSIndex;
 
-            // Settings files written before the camera key existed read back as None
+            // Settings files written before a key existed read back as None
             ControlsMenu.switchCameraKey = settings.switchCameraKey == KeyCode.None
                 ? ControlsMenu.defaultSwitchCameraKey
                 : settings.switchCameraKey;
+            GameKeys.handbrake = settings.handbrakeKey == KeyCode.None
+                ? GameKeys.defaultHandbrake
+                : settings.handbrakeKey;
+            GameKeys.doors = settings.doorsKey == KeyCode.None
+                ? GameKeys.defaultDoors
+                : settings.doorsKey;
+            GameKeys.leaveSeat = settings.leaveSeatKey == KeyCode.None
+                ? GameKeys.defaultLeaveSeat
+                : settings.leaveSeatKey;
+            GameKeys.interact = settings.interactKey == KeyCode.None
+                ? GameKeys.defaultInteract
+                : settings.interactKey;
 
         }else {
             sens = 60;
@@ -188,6 +200,7 @@ public class OptionsMenu : MonoBehaviour {
             targetFPSDropdown.value = 3;
 
             ControlsMenu.switchCameraKey = ControlsMenu.defaultSwitchCameraKey;
+            GameKeys.ResetDefaults();
         }
         AdjustSensitivity(sens);
         ChangeQuality(qualityIndex);

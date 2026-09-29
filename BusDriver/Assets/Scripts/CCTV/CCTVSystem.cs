@@ -53,6 +53,9 @@ public class CCTVSystem : MonoBehaviour {
         if (ActiveIndex >= cctvCameras.Length) {
             ActiveIndex = -1;
         }
+        if (SceneController.Instance != null && SceneController.Instance.soundController != null) {
+            SceneController.Instance.soundController.Play("Camera");
+        }
         Apply();
     }
 

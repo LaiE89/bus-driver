@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// The bus will not drive while the doors are open. They open for the driver (F) or
+// The bus will not drive while the doors are open. They open for the driver (Q) or
 // for anyone holding them (a passenger who was told to leave), and only ever while
 // the bus is at a complete stop. One passenger at a time gets the doorway.
 public class BusDoors : MonoBehaviour {
@@ -15,7 +15,7 @@ public class BusDoors : MonoBehaviour {
     public bool IsOpenWanted { get { return driverOpen || holds.Count > 0; } }
     public bool IsFullyOpen { get { return openAmount >= 1f; } }
     public bool IsClosed { get { return openAmount <= 0f && !lockHeld; } }
-    public bool CanToggle { get { return bus.IsStopped; } }
+    public bool CanToggle { get { return bus != null && bus.IsStopped; } }
     // true when they start to open, false once fully closed
     public event Action<bool> OnChanged;
 
