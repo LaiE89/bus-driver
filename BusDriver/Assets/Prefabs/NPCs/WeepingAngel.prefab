@@ -239,6 +239,7 @@ MonoBehaviour:
   moveSpeed: 0.55
   aisleReach: 0.08
   stopDistance: 0.35
+  killDistance: 0.6
   minHuntDelay: 20
   maxHuntDelay: 40
 --- !u!136 &964023720703617621

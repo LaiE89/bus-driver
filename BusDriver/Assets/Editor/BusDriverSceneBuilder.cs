@@ -1091,6 +1091,10 @@ public static class BusDriverSceneBuilder {
         if (pauseMenu != null) {
             SetRef(mode, "pauseMenu", pauseMenu);
         }
+        GameOverMenu gameOverMenu = Object.FindAnyObjectByType<GameOverMenu>(FindObjectsInactive.Include);
+        if (gameOverMenu != null) {
+            SetRef(mode, "gameOverMenu", gameOverMenu);
+        }
         SetRef(hud, "mode", mode);
 
         GameObject soundObject = PrefabUtility.InstantiatePrefab(
@@ -1154,6 +1158,7 @@ public static class BusDriverSceneBuilder {
         RectTransform driverPanel = UIPanel("DriverPanel", hudRoot);
         RectTransform cctvPanel = UIPanel("CCTVPanel", hudRoot);
         RectTransform pausePanel = UIPanel("PausePanel", hudRoot);
+        RectTransform gameOverPanel = UIPanel("GameOverPanel", hudRoot);
 
         Color hudColor = new Color(0.85f, 0.9f, 0.85f, 0.9f);
         TMP_Text speed = Label("SpeedText", driverPanel, "0 km/h", 84f, TextAlignmentOptions.BottomRight, new Vector2(1f, 0f), new Vector2(-60f, 40f), new Vector2(600f, 110f), hudColor);
@@ -1209,6 +1214,25 @@ public static class BusDriverSceneBuilder {
         SetRef(pauseMenu, "optionsButton", optionsButton);
         SetRef(pauseMenu, "mainMenuButton", mainMenuButton);
 
+        GameObject gameOverDimObject = new GameObject("Dim", typeof(RectTransform));
+        gameOverDimObject.layer = UILayer;
+        gameOverDimObject.transform.SetParent(gameOverPanel, false);
+        Stretch(gameOverDimObject.GetComponent<RectTransform>());
+        Image gameOverDim = gameOverDimObject.AddComponent<Image>();
+        gameOverDim.sprite = null;
+        gameOverDim.type = Image.Type.Sliced;
+        gameOverDim.color = new Color(0f, 0f, 0f, 0.392f);
+        gameOverDim.raycastTarget = true;
+
+        Label("GameOverTitle", gameOverPanel, "GAME OVER", 120f, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), new Vector2(0f, 220f), new Vector2(1220f, 200f), Color.white);
+        Button retryButton = MenuButton("Retry Button", gameOverPanel, "RETRY", new Vector2(0f, 40f), 74f);
+        Button gameOverMainMenuButton = MenuButton("Main Menu Button", gameOverPanel, "MAIN MENU", new Vector2(0f, -110f), 72f);
+
+        GameOverMenu gameOverMenu = canvasObject.AddComponent<GameOverMenu>();
+        SetRef(gameOverMenu, "gameOverRoot", gameOverPanel.gameObject);
+        SetRef(gameOverMenu, "retryButton", retryButton);
+        SetRef(gameOverMenu, "mainMenuButton", gameOverMainMenuButton);
+
         if (Object.FindAnyObjectByType<EventSystem>() == null) {
             GameObject eventSystem = new GameObject("EventSystem");
             eventSystem.AddComponent<EventSystem>();
@@ -1234,6 +1258,7 @@ public static class BusDriverSceneBuilder {
         onFootPanel.gameObject.SetActive(false);
         cctvPanel.gameObject.SetActive(false);
         pausePanel.gameObject.SetActive(false);
+        gameOverPanel.gameObject.SetActive(false);
 
         SetRef(hud, "driverPanel", driverPanel.gameObject);
         SetRef(hud, "cctvPanel", cctvPanel.gameObject);

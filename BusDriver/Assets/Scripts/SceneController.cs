@@ -51,8 +51,15 @@ public class SceneController : MonoBehaviour {
     [Header("Input")]
     [SerializeField] KeyCode pauseKey = KeyCode.Escape;
     [SerializeField] PauseMenu pauseMenu;
+    [SerializeField] GameOverMenu gameOverMenu;
+
+    [Header("Game Over")]
+    [SerializeField] float fatalCrashSpeedKmh = 50f;
+
+    CrashDetector crashDetector;
 
     public PlayerMode Mode { get; private set; }
+    public bool IsGameOver { get; private set; }
     public event Action<PlayerMode> OnModeChanged;
     public Camera OnFootCamera { get { return onFootCamera; } }
     public Camera DriverCamera { get { return driverCamera; } }
@@ -100,8 +107,37 @@ public class SceneController : MonoBehaviour {
         if (pauseMenu == null) {
             pauseMenu = FindAnyObjectByType<PauseMenu>(FindObjectsInactive.Include);
         }
-        // Upgrades old text-only pause panels (and loads Options/Controls in editor play)
-        pauseMenu = PauseMenu.EnsureInScene();
+        if (gameOverMenu == null) {
+            gameOverMenu = FindAnyObjectByType<GameOverMenu>(FindObjectsInactive.Include);
+        }
+        if (pauseMenu == null || gameOverMenu == null) {
+            Debug.LogWarning("SceneController: Pause/Game Over UI missing from scene. Run Tools/Bus Driver/Bake Overlay Menus Into Scene.");
+        }
+        WireCrashDetector();
+    }
+
+    void WireCrashDetector() {
+        if (bus == null) {
+            return;
+        }
+        crashDetector = bus.GetComponent<CrashDetector>();
+        if (crashDetector == null) {
+            crashDetector = bus.gameObject.AddComponent<CrashDetector>();
+        }
+        crashDetector.OnCrash -= HandleCrash;
+        crashDetector.OnCrash += HandleCrash;
+    }
+
+    void HandleCrash(float deltaV, bool isMajor, Collision collision) {
+        if (IsGameOver) {
+            return;
+        }
+        float impactSpeed = crashDetector != null
+            ? crashDetector.PreCollisionSpeedKmh
+            : (bus != null ? bus.SpeedKmh : 0f);
+        if (impactSpeed > fatalCrashSpeedKmh) {
+            TriggerGameOver();
+        }
     }
 
     void CacheServices() {
@@ -327,6 +363,9 @@ public class SceneController : MonoBehaviour {
     }
 
     void Update() {
+        if (IsGameOver) {
+            return;
+        }
         if (Input.GetKeyDown(pauseKey)) {
             if (pauseMenu != null && pauseMenu.OptionsOpen) {
                 pauseMenu.HandleEscapeFromSubmenu();
@@ -344,7 +383,29 @@ public class SceneController : MonoBehaviour {
         }
     }
 
+    public void TriggerGameOver() {
+        if (IsGameOver) {
+            return;
+        }
+        IsGameOver = true;
+        ingameMenus.pausedGame = true;
+        Time.timeScale = 0f;
+        if (pauseMenu != null) {
+            pauseMenu.Hide();
+        }
+        if (gameOverMenu != null) {
+            gameOverMenu.Show();
+        }
+        ApplyCursor();
+        if (soundController != null) {
+            soundController.PauseAll();
+        }
+    }
+
     public void SetPaused(bool paused) {
+        if (IsGameOver) {
+            return;
+        }
         ingameMenus.pausedGame = paused;
         Time.timeScale = paused ? 0 : 1;
         ApplyCursor();
@@ -384,6 +445,9 @@ public class SceneController : MonoBehaviour {
     }
 
     void OnDestroy() {
+        if (crashDetector != null) {
+            crashDetector.OnCrash -= HandleCrash;
+        }
         if (Instance == this) {
             Instance = null;
         }

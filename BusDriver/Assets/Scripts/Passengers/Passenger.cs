@@ -215,10 +215,15 @@ public class Passenger : MonoBehaviour, IInteractable {
 
     IEnumerator LeaveRoutine(bool kicked) {
         BusDoors doors = Cabin.Doors;
-        Vector3 aisle = Cabin.SeatAisleLocal(Seat);
+        // Hunting monsters may already have vacated their seat
+        Vector3 aisle = Seat != null
+            ? Cabin.SeatAisleLocal(Seat)
+            : new Vector3(Cabin.AisleAtDoorLocal.x, transform.localPosition.y, transform.localPosition.z);
         State = PassengerState.Leaving;
-        Seat.Release(this);
-        Seat = null;
+        if (Seat != null) {
+            Seat.Release(this);
+            Seat = null;
+        }
         RefreshInteractable();
         OnLeaving(kicked);
         // The bus stays put from now until this passenger is off

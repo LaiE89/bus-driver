@@ -40,6 +40,7 @@ public class BusCabin : MonoBehaviour {
     public Vector3 AisleAtDoorLocal { get { return ToLocal(aisleAtDoor); } }
     public Vector3 DoorStepLocal { get { return ToLocal(doorStep); } }
     public Vector3 DoorStepWorld { get { return doorStep.position; } }
+    public Vector3 StandPointLocal { get { return ToLocal(standPoint); } }
     public Vector3 StandPointWorld { get { return standPoint.position; } }
     public Vector3 ExitDirection { get { return transform.right; } }
 

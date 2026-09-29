@@ -23,7 +23,7 @@ public class SoundController : MonoBehaviour {
     }
 
     void Start() {
-        allSounds = FindObjectsOfType<AudioSource>() as AudioSource[];
+        allSounds = FindObjectsByType<AudioSource>(FindObjectsSortMode.None);
     }
 
     public AudioSource GetSound(string sound) {

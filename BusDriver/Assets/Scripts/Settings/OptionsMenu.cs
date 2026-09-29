@@ -45,7 +45,8 @@ public class OptionsMenu : MonoBehaviour {
         List<string> options = new List<string>();
         int currentResolutionIndex = 0;
         for (int i = 0; i < resolutions.Length; i++) {
-            string option = resolutions[i].width + " x " + resolutions[i].height + " " + resolutions[i].refreshRate + "Hz";
+            string option = resolutions[i].width + " x " + resolutions[i].height + " "
+                + Mathf.RoundToInt((float)resolutions[i].refreshRateRatio.value) + "Hz";
             options.Add(option);
 
             if (resolutions[i].width == Screen.currentResolution.width && resolutions[i].height == Screen.currentResolution.height) {

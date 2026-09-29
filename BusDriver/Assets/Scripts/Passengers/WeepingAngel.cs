@@ -6,6 +6,7 @@ public class WeepingAngel : Monster {
     [SerializeField] float moveSpeed = 0.55f;
     [SerializeField] float aisleReach = 0.08f;
     [SerializeField] float stopDistance = 0.35f;
+    [SerializeField] float killDistance = 0.6f;
     [SerializeField] float minHuntDelay = 20f;
     [SerializeField] float maxHuntDelay = 40f;
 
@@ -14,10 +15,6 @@ public class WeepingAngel : Monster {
     float floorLocalY;
     float huntReadyAt;
 
-    public override bool CanInteract {
-        get { return base.CanInteract && !hunting; }
-    }
-
     protected override void OnSeated() {
         float delay = Random.Range(Mathf.Min(minHuntDelay, maxHuntDelay), Mathf.Max(minHuntDelay, maxHuntDelay));
         huntReadyAt = Time.time + delay;
@@ -25,11 +22,19 @@ public class WeepingAngel : Monster {
         floorLocalY = Cabin != null ? Cabin.AisleAtDoorLocal.y : transform.localPosition.y;
     }
 
+    protected override void OnLeaving(bool kicked) {
+        hunting = false;
+        canHunt = false;
+    }
+
     protected override void Tick(float deltaTime) {
+        if (SceneController.Instance != null && SceneController.Instance.IsGameOver) {
+            return;
+        }
         if (!canHunt || Time.time < huntReadyAt || !IsAboard || Cabin == null) {
             return;
         }
-        if (State != PassengerState.Seated && !hunting) {
+        if (State != PassengerState.Seated) {
             return;
         }
 
@@ -72,11 +77,26 @@ public class WeepingAngel : Monster {
                 current.y = floorLocalY;
                 transform.localPosition = current;
             }
+            TryKillPlayer();
             return;
         }
 
         Face(flat);
         transform.localPosition = Vector3.MoveTowards(current, goal, moveSpeed * deltaTime);
+        TryKillPlayer();
+    }
+
+    void TryKillPlayer() {
+        if (!hunting || SceneController.Instance == null || SceneController.Instance.IsGameOver) {
+            return;
+        }
+        Vector3 current = transform.localPosition;
+        Vector3 target = HuntTargetLocal();
+        Vector3 flat = target - current;
+        flat.y = 0f;
+        if (flat.magnitude <= killDistance) {
+            SceneController.Instance.TriggerGameOver();
+        }
     }
 
     void BeginHunt() {
@@ -91,29 +111,40 @@ public class WeepingAngel : Monster {
         transform.localPosition = local;
     }
 
-    // Waypoints: leave the row into the aisle, walk the aisle to the player's Z, then step in.
+    // Waypoints: leave the row into the aisle, walk the aisle to the target Z, then step in.
     Vector3 NextWaypointLocal() {
         Vector3 aisle = Cabin.AisleAtDoorLocal;
         Vector3 current = transform.localPosition;
-        Vector3 playerLocal = PlayerLocalPosition();
+        Vector3 target = HuntTargetLocal();
 
         Vector3 intoAisle = new Vector3(aisle.x, floorLocalY, current.z);
         if (Mathf.Abs(current.x - aisle.x) > aisleReach) {
             return intoAisle;
         }
 
-        Vector3 alongAisle = new Vector3(aisle.x, floorLocalY, playerLocal.z);
-        if (Mathf.Abs(current.z - playerLocal.z) > aisleReach) {
+        Vector3 alongAisle = new Vector3(aisle.x, floorLocalY, target.z);
+        if (Mathf.Abs(current.z - target.z) > aisleReach) {
             return alongAisle;
         }
 
-        Vector3 toPlayer = new Vector3(playerLocal.x, floorLocalY, playerLocal.z);
-        Vector3 flat = toPlayer - current;
+        Vector3 toTarget = new Vector3(target.x, floorLocalY, target.z);
+        Vector3 flat = toTarget - current;
         flat.y = 0f;
         if (flat.magnitude <= stopDistance) {
             return new Vector3(current.x, floorLocalY, current.z);
         }
-        return toPlayer;
+        return toTarget;
+    }
+
+    // Seated: path to the stand point behind the driver so the angel can finish the
+    // approach outside the windshield view. On foot: chase the player body.
+    Vector3 HuntTargetLocal() {
+        if (SceneController.Instance != null
+            && SceneController.Instance.Mode == PlayerMode.Driving
+            && Cabin != null) {
+            return Cabin.StandPointLocal;
+        }
+        return PlayerLocalPosition();
     }
 
     Vector3 PlayerLocalPosition() {
