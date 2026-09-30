@@ -1,4 +1,9 @@
+using System.Collections.Generic;
+using BusDriver.Core.Data;
+using BusDriver.Core.Rules;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Audio;
+using BusDriver.Gameplay.World;
 using BusDriver.UI.Menu;
 using BusDriver.UI.Screens;
 using BusDriver.UI.Theme;
@@ -12,14 +17,27 @@ using UnityEngine.UI;
 using static BusDriver.Editor.Builders.BuilderUtil;
 
 namespace BusDriver.Editor.Builders {
-    // BuildAll step 10 (§4.15): Generated/Scenes/Menu.unity, v0 (T-M1-16): a dark screen with the
-    // title, New Run / Options / Controls / Quit, the build label and the loading bar, the
-    // MenuContext and the Screens prefab for Options and Controls. The diorama arrives in T-M2-15
-    // and the full menu in T-M8-01.
+    // BuildAll step 10 (§4.15): Generated/Scenes/Menu.unity. v1 (T-M2-15): a live diorama built from
+    // the game's own generated pieces (§2.22, D17): a 60 m road piece with a guardrail on the near
+    // side, the trailhead stop and its flickering, buzzing lamp across the road, forest trees, one
+    // waiting figure, the night lighting preset and a fixed camera with a slow drift. Over it, on the
+    // dark left of the frame with no panel: the title, New Run / Options / Controls / Quit, the build
+    // label and the loading bar, the MenuContext and the Screens prefab for Options and Controls.
+    // The full menu (Continue, Journal, Credits, idle events, the arrival sequence) is M8.
     public static class MenuBuilder {
         public const string ScenePath = SceneIds.GeneratedFolder + "/" + SceneIds.Menu + ".unity";
 
         static readonly Color Background = new Color(0.015f, 0.015f, 0.02f, 1f);
+        public const string MeshFolder = GeneratedRoot + "/Meshes/Menu";
+        public const string FigureName = "Waiting Figure";
+        public const string StopName = "Stop trailhead";
+
+        // The diorama's layout, in the road piece's frame (+Z along the road, +X toward the stop's kerb)
+        const float RoadLength = 60f;
+        const float StopDistance = 32f;
+        static readonly Vector3 CameraPosition = new Vector3(-8.2f, 1.7f, 23.5f);
+        static readonly Vector3 CameraTarget = new Vector3(-0.8f, 1.5f, 33.5f);
+        const float CameraFov = 55f;
 
         [MenuItem("Tools/Bus Driver/Builders/Menu")]
         public static void Build() {
@@ -27,21 +45,31 @@ namespace BusDriver.Editor.Builders {
                 return;
             }
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            // The night scene's own preset (§2.22)
             LightingBuild.CreateApplier(null);
 
             GameObject contextObject = new GameObject("Menu Context");
             MenuContext context = contextObject.AddComponent<MenuContext>();
+            SceneAmbience ambience = contextObject.AddComponent<SceneAmbience>();
+            SetStringArray(ambience, "loops", new[] { SoundIds.AmbForestNight, SoundIds.AmbWind });
 
-            // The UI click needs a listener; it lives on the camera here (there's no player)
+            BuildDiorama();
+
+            // The UI click and the ambience need a listener; it lives on the camera here (there's no player)
             Camera cam = new GameObject("Menu Camera").AddComponent<Camera>();
+            cam.transform.SetPositionAndRotation(CameraPosition, Quaternion.LookRotation(CameraTarget - CameraPosition, Vector3.up));
             cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = Background;
-            cam.GetUniversalAdditionalCameraData().renderPostProcessing = false;
+            cam.backgroundColor = RenderSettings.fog ? RenderSettings.fogColor : Background;
+            cam.fieldOfView = CameraFov;
+            cam.nearClipPlane = 0.1f;
+            cam.farClipPlane = 250f;
+            cam.tag = "MainCamera";
+            cam.GetUniversalAdditionalCameraData().renderPostProcessing = true;
             cam.gameObject.AddComponent<AudioListener>();
+            cam.gameObject.AddComponent<CameraDrift>();
 
             Canvas canvas = UIBuild.CreateCanvas("Menu Canvas", null, 0);
             MainMenu menu = canvas.gameObject.AddComponent<MainMenu>();
-            UIBuild.Fill("Background", canvas.transform, Background, false);
 
             // Left-aligned on the dark side of the frame (§2.22)
             Vector2 left = new Vector2(0f, 0.5f);
@@ -83,6 +111,72 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "buildLabel", labelView);
             SetRefArray(context, "bindables", NightSystemsBuilder.Bindables(scene).ToArray());
             SaveScene(scene, ScenePath);
+        }
+
+        // The road piece is a one-segment RouteDefinition built in memory from Route 1's cross-section
+        // and generation numbers, so the diorama's road, guardrail and forest are exactly the game's
+        static void BuildDiorama() {
+            GameRootConfig config = AssetDatabase.LoadAssetAtPath<GameRootConfig>(GameRootConfig.AssetPath);
+            RouteDefinition route1 = config != null ? config.Route(RouteSeed.RouteId) : null;
+            if (route1 == null) {
+                throw new System.InvalidOperationException("no route '" + RouteSeed.RouteId + "' in GameRootConfig; DataSeeder runs before MenuBuilder");
+            }
+            RouteDefinition piece = ScriptableObject.CreateInstance<RouteDefinition>();
+            piece.id = "menu_diorama";
+            piece.roadWidth = route1.roadWidth;
+            piece.shoulderWidth = route1.shoulderWidth;
+            piece.cliffRoadWidth = route1.cliffRoadWidth;
+            piece.cliffOuterShoulder = route1.cliffOuterShoulder;
+            piece.generation = route1.generation;
+            piece.schedule = route1.schedule;
+            // The guardrail on the camera's side, the forest behind the stop
+            piece.segments = new[] { RouteSegment.Straight(RoadLength, 0f, SideProfile.Drop, SideProfile.Forest) };
+            RoutePath path = new RoutePath(piece);
+
+            EnsureFolder(MeshFolder);
+            Transform world = Group("Diorama", null).transform;
+            RoadMeshBuilder.Build(piece, path, Group("Road", world).transform, MeshFolder);
+            ProfileBuildResult profiles = ProfileBuilder.Build(piece, path, Group("Profiles", world).transform, new List<RouteOpening>(), MeshFolder);
+            Transform dressing = Group("Dressing", world).transform;
+            foreach (DressingSpot spot in profiles.Trees) {
+                GameObject tree = EnvironmentPrefabBuilder.Place(EnvironmentKinds.Tree(spot.Variant), dressing, spot.Position, Quaternion.Euler(0f, spot.YawDeg, 0f));
+                tree.transform.localScale = Vector3.one * spot.Scale;
+            }
+            float segment = piece.generation.guardrailSegmentLength;
+            foreach (RailSpot spot in profiles.Guardrails) {
+                GameObject rail = EnvironmentPrefabBuilder.Place(EnvironmentKinds.GuardrailSegment, dressing, spot.Position, spot.Rotation);
+                if (spot.Length < segment - 0.01f) {
+                    rail.transform.localScale = new Vector3(1f, 1f, spot.Length / segment);
+                }
+            }
+            foreach (RailSpot spot in profiles.EndCaps) {
+                EnvironmentPrefabBuilder.Place(EnvironmentKinds.GuardrailEndCap, dressing, spot.Position, spot.Rotation);
+            }
+            Object.DestroyImmediate(piece);
+
+            // The trailhead stop (§2.22), its lamp humming with its flicker
+            RoutePose pose = path.Evaluate(StopDistance);
+            GameObject stop = EnvironmentPrefabBuilder.Place(EnvironmentKinds.Stop(StopKind.Trailhead), world, pose.Position, pose.Rotation, 1);
+            stop.name = StopName;
+            LightFlicker flicker = stop.GetComponentInChildren<LightFlicker>(true);
+            if (flicker != null) {
+                LampBuzz buzz = flicker.gameObject.AddComponent<LampBuzz>();
+                SetRef(buzz, "flicker", flicker);
+            }
+            BuildFigure(stop.transform, stop.GetComponent<BusStop>());
+        }
+
+        // One waiting passenger, view only: a plain capsule and sphere until GreyboxPassengerView
+        // (T-M3-01), standing where the stop's first rider waits, facing the road
+        static void BuildFigure(Transform stop, BusStop busStop) {
+            Vector3 wait = busStop != null ? busStop.WaitLocalPosition(0) : new Vector3(5.2f, 0f, -1.2f);
+            GameObject figure = Group(FigureName, stop);
+            figure.transform.localPosition = wait;
+            figure.transform.localRotation = Quaternion.Euler(0f, -90f, 0f);
+            Material skin = MaterialLibraryBuilder.Get("Passenger");
+            Material coat = MaterialLibraryBuilder.Get("PassengerOdd");
+            Prim(PrimitiveType.Capsule, "Body", figure.transform, new Vector3(0f, 0.8f, 0f), new Vector3(0.5f, 0.8f, 0.35f), coat);
+            Prim(PrimitiveType.Sphere, "Head", figure.transform, new Vector3(0f, 1.62f, 0f), new Vector3(0.24f, 0.28f, 0.26f), skin);
         }
 
         static Button MenuButton(string name, Transform parent, string text, float y) {
