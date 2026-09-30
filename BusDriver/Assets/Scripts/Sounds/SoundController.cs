@@ -23,7 +23,7 @@ public class SoundController : MonoBehaviour {
     }
 
     void Start() {
-        allSounds = FindObjectsByType<AudioSource>(FindObjectsSortMode.None);
+        allSounds = FindObjectsByType<AudioSource>();
     }
 
     public AudioSource GetSound(string sound) {
@@ -37,21 +37,34 @@ public class SoundController : MonoBehaviour {
 
     public void Play(string name) {
         Sound s = Array.Find(specialSounds, sound => sound.name == name);
-        if (s == null) {
+        if (s == null || s.source == null) {
             Debug.LogWarning("Sound: " + name + " not found!");
             return;
         }
+        EnsureClipLoaded(s);
         s.source.Play();
     }
 
     public void PlayOneShot(string name) {
         Sound s = Array.Find(specialSounds, sound => sound.name == name);
-        if (s == null) {
-            // Debug.LogWarning("Sound: " + name + " not found!");
+        if (s == null || s.source == null) {
+            Debug.LogWarning("Sound: " + name + " not found!");
             return;
         }
-        //s.source.Play();
-        s.source.PlayOneShot(s.source.clip);
+        EnsureClipLoaded(s);
+        AudioClip clip = s.clip != null ? s.clip : s.source.clip;
+        if (clip == null) {
+            Debug.LogWarning("Sound: " + name + " has no clip!");
+            return;
+        }
+        s.source.PlayOneShot(clip);
+    }
+
+    static void EnsureClipLoaded(Sound s) {
+        AudioClip clip = s.clip != null ? s.clip : (s.source != null ? s.source.clip : null);
+        if (clip != null && clip.loadState == AudioDataLoadState.Unloaded) {
+            clip.LoadAudioData();
+        }
     }
 
     public void PlayClipAtPoint(string name, Vector3 position, float pitch, float volume) {

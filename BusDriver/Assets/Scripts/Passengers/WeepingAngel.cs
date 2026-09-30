@@ -10,6 +10,8 @@ public class WeepingAngel : Monster {
     [SerializeField] float minHuntDelay = 20f;
     [SerializeField] float maxHuntDelay = 40f;
 
+    public override string DialogueKind { get { return "WeepingAngel"; } }
+
     bool canHunt;
     bool hunting;
     float floorLocalY;

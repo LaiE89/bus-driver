@@ -19,6 +19,8 @@ public class BusCabin : MonoBehaviour {
     [SerializeField] Passenger[] initialPassengers;
 
     [Header("Path nodes")]
+    [Tooltip("Space left between people queueing for the door, on the kerb and in the aisle")]
+    [SerializeField] float queueGap = 0.9f;
     [SerializeField] Transform aisleAtDoor;
     [SerializeField] Transform doorStep;
     [SerializeField] Transform doorOutside;
@@ -37,6 +39,42 @@ public class BusCabin : MonoBehaviour {
     // The camera currently looking into the bus: a CCTV camera, the driver, or the player on foot
     public Camera ViewCamera { get { return cctv != null ? cctv.ActiveCamera : null; } }
 
+    // Somebody is still walking to the door, so the queue outside has to wait
+    public bool AnyLeaving {
+        get {
+            foreach (Passenger passenger in passengers) {
+                if (passenger != null && passenger.State == PassengerState.Leaving) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    // The one standing in the stairwell waiting on a yes or no from the driver
+    public Passenger PassengerAtDoor {
+        get {
+            foreach (Passenger passenger in passengers) {
+                if (passenger != null && passenger.AwaitingBoardingDecision) {
+                    return passenger;
+                }
+            }
+            return null;
+        }
+    }
+
+    public int StopRequestCount {
+        get {
+            int count = 0;
+            foreach (Passenger passenger in passengers) {
+                if (passenger != null && passenger.State == PassengerState.Seated && passenger.HasRequestedStop) {
+                    count++;
+                }
+            }
+            return count;
+        }
+    }
+
     public Vector3 AisleAtDoorLocal { get { return ToLocal(aisleAtDoor); } }
     public Vector3 DoorStepLocal { get { return ToLocal(doorStep); } }
     public Vector3 DoorStepWorld { get { return doorStep.position; } }
@@ -45,6 +83,12 @@ public class BusCabin : MonoBehaviour {
     public Vector3 ExitDirection { get { return transform.right; } }
 
     readonly List<Passenger> passengers = new List<Passenger>();
+    // Single file on the kerb: everyone from Board() until they are in a seat
+    readonly List<Passenger> doorQueue = new List<Passenger>();
+    // Single file down the aisle, whoever is closest to the door first
+    readonly List<Passenger> exitQueue = new List<Passenger>();
+    Vector3 aisleInward;
+    bool aisleInwardFound;
 
     void OnEnable() {
         doors.OnChanged += HandleDoorsChanged;
@@ -92,6 +136,160 @@ public class BusCabin : MonoBehaviour {
 
     Vector3 ToLocal(Transform node) {
         return passengerRoot.InverseTransformPoint(node.position);
+    }
+
+    // Which way down the aisle leads away from the door. Read off the seats so it holds
+    // whichever end of the bus the door is on.
+    public Vector3 AisleInwardLocal {
+        get {
+            if (!aisleInwardFound) {
+                Vector3 door = AisleAtDoorLocal;
+                Vector3 furthest = Vector3.zero;
+                foreach (BusSeat seat in seats) {
+                    if (seat == null) {
+                        continue;
+                    }
+                    Vector3 offset = SeatAisleLocal(seat) - door;
+                    offset.y = 0f;
+                    if (offset.sqrMagnitude > furthest.sqrMagnitude) {
+                        furthest = offset;
+                    }
+                }
+                aisleInward = furthest.sqrMagnitude > 0.0001f ? furthest.normalized : Vector3.back;
+                aisleInwardFound = true;
+            }
+            return aisleInward;
+        }
+    }
+
+    // ------------------------------------------------------- boarding queue
+
+    public void JoinDoorQueue(Passenger passenger) {
+        if (passenger != null && !doorQueue.Contains(passenger)) {
+            doorQueue.Add(passenger);
+        }
+    }
+
+    public void LeaveDoorQueue(Passenger passenger) {
+        doorQueue.Remove(passenger);
+    }
+
+    // Somebody is on the step or walking the aisle to a seat, so riders getting off stay
+    // put: the aisle only fits one person. `passengers` holds nobody but those already
+    // aboard, so the line still out on the kerb does not count here. They are held
+    // outside by AnyLeaving instead, which keeps the two rules from blocking each other.
+    public bool AnyBoarding {
+        get {
+            foreach (Passenger passenger in passengers) {
+                if (passenger != null && (passenger.State == PassengerState.Boarding
+                        || passenger.State == PassengerState.Greeting)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    public bool IsDoorQueueHead(Passenger passenger) {
+        PruneDoorQueue();
+        return doorQueue.Count > 0 && doorQueue[0] == passenger;
+    }
+
+    // Line up along the side of the bus behind whoever is next through the door. The
+    // spot right outside the door stays clear for people getting off.
+    public Vector3 DoorQueueWorld(Passenger passenger) {
+        PruneDoorQueue();
+        int place = 0;
+        foreach (Passenger other in doorQueue) {
+            if (other == passenger) {
+                break;
+            }
+            // Whoever is already on the step has left the line
+            if (!other.IsAboard) {
+                place++;
+            }
+        }
+        return DoorOutsideWorld - transform.forward * (queueGap * (place + 1));
+    }
+
+    // ----------------------------------------------------------- exit queue
+
+    public void JoinExitQueue(Passenger passenger) {
+        if (passenger != null && !exitQueue.Contains(passenger)) {
+            exitQueue.Add(passenger);
+        }
+    }
+
+    public void LeaveExitQueue(Passenger passenger) {
+        exitQueue.Remove(passenger);
+    }
+
+    public bool IsExitQueueHead(Passenger passenger) {
+        SortExitQueue();
+        return exitQueue.Count > 0 && exitQueue[0] == passenger;
+    }
+
+    // Where to wait: the aisle spot by the door for whoever is next off, otherwise a
+    // gap behind the person ahead. Following the person in front means nobody ever has
+    // to walk through anybody.
+    public Vector3 ExitQueueLocal(Passenger passenger) {
+        SortExitQueue();
+        int index = exitQueue.IndexOf(passenger);
+        if (index <= 0) {
+            return AisleAtDoorLocal;
+        }
+        return AisleAtDoorLocal + AisleInwardLocal * (AisleProgress(exitQueue[index - 1]) + queueGap);
+    }
+
+    // Stepping out of a seat: the aisle level with their own row, or further back when
+    // somebody ahead is standing there already. Both seats in a row share one aisle spot.
+    public Vector3 ExitStepOutLocal(Passenger passenger, Vector3 rowLocal) {
+        float row = AisleProgressAt(rowLocal);
+        float queued = AisleProgressAt(ExitQueueLocal(passenger));
+        return AisleAtDoorLocal + AisleInwardLocal * Mathf.Max(row, queued);
+    }
+
+    void SortExitQueue() {
+        PruneExitQueue();
+        exitQueue.Sort(CompareAisleProgress);
+    }
+
+    // Closest to the door leaves first. Entity ids break the tie for two people in one
+    // row, so the order cannot flip from frame to frame.
+    int CompareAisleProgress(Passenger a, Passenger b) {
+        int compare = AisleProgress(a).CompareTo(AisleProgress(b));
+        return compare != 0 ? compare : a.GetEntityId().CompareTo(b.GetEntityId());
+    }
+
+    // How far down the aisle from the door somebody is, in metres
+    float AisleProgress(Passenger passenger) {
+        return AisleProgressAt(passengerRoot.InverseTransformPoint(passenger.transform.position));
+    }
+
+    float AisleProgressAt(Vector3 local) {
+        Vector3 offset = local - AisleAtDoorLocal;
+        offset.y = 0f;
+        return Vector3.Dot(offset, AisleInwardLocal);
+    }
+
+    // Only until the driver has decided about them: past that they give up their place
+    // in the line even though they are still walking to a seat or back off the step.
+    void PruneDoorQueue() {
+        for (int i = doorQueue.Count - 1; i >= 0; i--) {
+            Passenger passenger = doorQueue[i];
+            if (passenger == null || (passenger.State != PassengerState.Boarding
+                    && passenger.State != PassengerState.Greeting)) {
+                doorQueue.RemoveAt(i);
+            }
+        }
+    }
+
+    void PruneExitQueue() {
+        for (int i = exitQueue.Count - 1; i >= 0; i--) {
+            if (exitQueue[i] == null || exitQueue[i].State != PassengerState.Leaving) {
+                exitQueue.RemoveAt(i);
+            }
+        }
     }
 
     public int FreeSeatCount {
@@ -172,7 +370,55 @@ public class BusCabin : MonoBehaviour {
         }
         BusStop stop = CurrentStop;
         if (stop != null) {
+            DropOffAt(stop);
             stop.BeginBoarding(this);
+        }
+    }
+
+    // How many riders DropOffAt would send off here, for the door prompt
+    public int DropOffCountAt(BusStop stop) {
+        if (stop == null) {
+            return 0;
+        }
+        int count = 0;
+        foreach (Passenger passenger in passengers) {
+            if (passenger == null || passenger.State != PassengerState.Seated
+                || !passenger.RidesToDestination) {
+                continue;
+            }
+            if (passenger.Destination == stop || passenger.MissedDestination) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    // Doors just opened at a stop: everyone due here, plus anyone whose stop the driver
+    // already drove past, gets off before the queue outside starts boarding.
+    public void DropOffAt(BusStop stop) {
+        if (stop == null) {
+            return;
+        }
+        // Copied: dropping off starts a routine that unregisters them later
+        Passenger[] aboard = passengers.ToArray();
+        foreach (Passenger passenger in aboard) {
+            if (passenger == null || passenger.State != PassengerState.Seated
+                || !passenger.RidesToDestination) {
+                continue;
+            }
+            if (passenger.Destination == stop) {
+                passenger.DropOff(false);
+            }else if (passenger.MissedDestination) {
+                passenger.DropOff(true);
+            }
+        }
+    }
+
+    public void NotifyCrash(bool major) {
+        foreach (Passenger passenger in passengers) {
+            if (passenger != null) {
+                passenger.NotifyCrash(major);
+            }
         }
     }
 

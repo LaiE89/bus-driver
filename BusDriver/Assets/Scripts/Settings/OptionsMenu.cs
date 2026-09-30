@@ -177,6 +177,9 @@ public class OptionsMenu : MonoBehaviour {
             GameKeys.interact = settings.interactKey == KeyCode.None
                 ? GameKeys.defaultInteract
                 : settings.interactKey;
+            GameKeys.kickOut = settings.kickOutKey == KeyCode.None
+                ? GameKeys.defaultKickOut
+                : settings.kickOutKey;
 
         }else {
             sens = 60;

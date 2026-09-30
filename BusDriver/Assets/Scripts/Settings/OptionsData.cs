@@ -28,6 +28,8 @@ public class OptionsData {
     public KeyCode leaveSeatKey;
     [DataMember]
     public KeyCode interactKey;
+    [DataMember]
+    public KeyCode kickOutKey;
 
     public OptionsData() {
         sens = OptionsMenu.sens;
@@ -42,5 +44,6 @@ public class OptionsData {
         doorsKey = GameKeys.doors;
         leaveSeatKey = GameKeys.leaveSeat;
         interactKey = GameKeys.interact;
+        kickOutKey = GameKeys.kickOut;
     }
 }

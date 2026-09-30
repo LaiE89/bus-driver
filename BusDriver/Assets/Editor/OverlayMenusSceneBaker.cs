@@ -12,6 +12,7 @@ public static class OverlayMenusSceneBaker {
     const string OptionsPrefabPath = "Assets/Prefabs/Level Essentials/In Canvas/Options Menu.prefab";
     const string ControlsPrefabPath = "Assets/Prefabs/Level Essentials/In Canvas/Controls Menu.prefab";
     const int UILayer = 5;
+    const float PromptHeight = 310f;
 
     [MenuItem("Tools/Bus Driver/Bake Overlay Menus Into Scene")]
     public static void BakeIntoBusRoute() {
@@ -48,13 +49,34 @@ public static class OverlayMenusSceneBaker {
             Transform hud = canvas != null ? canvas.transform.Find("HUD") : null;
             Transform gameOverPanel = hud != null ? hud.Find("GameOverPanel") : null;
             GameOverMenu existingMenu = Object.FindAnyObjectByType<GameOverMenu>(FindObjectsInactive.Include);
-            if (gameOverPanel != null && existingMenu != null) {
+            Transform dialoguePanel = canvas != null ? canvas.transform.Find("Dialogue Controller/Panel") : null;
+            Transform ratingLabel = hud != null ? hud.Find("DriverPanel/RatingText") : null;
+            Transform quotaLabel = hud != null ? hud.Find("DriverPanel/QuotaText") : null;
+            Transform quotaPanel = hud != null ? hud.Find("QuotaFulfilledPanel") : null;
+            Transform controlsLabel = hud != null ? hud.Find("DriverPanel/ControlsText") : null;
+            Transform statusLabel = hud != null ? hud.Find("StatusText") : null;
+            QuotaFulfilledMenu existingQuota = Object.FindAnyObjectByType<QuotaFulfilledMenu>(FindObjectsInactive.Include);
+            RectTransform promptRect = hud != null ? hud.Find("PromptText") as RectTransform : null;
+            bool promptRaised = promptRect != null
+                && Mathf.Approximately(promptRect.anchoredPosition.y, PromptHeight);
+            if (gameOverPanel != null && existingMenu != null && dialoguePanel != null && ratingLabel != null
+                && quotaLabel != null && quotaPanel != null && existingQuota != null
+                && controlsLabel == null && statusLabel == null && promptRaised) {
                 SceneController controller = Object.FindAnyObjectByType<SceneController>();
                 if (controller != null) {
                     SerializedObject so = new SerializedObject(controller);
                     SerializedProperty gameOverProp = so.FindProperty("gameOverMenu");
+                    SerializedProperty quotaProp = so.FindProperty("quotaFulfilledMenu");
+                    bool dirty = false;
                     if (gameOverProp != null && gameOverProp.objectReferenceValue == null) {
                         gameOverProp.objectReferenceValue = existingMenu;
+                        dirty = true;
+                    }
+                    if (quotaProp != null && quotaProp.objectReferenceValue == null) {
+                        quotaProp.objectReferenceValue = existingQuota;
+                        dirty = true;
+                    }
+                    if (dirty) {
                         so.ApplyModifiedPropertiesWithoutUndo();
                         EditorSceneManager.MarkSceneDirty(scene);
                         EditorSceneManager.SaveScene(scene);
@@ -88,7 +110,10 @@ public static class OverlayMenusSceneBaker {
 
         PauseMenu pauseMenu = EnsurePauseMenu(canvas, hud);
         GameOverMenu gameOverMenu = EnsureGameOverMenu(canvas, hud);
+        QuotaFulfilledMenu quotaMenu = EnsureQuotaFulfilledMenu(canvas, hud);
         EnsureOptionsAndControls(canvas, pauseMenu);
+        EnsureHudExtras(hud);
+        DialogueController dialogue = EnsureDialogue(canvas);
         EnsureEventSystem();
         if (canvas.GetComponent<GraphicRaycaster>() == null) {
             canvas.gameObject.AddComponent<GraphicRaycaster>();
@@ -96,14 +121,25 @@ public static class OverlayMenusSceneBaker {
 
         SceneController controller = Object.FindAnyObjectByType<SceneController>();
         if (controller != null) {
+            if (controller.GetComponent<RideRatings>() == null) {
+                controller.gameObject.AddComponent<RideRatings>();
+            }
             SerializedObject so = new SerializedObject(controller);
             SerializedProperty pauseProp = so.FindProperty("pauseMenu");
             SerializedProperty gameOverProp = so.FindProperty("gameOverMenu");
+            SerializedProperty quotaProp = so.FindProperty("quotaFulfilledMenu");
+            SerializedProperty dialogueProp = so.FindProperty("dialogueController");
             if (pauseProp != null) {
                 pauseProp.objectReferenceValue = pauseMenu;
             }
             if (gameOverProp != null) {
                 gameOverProp.objectReferenceValue = gameOverMenu;
+            }
+            if (quotaProp != null) {
+                quotaProp.objectReferenceValue = quotaMenu;
+            }
+            if (dialogueProp != null && dialogue != null) {
+                dialogueProp.objectReferenceValue = dialogue;
             }
             so.ApplyModifiedPropertiesWithoutUndo();
         }
@@ -172,6 +208,207 @@ public static class OverlayMenusSceneBaker {
         so.FindProperty("mainMenuButton").objectReferenceValue = mainMenu;
         so.ApplyModifiedPropertiesWithoutUndo();
         return menu;
+    }
+
+    static QuotaFulfilledMenu EnsureQuotaFulfilledMenu(Canvas canvas, Transform hud) {
+        QuotaFulfilledMenu menu = Object.FindAnyObjectByType<QuotaFulfilledMenu>(FindObjectsInactive.Include);
+        if (menu == null) {
+            menu = canvas.gameObject.AddComponent<QuotaFulfilledMenu>();
+        }
+
+        Transform panel = hud.Find("QuotaFulfilledPanel");
+        if (panel == null) {
+            GameObject panelGo = new GameObject("QuotaFulfilledPanel", typeof(RectTransform));
+            panelGo.layer = UILayer;
+            panelGo.transform.SetParent(hud, false);
+            Stretch(panelGo.GetComponent<RectTransform>());
+            panel = panelGo.transform;
+        }
+
+        ClearChildrenExceptDim(panel);
+        panel.gameObject.SetActive(false);
+        EnsureDim(panel);
+        CreateLabel(panel, "QuotaTitle", "QUOTA FULFILLED", 100f, new Vector2(0f, 220f), new Vector2(1400f, 200f));
+        Button nextLevel = CreateMenuButton(panel, "Next Level Button", "NEXT LEVEL", new Vector2(0f, 40f), 74f);
+        Button mainMenu = CreateMenuButton(panel, "Main Menu Button", "MAIN MENU", new Vector2(0f, -110f), 72f);
+
+        SerializedObject so = new SerializedObject(menu);
+        so.FindProperty("quotaRoot").objectReferenceValue = panel.gameObject;
+        so.FindProperty("nextLevelButton").objectReferenceValue = nextLevel;
+        so.FindProperty("mainMenuButton").objectReferenceValue = mainMenu;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        return menu;
+    }
+
+    // Top-right stack: rating + star, quota progress, speed + gear, then stop request
+    static void EnsureHudExtras(Transform hud) {
+        DrivingHUD driving = Object.FindAnyObjectByType<DrivingHUD>(FindObjectsInactive.Include);
+        if (driving == null) {
+            return;
+        }
+        Transform driverPanel = hud.Find("DriverPanel");
+        if (driverPanel == null) {
+            return;
+        }
+
+        DestroyNamed(driverPanel, "ControlsText");
+        DestroyNamed(driverPanel, "GearText");
+        DestroyNamed(hud, "StatusText");
+        RaisePrompt(hud);
+
+        Color hudColor = new Color(0.85f, 0.9f, 0.85f, 0.9f);
+        TMP_Text rating = EnsureCornerLabel(driverPanel, "RatingText", "5.0", 48f,
+            new Vector2(1f, 1f), new Vector2(-108f, -40f), new Vector2(520f, 70f),
+            TextAlignmentOptions.TopRight, hudColor);
+        Image star = EnsureRatingStar(driverPanel);
+        TMP_Text quota = EnsureCornerLabel(driverPanel, "QuotaText", "0/3", 36f,
+            new Vector2(1f, 1f), new Vector2(-60f, -108f), new Vector2(600f, 50f),
+            TextAlignmentOptions.TopRight, new Color(0.85f, 0.9f, 0.85f, 0.75f));
+        TMP_Text speed = EnsureCornerLabel(driverPanel, "SpeedText", "0 km/h  N", 40f,
+            new Vector2(1f, 1f), new Vector2(-60f, -162f), new Vector2(600f, 55f),
+            TextAlignmentOptions.TopRight, hudColor);
+        TMP_Text request = EnsureCornerLabel(driverPanel, "StopRequestText", "", 32f,
+            new Vector2(1f, 1f), new Vector2(-60f, -222f), new Vector2(600f, 50f),
+            TextAlignmentOptions.TopRight, new Color(1f, 0.75f, 0.2f, 0.95f));
+
+        SerializedObject so = new SerializedObject(driving);
+        SetHudRef(so, "ratingText", rating);
+        SerializedProperty starProp = so.FindProperty("ratingStar");
+        if (starProp != null) {
+            starProp.objectReferenceValue = star;
+        }
+        SetHudRef(so, "quotaText", quota);
+        SetHudRef(so, "speedText", speed);
+        SetHudRef(so, "requestText", request);
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // Sits above the dialogue panel (which reaches y 260) so the two never overlap
+    static void RaisePrompt(Transform hud) {
+        Transform prompt = hud.Find("PromptText");
+        if (prompt == null) {
+            return;
+        }
+        RectTransform rect = prompt as RectTransform;
+        if (rect != null) {
+            rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, PromptHeight);
+        }
+    }
+
+    static Image EnsureRatingStar(Transform driverPanel) {
+        Transform existing = driverPanel.Find("RatingStar");
+        Image star = existing != null ? existing.GetComponent<Image>() : null;
+        if (star == null) {
+            GameObject go = new GameObject("RatingStar", typeof(RectTransform));
+            go.layer = UILayer;
+            go.transform.SetParent(driverPanel, false);
+            star = go.AddComponent<Image>();
+        }
+        RectTransform rect = star.rectTransform;
+        rect.anchorMin = new Vector2(1f, 1f);
+        rect.anchorMax = new Vector2(1f, 1f);
+        rect.pivot = new Vector2(1f, 1f);
+        rect.anchoredPosition = new Vector2(-60f, -48f);
+        rect.sizeDelta = new Vector2(40f, 40f);
+        star.sprite = DrivingHUD.CreateStarSprite();
+        star.color = new Color(1f, 0.82f, 0.2f, 1f);
+        star.raycastTarget = false;
+        star.preserveAspect = true;
+        return star;
+    }
+
+    static void SetHudRef(SerializedObject so, string prop, TMP_Text value) {
+        SerializedProperty property = so.FindProperty(prop);
+        if (property != null) {
+            property.objectReferenceValue = value;
+        }
+    }
+
+    static void DestroyNamed(Transform parent, string name) {
+        Transform child = parent.Find(name);
+        if (child != null) {
+            Object.DestroyImmediate(child.gameObject);
+        }
+    }
+
+    // The controller object stays active so it can run the typewriter coroutine; only
+    // the panel under it is toggled, which is what panelRoot is for.
+    static DialogueController EnsureDialogue(Canvas canvas) {
+        Transform root = canvas.transform.Find("Dialogue Controller");
+        if (root == null) {
+            GameObject rootGo = new GameObject("Dialogue Controller", typeof(RectTransform));
+            rootGo.layer = UILayer;
+            rootGo.transform.SetParent(canvas.transform, false);
+            Stretch(rootGo.GetComponent<RectTransform>());
+            root = rootGo.transform;
+        }
+
+        DialogueController controller = root.GetComponent<DialogueController>();
+        if (controller == null) {
+            controller = root.gameObject.AddComponent<DialogueController>();
+        }
+
+        Transform panel = root.Find("Panel");
+        if (panel == null) {
+            GameObject panelGo = new GameObject("Panel", typeof(RectTransform));
+            panelGo.layer = UILayer;
+            panelGo.transform.SetParent(root, false);
+            RectTransform rect = panelGo.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, 40f);
+            rect.sizeDelta = new Vector2(1500f, 220f);
+            Image background = panelGo.AddComponent<Image>();
+            background.sprite = null;
+            background.color = new Color(0f, 0f, 0f, 0.72f);
+            background.raycastTarget = false;
+            panel = panelGo.transform;
+        }
+
+        TMP_Text name = EnsureCornerLabel(panel, "NameText", "", 44f,
+            new Vector2(0f, 1f), new Vector2(40f, -18f), new Vector2(900f, 60f),
+            TextAlignmentOptions.TopLeft, new Color(1f, 0.82f, 0.35f, 1f));
+        TMP_Text line = EnsureCornerLabel(panel, "DialogueText", "", 38f,
+            new Vector2(0f, 1f), new Vector2(40f, -86f), new Vector2(1420f, 120f),
+            TextAlignmentOptions.TopLeft, Color.white);
+        line.textWrappingMode = TextWrappingModes.Normal;
+
+        controller.nameText = name as TextMeshProUGUI;
+        controller.dialogueText = line as TextMeshProUGUI;
+        controller.panelRoot = panel.gameObject;
+        controller.textSound = "Dialogue";
+        panel.gameObject.SetActive(false);
+        return controller;
+    }
+
+    static TMP_Text EnsureCornerLabel(Transform parent, string name, string text, float fontSize,
+        Vector2 anchor, Vector2 anchoredPos, Vector2 size, TextAlignmentOptions alignment, Color color) {
+        Transform existing = parent.Find(name);
+        TMP_Text label = existing != null ? existing.GetComponent<TMP_Text>() : null;
+        if (label == null) {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            go.layer = UILayer;
+            go.transform.SetParent(parent, false);
+            label = go.AddComponent<TextMeshProUGUI>();
+            label.text = text;
+        }
+        TMP_FontAsset font = ResolveTmpFont();
+        if (font != null && label.font == null) {
+            label.font = font;
+        }
+        RectTransform rect = label.rectTransform;
+        rect.anchorMin = anchor;
+        rect.anchorMax = anchor;
+        rect.pivot = anchor;
+        rect.anchoredPosition = anchoredPos;
+        rect.sizeDelta = size;
+        label.fontSize = fontSize;
+        label.alignment = alignment;
+        label.color = color;
+        label.raycastTarget = false;
+        label.textWrappingMode = TextWrappingModes.NoWrap;
+        return label;
     }
 
     static void EnsureOptionsAndControls(Canvas canvas, PauseMenu pauseMenu) {

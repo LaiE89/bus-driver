@@ -373,6 +373,16 @@ public static class BusDriverSceneBuilder {
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
+    static void SetString(Object target, string prop, string value) {
+        SerializedObject so = new SerializedObject(target);
+        SerializedProperty property = FindProp(so, prop);
+        if (property == null) {
+            return;
+        }
+        property.stringValue = value;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
     static void SetBool(Object target, string prop, bool value) {
         SerializedObject so = new SerializedObject(target);
         SerializedProperty property = FindProp(so, prop);
@@ -627,6 +637,7 @@ public static class BusDriverSceneBuilder {
         // The first one is a short roll from the spawn point so boarding is quick to test
         float[] distances = { 60f, 420f, 640f };
         int[] waitingCounts = { 3, 2, 2 };
+        string[] stopNames = { "MERIDIAN AVE", "HOLLOW PARK", "OLD MILL ROAD" };
         for (int stopIndex = 0; stopIndex < distances.Length; stopIndex++) {
             RoadSample sample = SampleAt(distances[stopIndex]);
             Transform stop = Group("Bus Stop", stops).transform;
@@ -643,6 +654,9 @@ public static class BusDriverSceneBuilder {
             // Waiting NPCs are spawned at runtime by SceneController via ObjectPooling
             BusStop busStop = stop.gameObject.AddComponent<BusStop>();
             SetInt(busStop, "spawnCount", waitingCounts[stopIndex]);
+            // Fixes the route order so drop-off destinations read the same every run
+            SetInt(busStop, "routeIndex", stopIndex);
+            SetString(busStop, "stopName", stopNames[stopIndex]);
             SetVector(busStop, "firstWaitLocal", new Vector3(edge + 1.2f, 0f, -1.2f));
             SetVector(busStop, "waitLocalStep", new Vector3(0.3f, 0f, 1.2f));
             busStops.Add(busStop);
@@ -1066,6 +1080,7 @@ public static class BusDriverSceneBuilder {
 
         GameObject systems = new GameObject("Game Systems");
         SceneController mode = systems.AddComponent<SceneController>();
+        systems.AddComponent<RideRatings>();
         PlayerInteractor interactor = systems.AddComponent<PlayerInteractor>();
         SetRef(interactor, "onFootCamera", onFootCamera);
         SetRef(interactor, "driverCamera", driverCamera);
@@ -1074,7 +1089,6 @@ public static class BusDriverSceneBuilder {
         ConfigureNpcPools(npcPool, passengerPrefab, monsterPrefab);
         ConfigureSpawnableNpcs(mode);
         SetRef(mode, "npcPool", npcPool);
-        SetBool(mode, "populateStopsOnStart", true);
         SetRef(mode, "busInput", bus.GetComponent<BusInput>());
         SetRef(mode, "driverLook", look);
         SetRef(mode, "cctv", cctv);
@@ -1094,6 +1108,14 @@ public static class BusDriverSceneBuilder {
         GameOverMenu gameOverMenu = Object.FindAnyObjectByType<GameOverMenu>(FindObjectsInactive.Include);
         if (gameOverMenu != null) {
             SetRef(mode, "gameOverMenu", gameOverMenu);
+        }
+        QuotaFulfilledMenu quotaMenu = Object.FindAnyObjectByType<QuotaFulfilledMenu>(FindObjectsInactive.Include);
+        if (quotaMenu != null) {
+            SetRef(mode, "quotaFulfilledMenu", quotaMenu);
+        }
+        DialogueController dialogue = Object.FindAnyObjectByType<DialogueController>(FindObjectsInactive.Include);
+        if (dialogue != null) {
+            mode.dialogueController = dialogue;
         }
         SetRef(hud, "mode", mode);
 
@@ -1135,10 +1157,6 @@ public static class BusDriverSceneBuilder {
         list.GetArrayElementAtIndex(0).FindPropertyRelative("weight").floatValue = 10f;
         list.GetArrayElementAtIndex(1).FindPropertyRelative("poolId").stringValue = "WeepingAngel";
         list.GetArrayElementAtIndex(1).FindPropertyRelative("weight").floatValue = 1f;
-        SerializedProperty guaranteed = FindProp(so, "guaranteedFirstNpcId");
-        if (guaranteed != null) {
-            guaranteed.stringValue = "WeepingAngel";
-        }
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
@@ -1159,11 +1177,14 @@ public static class BusDriverSceneBuilder {
         RectTransform cctvPanel = UIPanel("CCTVPanel", hudRoot);
         RectTransform pausePanel = UIPanel("PausePanel", hudRoot);
         RectTransform gameOverPanel = UIPanel("GameOverPanel", hudRoot);
+        RectTransform quotaPanel = UIPanel("QuotaFulfilledPanel", hudRoot);
 
         Color hudColor = new Color(0.85f, 0.9f, 0.85f, 0.9f);
-        TMP_Text speed = Label("SpeedText", driverPanel, "0 km/h", 84f, TextAlignmentOptions.BottomRight, new Vector2(1f, 0f), new Vector2(-60f, 40f), new Vector2(600f, 110f), hudColor);
-        TMP_Text gear = Label("GearText", driverPanel, "N", 60f, TextAlignmentOptions.BottomRight, new Vector2(1f, 0f), new Vector2(-60f, 150f), new Vector2(200f, 80f), hudColor);
-        TMP_Text controls = Label("ControlsText", driverPanel, "", 24f, TextAlignmentOptions.BottomLeft, new Vector2(0f, 0f), new Vector2(40f, 30f), new Vector2(1300f, 40f), new Color(1f, 1f, 1f, 0.45f));
+        TMP_Text rating = Label("RatingText", driverPanel, "5.0", 48f, TextAlignmentOptions.TopRight, new Vector2(1f, 1f), new Vector2(-108f, -40f), new Vector2(520f, 70f), hudColor);
+        Image ratingStar = RatingStar(driverPanel);
+        TMP_Text quota = Label("QuotaText", driverPanel, "0/3", 36f, TextAlignmentOptions.TopRight, new Vector2(1f, 1f), new Vector2(-60f, -108f), new Vector2(600f, 50f), new Color(0.85f, 0.9f, 0.85f, 0.75f));
+        TMP_Text speed = Label("SpeedText", driverPanel, "0 km/h  N", 40f, TextAlignmentOptions.TopRight, new Vector2(1f, 1f), new Vector2(-60f, -162f), new Vector2(600f, 55f), hudColor);
+        TMP_Text stopRequest = Label("StopRequestText", driverPanel, "", 32f, TextAlignmentOptions.TopRight, new Vector2(1f, 1f), new Vector2(-60f, -222f), new Vector2(600f, 50f), new Color(1f, 0.75f, 0.2f, 0.95f));
 
         GameObject scanObject = new GameObject("Scanlines", typeof(RectTransform));
         scanObject.layer = UILayer;
@@ -1233,6 +1254,25 @@ public static class BusDriverSceneBuilder {
         SetRef(gameOverMenu, "retryButton", retryButton);
         SetRef(gameOverMenu, "mainMenuButton", gameOverMainMenuButton);
 
+        GameObject quotaDimObject = new GameObject("Dim", typeof(RectTransform));
+        quotaDimObject.layer = UILayer;
+        quotaDimObject.transform.SetParent(quotaPanel, false);
+        Stretch(quotaDimObject.GetComponent<RectTransform>());
+        Image quotaDim = quotaDimObject.AddComponent<Image>();
+        quotaDim.sprite = null;
+        quotaDim.type = Image.Type.Sliced;
+        quotaDim.color = new Color(0f, 0f, 0f, 0.392f);
+        quotaDim.raycastTarget = true;
+
+        Label("QuotaTitle", quotaPanel, "QUOTA FULFILLED", 100f, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), new Vector2(0f, 220f), new Vector2(1400f, 200f), Color.white);
+        Button nextLevelButton = MenuButton("Next Level Button", quotaPanel, "NEXT LEVEL", new Vector2(0f, 40f), 74f);
+        Button quotaMainMenuButton = MenuButton("Main Menu Button", quotaPanel, "MAIN MENU", new Vector2(0f, -110f), 72f);
+
+        QuotaFulfilledMenu quotaMenu = canvasObject.AddComponent<QuotaFulfilledMenu>();
+        SetRef(quotaMenu, "quotaRoot", quotaPanel.gameObject);
+        SetRef(quotaMenu, "nextLevelButton", nextLevelButton);
+        SetRef(quotaMenu, "mainMenuButton", quotaMainMenuButton);
+
         if (Object.FindAnyObjectByType<EventSystem>() == null) {
             GameObject eventSystem = new GameObject("EventSystem");
             eventSystem.AddComponent<EventSystem>();
@@ -1251,29 +1291,84 @@ public static class BusDriverSceneBuilder {
         dot.color = new Color(1f, 1f, 1f, 0.7f);
         dot.raycastTarget = false;
 
-        // Shared by the seat and on-foot views
-        TMP_Text prompt = Label("PromptText", hudRoot, "", 36f, TextAlignmentOptions.Bottom, new Vector2(0.5f, 0f), new Vector2(0f, 220f), new Vector2(1200f, 110f), new Color(1f, 1f, 1f, 0.9f));
-        TMP_Text status = Label("StatusText", hudRoot, "", 32f, TextAlignmentOptions.Top, new Vector2(0.5f, 1f), new Vector2(0f, -50f), new Vector2(600f, 50f), new Color(1f, 0.75f, 0.2f, 0.95f));
+        // Shared by the seat and on-foot views, clear of the dialogue panel below it
+        TMP_Text prompt = Label("PromptText", hudRoot, "", 36f, TextAlignmentOptions.Bottom, new Vector2(0.5f, 0f), new Vector2(0f, 310f), new Vector2(1200f, 110f), new Color(1f, 1f, 1f, 0.9f));
 
         onFootPanel.gameObject.SetActive(false);
         cctvPanel.gameObject.SetActive(false);
         pausePanel.gameObject.SetActive(false);
         gameOverPanel.gameObject.SetActive(false);
+        quotaPanel.gameObject.SetActive(false);
 
         SetRef(hud, "driverPanel", driverPanel.gameObject);
         SetRef(hud, "cctvPanel", cctvPanel.gameObject);
         SetRef(hud, "pausePanel", pausePanel.gameObject);
         SetRef(hud, "speedText", speed);
-        SetRef(hud, "gearText", gear);
-        SetRef(hud, "controlsText", controls);
         SetRef(hud, "camLabelText", camLabel);
         SetRef(hud, "timestampText", timestamp);
         SetRef(hud, "recText", rec);
         SetRef(hud, "scanlines", scanlines);
         SetRef(hud, "onFootPanel", onFootPanel.gameObject);
         SetRef(hud, "promptText", prompt);
-        SetRef(hud, "statusText", status);
+        SetRef(hud, "ratingText", rating);
+        SetRef(hud, "ratingStar", ratingStar);
+        SetRef(hud, "quotaText", quota);
+        SetRef(hud, "requestText", stopRequest);
+        BuildDialoguePanel(canvasObject.transform);
         return hud;
+    }
+
+    static Image RatingStar(Transform driverPanel) {
+        GameObject go = new GameObject("RatingStar", typeof(RectTransform));
+        go.layer = UILayer;
+        go.transform.SetParent(driverPanel, false);
+        RectTransform rect = go.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(1f, 1f);
+        rect.anchorMax = new Vector2(1f, 1f);
+        rect.pivot = new Vector2(1f, 1f);
+        rect.anchoredPosition = new Vector2(-60f, -48f);
+        rect.sizeDelta = new Vector2(40f, 40f);
+        Image star = go.AddComponent<Image>();
+        star.sprite = DrivingHUD.CreateStarSprite();
+        star.color = new Color(1f, 0.82f, 0.2f, 1f);
+        star.raycastTarget = false;
+        star.preserveAspect = true;
+        return star;
+    }
+
+    // Passengers borrow this to chat on the way in and on the way out. The controller object
+    // stays active so its typewriter coroutine survives; only the panel under it toggles.
+    static DialogueController BuildDialoguePanel(Transform canvas) {
+        GameObject rootObject = new GameObject("Dialogue Controller", typeof(RectTransform));
+        rootObject.layer = UILayer;
+        rootObject.transform.SetParent(canvas, false);
+        Stretch(rootObject.GetComponent<RectTransform>());
+        DialogueController controller = rootObject.AddComponent<DialogueController>();
+
+        GameObject panelObject = new GameObject("Panel", typeof(RectTransform));
+        panelObject.layer = UILayer;
+        panelObject.transform.SetParent(rootObject.transform, false);
+        RectTransform panel = panelObject.GetComponent<RectTransform>();
+        panel.anchorMin = new Vector2(0.5f, 0f);
+        panel.anchorMax = new Vector2(0.5f, 0f);
+        panel.pivot = new Vector2(0.5f, 0f);
+        panel.anchoredPosition = new Vector2(0f, 40f);
+        panel.sizeDelta = new Vector2(1500f, 220f);
+        Image background = panelObject.AddComponent<Image>();
+        background.sprite = null;
+        background.color = new Color(0f, 0f, 0f, 0.72f);
+        background.raycastTarget = false;
+
+        TMP_Text speaker = Label("NameText", panel, "", 44f, TextAlignmentOptions.TopLeft, new Vector2(0f, 1f), new Vector2(40f, -18f), new Vector2(900f, 60f), new Color(1f, 0.82f, 0.35f, 1f));
+        TMP_Text line = Label("DialogueText", panel, "", 38f, TextAlignmentOptions.TopLeft, new Vector2(0f, 1f), new Vector2(40f, -86f), new Vector2(1420f, 120f), Color.white);
+        line.textWrappingMode = TextWrappingModes.Normal;
+
+        controller.nameText = speaker as TextMeshProUGUI;
+        controller.dialogueText = line as TextMeshProUGUI;
+        controller.panelRoot = panelObject;
+        controller.textSound = "Dialogue";
+        panelObject.SetActive(false);
+        return controller;
     }
 
     static GameObject InstantiateMenuPrefab(string assetPath, Transform parent, string name) {

@@ -11,6 +11,7 @@ public class PlayerInteractor : MonoBehaviour {
 
     public IInteractable Current { get; private set; }
     public string CurrentPrompt { get { return Current != null ? Current.Prompt : ""; } }
+    public string CurrentAltPrompt { get { return Current != null ? Current.AltPrompt : ""; } }
 
     readonly RaycastHit[] hits = new RaycastHit[16];
 
@@ -88,8 +89,13 @@ public class PlayerInteractor : MonoBehaviour {
         }
 
         SetCurrent(FindTarget(cam, reach));
-        if (Current != null && Input.GetKeyDown(GameKeys.interact)) {
+        if (Current == null) {
+            return;
+        }
+        if (Input.GetKeyDown(GameKeys.interact)) {
             Current.Interact();
+        }else if (Input.GetKeyDown(GameKeys.kickOut) && Current.AltPrompt != "") {
+            Current.AltInteract();
         }
     }
 

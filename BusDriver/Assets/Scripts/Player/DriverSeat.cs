@@ -14,5 +14,9 @@ public class DriverSeat : MonoBehaviour, IInteractable {
         SceneController.Instance.TrySitDown();
     }
 
+    public string AltPrompt { get { return ""; } }
+
+    public void AltInteract() { }
+
     public void SetFocused(bool focused) { }
 }

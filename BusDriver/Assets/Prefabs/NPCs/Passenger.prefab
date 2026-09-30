@@ -145,6 +145,7 @@ MonoBehaviour:
   exitWalkDistance: 2.5
   sitTime: 0.4
   displayName: Passenger
+  stopRequestSound: Stop
 --- !u!136 &88943515497073570
 CapsuleCollider:
   m_ObjectHideFlags: 0

@@ -11,6 +11,8 @@ public class BusDoors : MonoBehaviour {
     [SerializeField] Vector3 closedLocalPos;
     [SerializeField] Vector3 openLocalPos;
     [SerializeField] float slideTime = 0.6f;
+    [SerializeField] string openSound = "Door Open";
+    [SerializeField] string closeSound = "Door Close";
 
     public bool IsOpenWanted { get { return driverOpen || holds.Count > 0; } }
     public bool IsFullyOpen { get { return openAmount >= 1f; } }
@@ -23,6 +25,7 @@ public class BusDoors : MonoBehaviour {
     bool driverOpen;
     bool lockHeld;
     float openAmount;
+    bool animatingOpen;
     Passenger doorwayUser;
 
     public bool TryOpen() {
@@ -78,6 +81,10 @@ public class BusDoors : MonoBehaviour {
 
         // Closing is deferred rather than refused, whoever is in the doorway finishes first
         bool open = lockHeld && (IsOpenWanted || doorwayUser != null);
+        if (open != animatingOpen) {
+            animatingOpen = open;
+            PlayDoorSound(open ? openSound : closeSound);
+        }
         openAmount = Mathf.MoveTowards(openAmount, open ? 1f : 0f, Time.deltaTime / slideTime);
         if (panel != null) {
             panel.localPosition = Vector3.Lerp(closedLocalPos, openLocalPos, Mathf.SmoothStep(0f, 1f, openAmount));
@@ -88,5 +95,13 @@ public class BusDoors : MonoBehaviour {
             bus.SetDriveLock(DriveLock.DoorsOpen, false);
             OnChanged?.Invoke(false);
         }
+    }
+
+    static void PlayDoorSound(string sound) {
+        if (string.IsNullOrEmpty(sound) || SceneController.Instance == null
+                || SceneController.Instance.soundController == null) {
+            return;
+        }
+        SceneController.Instance.soundController.PlayOneShot(sound);
     }
 }

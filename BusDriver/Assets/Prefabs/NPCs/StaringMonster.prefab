@@ -55,7 +55,8 @@ MonoBehaviour:
   exitWalkDistance: 2.5
   sitTime: 0.4
   displayName: Passenger
-  turnSpeed: 25
+  stopRequestSound: Stop
+  headTurnSpeed: 25
   yawLimit: 110
   pitchLimit: 35
 --- !u!136 &8766281463188451775
