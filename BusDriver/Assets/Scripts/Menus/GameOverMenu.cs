@@ -71,7 +71,7 @@ namespace BusDriver.UI.Screens {
         public void BackToMainMenu() {
             PlayUISound();
             if (game != null) {
-                game.Flow.QuitToMenu();
+                game.Flow.LoadMenu();
             }
         }
 

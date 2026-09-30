@@ -12,6 +12,10 @@ namespace BusDriver.UI.Screens {
         public const string ResetAll = "RESET ALL";
         public const string Reset = "RESET";
 
+        // Intro card (§2.21). The route name moves to RouteDefinition.displayName with T-M2-01.
+        public const string IntroNight = "NIGHT {0}";
+        public const string RouteName = "HOLLOW PINES LINE";
+
         // Confirmations (§2.21, §2.22)
         public const string LeaveEndsRun = "Leaving now ends your run.";
         public const string Leave = "LEAVE";

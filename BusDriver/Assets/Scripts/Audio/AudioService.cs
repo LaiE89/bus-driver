@@ -349,6 +349,17 @@ namespace BusDriver.Gameplay.Audio {
             return voice != null ? voice.Source : null;
         }
 
+        // Tests: voices of one sound id that are playing now
+        internal int CountPlaying(string id) {
+            int count = 0;
+            for (int i = 0; i < voices.Length; i++) {
+                if (voices[i].Busy && voices[i].Definition != null && voices[i].Definition.id == id) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
         // Tests
         internal int ActiveVoiceCount {
             get {

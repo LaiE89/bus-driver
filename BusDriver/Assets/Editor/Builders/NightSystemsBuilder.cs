@@ -3,6 +3,7 @@ using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
+using BusDriver.Gameplay.Shift;
 using BusDriver.UI.Screens;
 using BusDriver.UI.Theme;
 using TMPro;
@@ -34,6 +35,7 @@ namespace BusDriver.Editor.Builders {
             GameObject contextObject = new GameObject("Shift Context");
             ShiftContext context = contextObject.AddComponent<ShiftContext>();
             LegacyGameOver gameOver = contextObject.AddComponent<LegacyGameOver>();
+            ShiftDirector director = contextObject.AddComponent<ShiftDirector>();
 
             GameObject bus = Instantiate(PrefabBuilder.BusPath, "Bus");
             GameObject rig = Instantiate(PrefabBuilder.OnFootRigPath, "OnFootRig");
@@ -72,6 +74,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "onFoot", onFoot);
             SetRef(context, "interactor", interactor);
             SetRef(context, "gameOver", gameOver);
+            SetRef(context, "director", director);
             SetRefArray(context, "bindables", Bindables(scene).ToArray());
 
             bus.SetActive(false);

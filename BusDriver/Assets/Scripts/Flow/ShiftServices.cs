@@ -2,6 +2,7 @@ using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
+using BusDriver.Gameplay.Shift;
 using BusDriver.Gameplay.World;
 using UnityEngine;
 
@@ -15,6 +16,7 @@ namespace BusDriver.Gameplay.Flow {
         public NightSetup Setup;
         public RngStreams Rng;
         public RouteSceneRoot Route;
+        public ShiftDirector Director;
 
         public BusController Bus;
         public BusDoors Doors;

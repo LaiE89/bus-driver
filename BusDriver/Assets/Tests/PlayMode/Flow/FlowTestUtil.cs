@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Flow;
+using BusDriver.Gameplay.Shift;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -45,6 +46,20 @@ namespace BusDriver.Tests.PlayMode.Flow {
 
         public static IEnumerator WaitForNight(GameServices game) {
             return WaitFor(() => game.Flow.State == RunFlowState.InNight && !game.Scenes.IsLoading, 90f, "the night");
+        }
+
+        // The night has begun and the intro card has released the bus (§2.1)
+        public static IEnumerator WaitForDriving(GameServices game) {
+            yield return WaitForNight(game);
+            yield return WaitFor(() => {
+                ShiftDirector director = Director();
+                return director != null && director.State == ShiftState.Driving;
+            }, 30f, "the Driving state");
+        }
+
+        public static ShiftDirector Director() {
+            ShiftContext night = UnityEngine.Object.FindAnyObjectByType<ShiftContext>();
+            return night != null ? night.Director : null;
         }
     }
 }

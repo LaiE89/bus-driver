@@ -568,6 +568,15 @@ namespace BusDriver.Editor.Smoke {
                 Check(night != null && night.HasBegun && night.Route != null, "the night did not begin with its route");
                 Check(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == Core.Util.SceneIds.Route01World,
                     "Route01_World is not the active scene");
+                nightReadyAt = -1f;
+                return false;
+            }
+            // The intro card holds the bus until the shift turns to Driving (§2.1)
+            if (nightReadyAt < 0f) {
+                if (night.Director.State != Gameplay.Shift.ShiftState.Driving) {
+                    return false;
+                }
+                Log($"shift reached Driving after the intro card");
                 nightReadyAt = Time.time;
                 return false;
             }

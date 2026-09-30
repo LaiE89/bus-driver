@@ -94,7 +94,9 @@ namespace BusDriver.Editor.Builders {
             options = BuildOptions(canvas.transform, router, controls);
             PauseScreen pause = BuildPause(canvas.transform, router, options, controls);
             BuildConfirm(canvas.transform);
-            // The pause screen is drawn under the others it opens
+            IntroCardScreen intro = BuildIntro(canvas.transform);
+            // The intro card and the pause screen are drawn under the screens the pause screen opens
+            intro.transform.SetAsFirstSibling();
             pause.transform.SetAsFirstSibling();
             SetRef(router, "pauseScreen", pause);
 
@@ -186,6 +188,25 @@ namespace BusDriver.Editor.Builders {
             UIBuild.CreateButton(ControlsScreen.BackButtonName, root, UIText.Back, Center, new Vector2(0f, -200f), new Vector2(260f, 60f));
             SetRef(controls, "router", router);
             return controls;
+        }
+
+        // Black, with the three centred lines of §2.21; an overlay, not a ScreenView (IntroCardScreen)
+        static IntroCardScreen BuildIntro(Transform parent) {
+            RectTransform root = UIBuild.Panel("IntroCard", parent);
+            CanvasGroup group = root.gameObject.AddComponent<CanvasGroup>();
+            group.alpha = 0f;
+            group.interactable = false;
+            group.blocksRaycasts = false;
+            IntroCardScreen intro = root.gameObject.AddComponent<IntroCardScreen>();
+            UIBuild.Fill("Background", root, Color.black, false);
+            TMP_Text night = UIBuild.Label("NightText", root, "NIGHT 1", ThemeRole.Title, TextAlignmentOptions.Center, Center, new Vector2(0f, 90f), new Vector2(1220f, 160f));
+            TMP_Text clock = UIBuild.Label("ClockText", root, "12:30 AM", ThemeRole.Screen, TextAlignmentOptions.Center, Center, new Vector2(0f, -20f), new Vector2(900f, 80f));
+            TMP_Text route = UIBuild.Label("RouteText", root, UIText.RouteName, ThemeRole.Body, TextAlignmentOptions.Center, Center, new Vector2(0f, -100f), new Vector2(900f, 60f));
+            SetRef(intro, "group", group);
+            SetRef(intro, "nightText", night);
+            SetRef(intro, "clockText", clock);
+            SetRef(intro, "routeText", route);
+            return intro;
         }
 
         static void BuildConfirm(Transform parent) {

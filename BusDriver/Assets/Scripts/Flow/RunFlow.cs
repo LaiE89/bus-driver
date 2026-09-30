@@ -54,8 +54,13 @@ namespace BusDriver.Gameplay.Flow {
 
         // A plain quit for now; leaving a night as a death (D21) arrives in T-M7-08
         public void QuitToMenu() {
+            LoadMenu();
+        }
+
+        // Back to the menu scene, whatever the run's state (Game Over, Run Won, a quit)
+        public void LoadMenu() {
             if (game.Scenes.IsLoading) {
-                Log.Warn(LogCat.Flow, "Quit to Menu ignored: a scene is loading");
+                Log.Warn(LogCat.Flow, "Load Menu ignored: a scene is loading");
                 return;
             }
             game.Scenes.Run(game.Scenes.LoadMenu());

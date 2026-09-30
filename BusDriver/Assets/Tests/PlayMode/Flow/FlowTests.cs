@@ -1,7 +1,11 @@
 using System.Collections;
 using BusDriver.Core.Save;
 using BusDriver.Core.Util;
+using BusDriver.Core.Data;
+using BusDriver.Gameplay.Audio;
+using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
+using BusDriver.Gameplay.Shift;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -90,6 +94,56 @@ namespace BusDriver.Tests.PlayMode.Flow {
             SaveService disk = new SaveService(saveRoot, SaveMigrations.CreateDefault(), "test");
             RunState run;
             Assert.IsFalse(disk.TryLoad(SaveSlot.Run, out run), "a debug run must not write run.json");
+        }
+
+        // T-M1-17: menu → new run → drive 5 s → quit to menu → new run → drive 5 s, with exactly
+        // one GameRoot, no errors and one ambience voice at the end
+        [UnityTest]
+        public IEnumerator Flow_MenuNightMenuNight_NoErrors() {
+            int errors = 0;
+            Application.LogCallback count = (message, stack, type) => {
+                if (type == LogType.Error || type == LogType.Exception || type == LogType.Assert) {
+                    errors++;
+                }
+            };
+            Application.logMessageReceived += count;
+            try {
+                GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
+                game.Flow.QuitToMenu();
+                yield return FlowTestUtil.WaitForMenu(game);
+
+                for (int night = 0; night < 2; night++) {
+                    game.Flow.NewRun();
+                    yield return FlowTestUtil.WaitForNight(game);
+                    ShiftDirector director = FlowTestUtil.Director();
+                    Assert.AreEqual(ShiftState.Intro, director.State, "a night opens on the intro card");
+                    BusController bus = Object.FindAnyObjectByType<BusController>();
+                    Assert.IsTrue((bus.Locks & DriveLock.Scripted) != 0, "the bus is held during the intro");
+                    yield return FlowTestUtil.WaitForDriving(game);
+                    Assert.IsTrue((bus.Locks & DriveLock.Scripted) == 0, "Driving releases the bus");
+
+                    bus.GetComponent<BusInput>().ExternalControl = true;
+                    bus.SetInput(0f, 1f, false);
+                    float until = Time.time + 5f;
+                    while (Time.time < until) {
+                        yield return null;
+                    }
+                    Assert.Greater(bus.SpeedKmh, 5f, "the bus should be driving");
+                    bus.SetInput(0f, 0f, true);
+
+                    if (night == 0) {
+                        game.Flow.QuitToMenu();
+                        yield return FlowTestUtil.WaitForMenu(game);
+                    }
+                }
+
+                Assert.AreEqual(1, Object.FindObjectsByType<GameRoot>().Length, "exactly one GameRoot");
+                AudioService audio = (AudioService)game.Audio;
+                Assert.AreEqual(1, audio.CountPlaying(SoundIds.AmbWind), "exactly one ambience voice");
+            }finally {
+                Application.logMessageReceived -= count;
+            }
+            Assert.AreEqual(0, errors, "errors were logged");
         }
 
         // Objects of ours in the DontDestroyOnLoad scene (the test runner keeps its own there too)

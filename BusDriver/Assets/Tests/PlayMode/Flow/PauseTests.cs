@@ -3,6 +3,7 @@ using BusDriver.Core.Data;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
+using BusDriver.Gameplay.Shift;
 using BusDriver.UI.Screens;
 using NUnit.Framework;
 using UnityEngine;
@@ -28,8 +29,10 @@ namespace BusDriver.Tests.PlayMode.Flow {
         IEnumerator StartNight(GameServices game) {
             game.Flow.NewRun();
             yield return FlowTestUtil.WaitForNight(game);
-            // ShiftContext.Begin puts the player in the seat
-            yield return null;
+            // No pause over the intro card (§4.11)
+            Assert.AreEqual(ShiftState.Intro, FlowTestUtil.Director().State);
+            Assert.IsFalse(game.Pause.TrySetPaused(true), "the intro can't be paused");
+            yield return FlowTestUtil.WaitForDriving(game);
             yield return null;
         }
 

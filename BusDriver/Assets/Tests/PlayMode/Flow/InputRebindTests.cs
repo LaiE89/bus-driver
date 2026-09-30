@@ -61,7 +61,7 @@ namespace BusDriver.Tests.PlayMode.Flow {
         public IEnumerator ControlsScreen_ListsEveryRebindableBindingAndFollowsRebinds() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
             game.Flow.NewRun();
-            yield return FlowTestUtil.WaitForNight(game);
+            yield return FlowTestUtil.WaitForDriving(game);
             yield return null;
             ScreenRouter router = Object.FindAnyObjectByType<ScreenRouter>();
             router.Back();

@@ -3,6 +3,7 @@ using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
+using BusDriver.Gameplay.Shift;
 using UnityEngine;
 
 namespace BusDriver.Gameplay.Flow {
@@ -10,13 +11,14 @@ namespace BusDriver.Gameplay.Flow {
     // wired; RunFlow calls AttachRoute once the route scene is loaded, then Begin. Begin builds
     // ShiftServices and calls Init in the fixed order. Steps whose services don't exist yet are
     // skipped: they arrive with their tickets (RouteTracker T-M2-09, ShiftClockDriver T-M2-12,
-    // PlayerAttention T-M4-01, …).
+    // PlayerAttention T-M4-01, …). ShiftDirector owns the drive lock and the pause predicate.
     public sealed class ShiftContext : MonoBehaviour, INightRoot {
         [SerializeField] BusController bus;
         [SerializeField] PlayerModeController mode;
         [SerializeField] OnFootController onFoot;
         [SerializeField] PlayerInteractor interactor;
         [SerializeField] LegacyGameOver gameOver;
+        [SerializeField] ShiftDirector director;
         [Tooltip("UI and game-scoped components of this scene, bound in list order (§4.5 step 15)")]
         [SerializeField] MonoBehaviour[] bindables = new MonoBehaviour[0];
 
@@ -26,12 +28,11 @@ namespace BusDriver.Gameplay.Flow {
         public ShiftServices Shift { get; private set; }
         public bool HasBegun { get { return Shift != null; } }
         public BusController Bus { get { return bus; } }
+        public ShiftDirector Director { get { return director; } }
 
         // Game-scoped components (the screens, the menus) get the services now, before any Start
         public void Initialize(GameServices game) {
             Game = game;
-            // Pausing is allowed once the night is running, until the game is over (§4.11)
-            game.Pause.CanPause = () => HasBegun && (gameOver == null || !gameOver.IsGameOver);
             BindGame(bindables, game);
         }
 
@@ -61,6 +62,8 @@ namespace BusDriver.Gameplay.Flow {
             Setup = setup;
             ShiftServices shift = BuildServices(setup);
             Shift = shift;
+            // Holds the bus and keeps pausing off until its first state (§2.1)
+            shift.Director.Init(shift);
 
             // 1. RouteTracker, RouteProgress (T-M2-09, T-M2-11)
             // 2. ShiftClockDriver (T-M2-12)
@@ -86,9 +89,9 @@ namespace BusDriver.Gameplay.Flow {
             // 15. Every IShiftBindable (all UI)
             BindShift(bindables, shift);
             BindShift(Route.Bindables, shift);
-            // 16. ShiftDirector.Begin (T-M1-17); until then the night starts straight in Driving
-            bus.SetDriveLock(DriveLock.Scripted, false);
             Log.Info(LogCat.Flow, $"night {setup.NightIndex} begins{(setup.IsDebugRun ? " (debug run)" : "")}");
+            // 16. The intro card, then Driving
+            shift.Director.Begin();
         }
 
         ShiftServices BuildServices(NightSetup setup) {
@@ -111,6 +114,7 @@ namespace BusDriver.Gameplay.Flow {
                 OnFootCamera = mode.OnFootCamera,
                 GameOver = gameOver,
                 Riders = Route.Riders,
+                Director = director,
             };
             return shift;
         }
