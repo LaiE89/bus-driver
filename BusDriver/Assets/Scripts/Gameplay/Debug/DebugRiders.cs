@@ -42,18 +42,13 @@ namespace BusDriver.Gameplay.Debug {
             return SpawnWaiting(stop, spec, angel);
         }
 
-        // A rider waiting in the stop's next free spot, facing the road
+        // A rider waiting in the stop's next free spot, facing the road (spawned as the manifest does)
         internal Passenger SpawnWaiting(BusStop stop, RiderSpec spec, bool angel = false) {
             Passenger prefab = angel ? angelPrefab : riderPrefab;
             if (stop == null || prefab == null) {
                 return null;
             }
-            Transform at = stop.transform;
-            Vector3 position = at.TransformPoint(stop.WaitLocalPosition(stop.WaitingCount));
-            Quaternion rotation = at.rotation * Quaternion.Euler(0f, -90f, 0f);
-            Passenger passenger = Create(prefab, spec, position, rotation, at);
-            stop.AddWaiting(passenger);
-            return passenger;
+            return shift.Manifest.SpawnWaiting(spec, stop, prefab);
         }
 
         // A rider already sitting in a free seat (aboard without boarding: no Boarded event)
@@ -63,18 +58,9 @@ namespace BusDriver.Gameplay.Debug {
             if (seat == null || riderPrefab == null) {
                 return null;
             }
-            Passenger passenger = Create(riderPrefab, spec, seat.transform.position, seat.transform.rotation, cabin.PassengerRoot);
+            Passenger passenger = shift.Manifest.Create(spec, riderPrefab, seat.transform.position, seat.transform.rotation, cabin.PassengerRoot);
             passenger.PlaceSeated(cabin, seat);
             shift.Riders.MarkAboard(passenger);
-            return passenger;
-        }
-
-        Passenger Create(Passenger prefab, RiderSpec spec, Vector3 position, Quaternion rotation, Transform parent) {
-            Passenger passenger = Instantiate(prefab, position, rotation, parent);
-            passenger.name = prefab.name;
-            passenger.Bind(shift);
-            shift.Views.Recreate(passenger, shift.Views.Look(spec.lookId));
-            shift.Riders.Register(spec, passenger);
             return passenger;
         }
 

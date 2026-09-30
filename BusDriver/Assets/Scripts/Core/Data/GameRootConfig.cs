@@ -34,6 +34,9 @@ namespace BusDriver.Core.Data {
         [Tooltip("Environment kind → view (Data/Views/Environment)")]
         public EnvironmentViewSet environment;
 
+        [Tooltip("Nights 1–5 (Data/Nights), index 0 = night 1")]
+        public NightDefinition[] nights = new NightDefinition[0];
+
         [Tooltip("Every passenger look (Data/Looks), in id order")]
         public PassengerLookDefinition[] looks = new PassengerLookDefinition[0];
 
@@ -41,6 +44,16 @@ namespace BusDriver.Core.Data {
             for (int i = 0; i < routes.Length; i++) {
                 if (routes[i] != null && routes[i].id == routeId) {
                     return routes[i];
+                }
+            }
+            return null;
+        }
+
+        // Night n (1-based), or null
+        public NightDefinition Night(int nightIndex) {
+            for (int i = 0; i < nights.Length; i++) {
+                if (nights[i] != null && nights[i].nightIndex == nightIndex) {
+                    return nights[i];
                 }
             }
             return null;

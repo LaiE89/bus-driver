@@ -21,6 +21,12 @@ MonoBehaviour:
   routes:
   - {fileID: 11400000, guid: 8f8cbec31f24846e1bc582eeab448f64, type: 2}
   environment: {fileID: 11400000, guid: 046364deec4c549a28224cd18ee8ec9a, type: 2}
+  nights:
+  - {fileID: 11400000, guid: ebfed6fca15194a1586ca9023923b186, type: 2}
+  - {fileID: 11400000, guid: 833e2484e09854f00a6c03d4c231294a, type: 2}
+  - {fileID: 11400000, guid: b2aef23717bb04a6f9e580cae3a0538d, type: 2}
+  - {fileID: 11400000, guid: 83aee7de243cb49c8a04bb2f57a05abd, type: 2}
+  - {fileID: 11400000, guid: b7728c09f2a0d47f1a5816201da69880, type: 2}
   looks:
   - {fileID: 11400000, guid: ba6f3a62d24564822b5b97313a0b5b04, type: 2}
   - {fileID: 11400000, guid: 46288ed69509440be990720b077fdd99, type: 2}

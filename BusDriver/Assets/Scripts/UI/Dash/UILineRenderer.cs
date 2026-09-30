@@ -20,10 +20,14 @@ namespace BusDriver.UI.Dash {
         [Tooltip("The line before this fractional point index is drawn in dimColor")]
         [SerializeField] float dimBefore;
         [SerializeField] Color dimColor = new Color(1f, 1f, 1f, 0.3f);
+        [Tooltip("The line after this fractional point index is drawn in afterColor (a night that ends early)")]
+        [SerializeField] float dimAfter = float.MaxValue;
+        [SerializeField] Color afterColor = new Color(0.5f, 0.5f, 0.5f, 0.35f);
 
         public IReadOnlyList<Vector2> Points { get { return points; } }
         public float Thickness { get { return thickness; } set { thickness = value; SetVerticesDirty(); } }
         public float DimBefore { get { return dimBefore; } }
+        public float DimAfter { get { return dimAfter; } }
         public bool IsDashed { get { return dashLength > 0f && gapLength > 0f; } }
 
         public void SetPoints(Vector2[] newPoints) {
@@ -43,6 +47,13 @@ namespace BusDriver.UI.Dash {
         public void SetDim(float beforeIndex, Color dim) {
             dimColor = dim;
             SetDimBefore(beforeIndex);
+        }
+
+        // Greys out the line past a fractional point index (float.MaxValue: nothing)
+        public void SetDimAfter(float afterIndex, Color after) {
+            dimAfter = afterIndex;
+            afterColor = after;
+            SetVerticesDirty();
         }
 
         // Only rebuilds the mesh when the split moves visibly
@@ -71,6 +82,16 @@ namespace BusDriver.UI.Dash {
             for (int i = 0; i < count; i++) {
                 Vector2 a = points[i];
                 Vector2 b = points[(i + 1) % points.Length];
+                if (i >= dimAfter) {
+                    AddSegment(vh, a, b, afterColor, ref dashPhase);
+                    continue;
+                }
+                if (i + 1 > dimAfter) {
+                    // The part past the split is greyed; the part before it is drawn below
+                    Vector2 cut = Vector2.Lerp(a, b, dimAfter - i);
+                    AddSegment(vh, cut, b, afterColor, ref dashPhase);
+                    b = cut;
+                }
                 if (i + 1 <= dimBefore) {
                     AddSegment(vh, a, b, dimColor, ref dashPhase);
                 }else if (i >= dimBefore) {

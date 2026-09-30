@@ -35,7 +35,7 @@ namespace BusDriver.Tests.EditMode.Builders {
         public void EveryKind_HasItsLogicPrefabAndView() {
             EnvironmentViewSet set = EnvironmentPrefabBuilder.ViewSet;
             List<string> kinds = EnvironmentKinds.All();
-            Assert.AreEqual(33, kinds.Count, "10 blockers, 8 stops, 2 lamps, 6 signs, 2 guardrail parts, 2 trees, a rock, 2 buildings");
+            Assert.AreEqual(34, kinds.Count, "10 blockers, 8 stops, 2 lamps, 7 signs, 2 guardrail parts, 2 trees, a rock, 2 buildings");
             foreach (string kind in kinds) {
                 Assert.IsNotNull(set.Resolve(kind), kind + " has no view");
                 GameObject instance = Place(kind);

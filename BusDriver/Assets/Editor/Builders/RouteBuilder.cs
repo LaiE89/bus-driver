@@ -49,6 +49,7 @@ namespace BusDriver.Editor.Builders {
             public int NextSeed;
             // The tunnel's ceiling lamps, handed to its TunnelZone
             public List<LightFlicker> TunnelLights;
+            public List<NightEndBarrier> NightEndBarriers;
         }
 
         [MenuItem("Tools/Bus Driver/Builders/Route01_World")]
@@ -71,6 +72,7 @@ namespace BusDriver.Editor.Builders {
             BuildSigns(ref b, Group("Signs", world).transform);
             BuildDepot(ref b, Group("Depot", world).transform);
             BuildLodge(ref b, Group("Lodge", world).transform);
+            BuildNightEndBarriers(ref b, Group("Night End Barriers", world).transform);
             BuildRumbleMarkings(b, Group("Rumble Strips", world).transform);
 
             BuildZones(ref b, Group("Zones", null).transform);
@@ -102,6 +104,7 @@ namespace BusDriver.Editor.Builders {
                 Zones = new List<ZoneVolume>(),
                 FallZones = new List<FallZone>(),
                 TunnelLights = new List<LightFlicker>(),
+                NightEndBarriers = new List<NightEndBarrier>(),
                 NextSeed = 1,
             };
         }
@@ -352,6 +355,44 @@ namespace BusDriver.Editor.Builders {
             PlaceLamp(ref b, parent, pose, RouteSide.Right);
         }
 
+        // §2.4, D43: every end stop a night names that isn't the route's last gets a ROAD CLOSED
+        // barrier 60 m past it, saved inactive; the night switches its own on. Two rows of concrete
+        // barriers wall to wall (their colliders are containment), the sign just behind them.
+        static void BuildNightEndBarriers(ref Built b, Transform parent) {
+            GameRootConfig config = AssetDatabase.LoadAssetAtPath<GameRootConfig>(GameRootConfig.AssetPath);
+            List<string> endStops = new List<string>();
+            foreach (NightDefinition night in config != null ? config.nights : new NightDefinition[0]) {
+                if (night != null && night.endStopId != b.Route.terminusStopId && !endStops.Contains(night.endStopId)) {
+                    endStops.Add(night.endStopId);
+                }
+            }
+            endStops.Sort(string.CompareOrdinal);
+            foreach (string stopId in endStops) {
+                if (!b.Route.TryGetStop(stopId, out RouteStop stop)) {
+                    throw new System.InvalidOperationException($"a night ends at '{stopId}', which route '{b.Route.id}' doesn't have");
+                }
+                float distance = stop.distance + NightEndBarrier.DistancePastStop;
+                RoutePose pose = b.Path.Evaluate(distance);
+                GameObject root = Group("Night End " + stopId, parent);
+                root.transform.SetPositionAndRotation(pose.Position, pose.Rotation);
+                NightEndBarrier barrier = root.AddComponent<NightEndBarrier>();
+                SetString(barrier, "stopId", stopId);
+                SetFloat(barrier, "distance", distance);
+                // Blockers face +Z (toward the main road), so they're turned to face the oncoming bus
+                Quaternion facing = Quaternion.LookRotation(-pose.Forward, Vector3.up);
+                string kind = EnvironmentKinds.Blocker(BlockerKind.ConcreteBarriers, BlockerVariant.A);
+                float wall = ProfileBuilder.ContainmentOffset(b.Gen, ProfileAt(b, RouteSide.Left, distance));
+                float half = Mathf.Max(wall, ProfileBuilder.ContainmentOffset(b.Gen, ProfileAt(b, RouteSide.Right, distance)));
+                foreach (float lateral in new[] { -half * 0.5f, half * 0.5f }) {
+                    EnvironmentPrefabBuilder.Place(kind, root.transform, pose.Offset(lateral), facing);
+                }
+                EnvironmentPrefabBuilder.Place(EnvironmentKinds.Sign(SignKind.RoadClosed), root.transform,
+                    pose.Offset(0f) + pose.Forward * 1.5f, pose.Rotation);
+                root.SetActive(false);
+                b.NightEndBarriers.Add(barrier);
+            }
+        }
+
         // A street lamp just inside the containment line, its arm reaching over the road
         static void PlaceLamp(ref Built b, Transform parent, RoutePose pose, RouteSide side) {
             float line = ProfileBuilder.ContainmentOffset(b.Gen, ProfileAt(b, side, pose.Distance));
@@ -556,6 +597,7 @@ namespace BusDriver.Editor.Builders {
             SetRefArray(root, "fallZones", b.FallZones.ToArray());
             SetRef(root, "killPlane", b.KillPlane);
             SetRef(root, "fallCamAnchor", b.FallCamAnchor);
+            SetRefArray(root, "nightEndBarriers", b.NightEndBarriers.ToArray());
             // The zones with behaviour bind to the night too (T-M2-14)
             List<Object> bindables = new List<Object> { lighting, ambience };
             foreach (ZoneVolume zone in b.Zones) {

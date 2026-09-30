@@ -603,6 +603,17 @@ namespace BusDriver.Editor.Builders {
                     Part(t, "Board", new Vector3(0f, 2.15f, -0.03f), new Vector3(0.6f, 0.75f, 0.03f), "SignWhite");
                     Label(t, "Label", "BUS\nSTOP", face, new Vector2(0.55f, 0.7f), 2f, Ink);
                     break;
+                case SignKind.RoadClosed:
+                    // The night's end barrier (§2.4, D43): a wide board on two posts, low enough to
+                    // sit in the headlights behind the concrete barriers
+                    UnityEngine.Object.DestroyImmediate(t.Find("Post").gameObject);
+                    foreach (float x in new[] { -1.3f, 1.3f }) {
+                        Part(t, "Post", new Vector3(x, 0.9f, 0f), new Vector3(0.1f, 1.8f, 0.1f), "Post");
+                    }
+                    Part(t, "Board", new Vector3(0f, 1.55f, -0.03f), new Vector3(3f, 0.7f, 0.04f), "SignWhite");
+                    Part(t, "Stripe", new Vector3(0f, 1.12f, -0.03f), new Vector3(3f, 0.16f, 0.04f), "BarrierRed");
+                    Label(t, "Label", "ROAD CLOSED", new Vector3(0f, 1.55f, -0.06f), new Vector2(2.9f, 0.6f), 3.4f, SignRed);
+                    break;
             }
             return root;
         }
@@ -615,6 +626,10 @@ namespace BusDriver.Editor.Builders {
         }
 
         static void SignLogic(GameObject root, SignKind kind) {
+            if (kind == SignKind.RoadClosed) {
+                Solid(root, "Board Collider", new Vector3(0f, 0.9f, 0f), new Vector3(2.8f, 1.8f, 0.12f), false);
+                return;
+            }
             if (kind != SignKind.Chevron) {
                 Solid(root, "Post Collider", new Vector3(0f, 1.1f, 0f), new Vector3(0.1f, 2.2f, 0.1f), false);
             }

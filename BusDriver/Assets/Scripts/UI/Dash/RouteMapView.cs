@@ -47,6 +47,8 @@ namespace BusDriver.UI.Dash {
         [SerializeField] Color earlyColor = Color.green;
         [SerializeField] Color lateColor = Color.red;
         [SerializeField] Color onTimeColor = Color.white;
+        [Tooltip("The route past a night's early end (D43)")]
+        [SerializeField] Color closedColor = new Color(0.45f, 0.45f, 0.45f, 0.3f);
 
         RouteTracker tracker;
         RouteProgress progress;
@@ -71,6 +73,10 @@ namespace BusDriver.UI.Dash {
             progress = shift.Progress;
             clock = shift.Clock;
             Layout(tracker.Route, tracker.Path);
+            // A night that ends before the route does greys out everything past its end stop (§2.4)
+            if (progress.EndStop != null && progress.EndStop.StopId != route.terminusStopId) {
+                routeLine.SetDimAfter(progress.EndStop.Distance / SampleStep, closedColor);
+            }
             SetSignal(true);
             Refresh(true);
             // The tunnel takes the signal away (§3.3)

@@ -15,6 +15,7 @@ namespace BusDriver.Gameplay.Flow {
     public sealed class RunFlow {
         public const string DebugSeedPref = "BusDriver.DebugSeed";
         public const string DebugNightPref = "BusDriver.DebugNight";
+        public const string DebugNoMonstersPref = "BusDriver.DebugNoMonsters";
 
         readonly GameServices game;
         NightSetup pendingNight;
@@ -24,6 +25,8 @@ namespace BusDriver.Gameplay.Flow {
         public RunFlowState State { get; private set; } = RunFlowState.Boot;
         public RunState Run { get; private set; }
         public bool IsDebugRun { get; private set; }
+        // Development and test: nights load without their monster riders (T-M3-03)
+        public bool DebugNoMonsters { get; set; }
 
         public event Action<RunFlowState> OnStateChanged;
 
@@ -58,6 +61,20 @@ namespace BusDriver.Gameplay.Flow {
             LoadNight();
         }
 
+        // Development and test: a debug run (never saved, §4.4) straight into night n — the §4.18
+        // "jump to night N" cheat and the tests that need a later night
+        internal void NewDebugRun(int seed, int nightIndex) {
+            if (State == RunFlowState.LoadingNight) {
+                Log.Warn(LogCat.Flow, "debug run ignored: a night is already loading");
+                return;
+            }
+            Run = RunState.NewRun(seed);
+            Run.nightIndex = Mathf.Clamp(nightIndex, 1, 5);
+            IsDebugRun = true;
+            Log.Info(LogCat.Flow, $"debug run seed={seed} night={Run.nightIndex}");
+            LoadNight();
+        }
+
         // A plain quit for now; leaving a night as a death (D21) arrives in T-M7-08
         public void QuitToMenu() {
             LoadMenu();
@@ -73,7 +90,7 @@ namespace BusDriver.Gameplay.Flow {
         }
 
         void LoadNight() {
-            pendingNight = new NightSetup(Run, IsDebugRun);
+            pendingNight = new NightSetup(Run, IsDebugRun, DebugNoMonsters);
             SetState(RunFlowState.LoadingNight);
             game.Scenes.Run(game.Scenes.LoadNight(pendingNight));
         }
@@ -108,7 +125,7 @@ namespace BusDriver.Gameplay.Flow {
                 if (Run == null || State == RunFlowState.Boot) {
                     StartDebugRun();
                 }
-                pendingNight = new NightSetup(Run, IsDebugRun);
+                pendingNight = new NightSetup(Run, IsDebugRun, DebugNoMonsters);
             }
             // A route in the same scene (the legacy single-scene night) starts it at once
             RouteSceneRoot route = SceneLoader.FindInScene<RouteSceneRoot>(scene);
@@ -134,7 +151,7 @@ namespace BusDriver.Gameplay.Flow {
             NightSetup setup = pendingNight;
             pendingNight = null;
             if (setup == null) {
-                setup = new NightSetup(Run, IsDebugRun);
+                setup = new NightSetup(Run, IsDebugRun, DebugNoMonsters);
             }
             SetState(RunFlowState.InNight);
             // The route scene's lighting is the night's (§4.3); its LightingPresetApplier puts
@@ -157,6 +174,7 @@ namespace BusDriver.Gameplay.Flow {
                 seed = UnityEditor.EditorPrefs.GetInt(DebugSeedPref);
             }
             night = Mathf.Clamp(UnityEditor.EditorPrefs.GetInt(DebugNightPref, 1), 1, 5);
+            DebugNoMonsters = UnityEditor.EditorPrefs.GetBool(DebugNoMonstersPref, false);
 #endif
             Run = RunState.NewRun(seed);
             Run.nightIndex = night;

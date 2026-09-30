@@ -21,6 +21,7 @@ namespace BusDriver.Editor.Validation {
             CheckLighting,
             CheckEnvironment,
             CheckLooks,
+            CheckNights,
         };
 
         public static List<string> Validate() {
@@ -210,6 +211,68 @@ namespace BusDriver.Editor.Validation {
             GameObject greybox = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabBuilder.GreyboxPassengerViewPath);
             if (greybox == null || greybox.GetComponent<GreyboxPassengerView>() == null) {
                 problems.Add("missing the greybox passenger view " + PrefabBuilder.GreyboxPassengerViewPath);
+            }
+        }
+
+        // Nights 1–5 in order; end stops, boarding and destination stops on the route and in order;
+        // looks and monster ids known (§2.19, T-M3-03)
+        static void CheckNights(List<string> problems) {
+            GameRootConfig config = Config;
+            if (config == null) {
+                return;
+            }
+            RouteDefinition route = config.Route(RouteSeed.RouteId);
+            NightDefinition[] nights = config.nights ?? new NightDefinition[0];
+            if (nights.Length != NightSeed.Count) {
+                problems.Add($"GameRootConfig.nights has {nights.Length} entries; a run is {NightSeed.Count} nights (D6)");
+            }
+            string[] monsters = { NightSeed.Starer, NightSeed.Whisperer, NightSeed.Mimic, NightSeed.WeepingAngel };
+            for (int i = 0; i < nights.Length; i++) {
+                NightDefinition night = nights[i];
+                if (night == null) {
+                    problems.Add($"GameRootConfig.nights entry {i} is empty");
+                    continue;
+                }
+                string n = "night " + night.nightIndex;
+                if (night.nightIndex != i + 1) {
+                    problems.Add($"GameRootConfig.nights entry {i} is {n}; the list is in night order");
+                }
+                if (route == null) {
+                    continue;
+                }
+                int endIndex = route.IndexOfStop(night.endStopId);
+                if (endIndex < 0) {
+                    problems.Add($"{n} ends at '{night.endStopId}', which the route doesn't have");
+                }
+                foreach (RiderSpec rider in night.scripted ?? new RiderSpec[0]) {
+                    if (rider == null) {
+                        problems.Add($"{n} has an empty scripted rider");
+                        continue;
+                    }
+                    int board = route.IndexOfStop(rider.boardStopId);
+                    int destination = route.IndexOfStop(rider.destinationStopId);
+                    if (board < 0 || destination < 0 || destination <= board) {
+                        problems.Add($"{n}: rider {rider} needs a boarding stop before its destination, both on the route");
+                    }else if (endIndex >= 0 && destination > endIndex) {
+                        problems.Add($"{n}: rider {rider} rides past the night's end stop '{night.endStopId}'");
+                    }
+                    if (config.Look(rider.lookId) == null) {
+                        problems.Add($"{n}: rider {rider} has an unknown look");
+                    }
+                    if (rider.IsMonster && System.Array.IndexOf(monsters, rider.monsterId) < 0) {
+                        problems.Add($"{n}: rider {rider} is an unknown monster");
+                    }
+                }
+                foreach (string monster in night.requiredMonsters ?? new string[0]) {
+                    if (System.Array.IndexOf(monsters, monster) < 0) {
+                        problems.Add($"{n} requires the unknown monster '{monster}'");
+                    }
+                }
+                foreach (string monster in night.monsterPool ?? new string[0]) {
+                    if (System.Array.IndexOf(monsters, monster) < 0) {
+                        problems.Add($"{n} draws from the unknown monster '{monster}'");
+                    }
+                }
             }
         }
 

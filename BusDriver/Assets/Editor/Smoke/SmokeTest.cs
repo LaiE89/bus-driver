@@ -88,6 +88,8 @@ namespace BusDriver.Editor.Smoke {
             ("route_stop_farm_gate", 322f),
             ("route_road_arc", 575f),
             ("route_cliff_approach", 1420f),
+            // Night 1 ends at the church: the ROAD CLOSED barrier 60 m past it (D43)
+            ("route_night_end", 1930f),
             ("route_tunnel", 2030f),
         };
         static int routeShot;
@@ -168,15 +170,18 @@ namespace BusDriver.Editor.Smoke {
                 cabin = bus.GetComponent<BusCabin>();
                 doors = bus.GetComponent<BusDoors>();
                 path = new RoutePath(night.Route.Route);
-                // No manifest yet (M3): the debug rider hook puts the angel and two riders at the stop
+                // Night 1's manifest waits at the stop (T-M3-03); the debug rider hook adds the legacy
+                // angel and two more riders
                 stop = night.Route.Stop(TestStopId);
                 Check(stop != null, "Route01_World has no stop '" + TestStopId + "'");
                 Check(night.Route.Stops.Count == night.Route.Route.stops.Length, "the route root doesn't list every stop");
+                int manifestWaiting = stop.WaitingCount;
+                Check(manifestWaiting == 2, "night 1's manifest should have two riders waiting at " + TestStopId + ", found " + manifestWaiting);
                 monster = night.Shift.DebugRiders.SpawnWaiting(stop, true) as WeepingAngel;
                 for (int i = 0; i < TestRiders; i++) {
                     night.Shift.DebugRiders.SpawnWaiting(stop, false);
                 }
-                Check(monster != null && stop.WaitingCount == TestRiders + 1, "the debug rider hook did not put the riders at the stop");
+                Check(monster != null && stop.WaitingCount == manifestWaiting + TestRiders + 1, "the debug rider hook did not put the riders at the stop");
                 RoutePose spawnPose = path.Evaluate(night.Route.Route.depotSpawnDistance);
                 Check(Vector3.Distance(bus.transform.position, night.Route.BusSpawn.position) < 0.5f
                     && Vector3.Distance(night.Route.BusSpawn.position, spawnPose.Offset(RightLane, 0.05f)) < 0.1f,

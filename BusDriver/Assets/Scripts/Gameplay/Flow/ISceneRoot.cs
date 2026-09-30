@@ -22,11 +22,14 @@ namespace BusDriver.Gameplay.Flow {
         public RunState Run { get; }
         // Editor debug runs never write run.json or meta.json (§4.4)
         public bool IsDebugRun { get; }
+        // Development and test: the manifest leaves out its monster riders (T-M3-03)
+        public bool NoMonsters { get; }
 
-        public NightSetup(RunState run, bool isDebugRun) {
+        public NightSetup(RunState run, bool isDebugRun, bool noMonsters = false) {
             Run = run;
             NightIndex = run.nightIndex;
             IsDebugRun = isDebugRun;
+            NoMonsters = noMonsters;
         }
     }
 }

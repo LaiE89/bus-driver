@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8886fd1e2bffd4e92ab7deab45137c3c, type: 3}
+  m_Name: Night1
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.NightDefinition
+  nightIndex: 1
+  endStopId: church
+  threatRateMultiplier: 1
+  hintsEnabled: 1
+  scripted:
+  - lookId: look01
+    boardStopId: farm_gate
+    destinationStopId: campground
+    decoy: 0
+    monsterId: 
+  - lookId: look02
+    boardStopId: farm_gate
+    destinationStopId: church
+    decoy: 0
+    monsterId: 
+  - lookId: look03
+    boardStopId: gas_station
+    destinationStopId: church
+    decoy: 1
+    monsterId: 
+  - lookId: look04
+    boardStopId: gas_station
+    destinationStopId: campground
+    decoy: 0
+    monsterId: 
+  - lookId: look05
+    boardStopId: campground
+    destinationStopId: church
+    decoy: 0
+    monsterId: 
+  - lookId: look06
+    boardStopId: campground
+    destinationStopId: church
+    decoy: 0
+    monsterId: starer
+  riderCountMin: 5
+  riderCountMax: 5
+  decoyCount: 1
+  monsterCountMin: 1
+  monsterCountMax: 1
+  requiredMonsters: []
+  monsterPool: []
+  minDistinctTypes: 0
+  maxPerType: 0
+  monsterBoardFirstStop: 
+  monsterBoardLastStop: 
+  mimicBoardFirstStop: 
+  mimicBoardLastStop: 

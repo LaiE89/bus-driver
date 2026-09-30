@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Debug;
@@ -30,6 +31,8 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] PassengerRegistry riders;
         [Tooltip("Creates passenger views from looks (§4.14)")]
         [SerializeField] ViewFactory views;
+        [Tooltip("Spawns the night's riders (§4.6)")]
+        [SerializeField] ManifestSpawner manifest;
         [Tooltip("The development and test driver (§4.18)")]
         [SerializeField] AutoPilot autoPilot;
         [Tooltip("Development and test riders (T-M2-07), until ManifestSpawner (T-M3-03)")]
@@ -81,9 +84,13 @@ namespace BusDriver.Gameplay.Flow {
             shift.Director.Init(shift);
             RegisterDebugSections(shift);
 
-            // 1. RouteTracker, RouteProgress
+            // 1. RouteTracker, RouteProgress; a night that ends before the route does closes the
+            // road past its end stop (§2.4, D43)
             shift.Tracker.Init(shift);
             shift.Progress.Init(shift);
+            if (shift.Progress.EndStop != null) {
+                Route.ActivateNightEnd(shift.Progress.EndStop.StopId);
+            }
             // 2. ShiftClockDriver
             shift.Clock.Init(shift);
             // 3. The bus, CCTV, the mode switch and the input adapters
@@ -108,7 +115,8 @@ namespace BusDriver.Gameplay.Flow {
             if (shift.GameOver != null) {
                 shift.GameOver.Init(shift);
             }
-            // 14. ManifestSpawner (T-M3-03); until then only the debug rider hook
+            // 14. ManifestSpawner, and the debug rider hook beside it
+            shift.Manifest.Init(shift);
             if (shift.DebugRiders != null) {
                 shift.DebugRiders.Init(shift);
             }
@@ -150,8 +158,20 @@ namespace BusDriver.Gameplay.Flow {
                 AutoPilot = autoPilot,
                 Riders = riders,
                 Views = views,
+                Manifest = manifest,
+                Night = ResolveNight(setup),
             };
             return shift;
+        }
+
+        NightDefinition ResolveNight(NightSetup setup) {
+            GameRootConfig config = Game != null ? Game.Config : null;
+            NightDefinition night = config != null ? config.Night(setup.NightIndex) : null;
+            if (night == null && config != null) {
+                Log.Warn(LogCat.Content, $"GameRootConfig has no night {setup.NightIndex}; using night 1");
+                night = config.Night(1);
+            }
+            return night;
         }
 
         // The first F1 section (T-M1-18). ShiftClockDriver registers "Clock", RouteTracker "Route"

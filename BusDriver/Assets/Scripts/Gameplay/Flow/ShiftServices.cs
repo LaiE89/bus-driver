@@ -1,3 +1,4 @@
+using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Debug;
@@ -16,6 +17,8 @@ namespace BusDriver.Gameplay.Flow {
     public sealed class ShiftServices {
         public GameServices Game;
         public NightSetup Setup;
+        // This night's definition (§2.19); night 1's when the config lacks this night
+        public NightDefinition Night;
         public RngStreams Rng;
         // The F1 overlay's sections and cheats (§4.18); services register theirs in Init
         public DebugRegistry Debug;
@@ -47,6 +50,8 @@ namespace BusDriver.Gameplay.Flow {
         public PassengerRegistry Riders;
         // Passenger views from looks (§4.14)
         public ViewFactory Views;
+        // Spawns the night's riders (§4.6)
+        public ManifestSpawner Manifest;
 
         // Legacy until DeathDirector (T-M4-06)
         public LegacyGameOver GameOver;

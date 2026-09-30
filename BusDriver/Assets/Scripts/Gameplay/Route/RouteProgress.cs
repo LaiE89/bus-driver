@@ -38,8 +38,10 @@ namespace BusDriver.Gameplay.Route {
             cabin = services.Cabin;
             doors = services.Doors;
             RouteDefinition route = tracker.Route;
-            // NightDefinition.endStopId arrives with T-M3-03; until then the night runs to the terminus
-            core = new StopProgress(route, route.terminusStopId);
+            // The night's end stop (NightDefinition.endStopId, D43), or the terminus without one
+            string endStop = services.Night != null && !string.IsNullOrEmpty(services.Night.endStopId)
+                ? services.Night.endStopId : route.terminusStopId;
+            core = new StopProgress(route, endStop);
             doors.OnFullyOpened += HandleDoorsFullyOpened;
             services.Debug.Register("Stops", WriteDebug);
         }

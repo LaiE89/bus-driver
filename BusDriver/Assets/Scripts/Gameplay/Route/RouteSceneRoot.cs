@@ -19,6 +19,8 @@ namespace BusDriver.Gameplay.Route {
         [SerializeField] KillPlane killPlane;
         [Tooltip("Where the fall camera watches the bus go over (§2.14)")]
         [SerializeField] Transform fallCamAnchor;
+        [Tooltip("The ROAD CLOSED barriers past end stops that aren't the route's last, inactive until a night ends there")]
+        [SerializeField] NightEndBarrier[] nightEndBarriers = new NightEndBarrier[0];
         [Tooltip("Components in this scene that ShiftContext binds (IGameBindable / IShiftBindable)")]
         [SerializeField] MonoBehaviour[] bindables = new MonoBehaviour[0];
 
@@ -30,6 +32,25 @@ namespace BusDriver.Gameplay.Route {
         public KillPlane KillPlane { get { return killPlane; } }
         public Transform FallCamAnchor { get { return fallCamAnchor; } }
         public IReadOnlyList<MonoBehaviour> Bindables { get { return bindables; } }
+        public IReadOnlyList<NightEndBarrier> NightEndBarriers { get { return nightEndBarriers; } }
+
+        // Switches on the barrier past this end stop (if the route has one) and every other one off;
+        // returns it, or null when the night runs to the route's end
+        public NightEndBarrier ActivateNightEnd(string endStopId) {
+            NightEndBarrier active = null;
+            for (int i = 0; i < nightEndBarriers.Length; i++) {
+                NightEndBarrier barrier = nightEndBarriers[i];
+                if (barrier == null) {
+                    continue;
+                }
+                bool on = barrier.StopId == endStopId;
+                barrier.gameObject.SetActive(on);
+                if (on) {
+                    active = barrier;
+                }
+            }
+            return active;
+        }
 
         // The stop with this id, or null
         public BusStop Stop(string stopId) {

@@ -112,3 +112,6 @@ MonoBehaviour:
   - kind: Building.Lodge
     greyboxView: {fileID: 7342635395365212556, guid: 1876f5d5733da48c6afc14860c1aa501, type: 3}
     artView: {fileID: 0}
+  - kind: Sign.RoadClosed
+    greyboxView: {fileID: 8738569853736043851, guid: 41aac634e2c2e4938947614f45ba29d6, type: 3}
+    artView: {fileID: 0}

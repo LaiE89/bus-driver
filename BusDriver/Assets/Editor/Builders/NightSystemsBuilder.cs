@@ -45,6 +45,8 @@ namespace BusDriver.Editor.Builders {
             ShiftClockDriver clock = contextObject.AddComponent<ShiftClockDriver>();
             PassengerRegistry riders = contextObject.AddComponent<PassengerRegistry>();
             ViewFactory views = contextObject.AddComponent<ViewFactory>();
+            ManifestSpawner manifest = contextObject.AddComponent<ManifestSpawner>();
+            SetRef(manifest, "riderPrefab", LoadRider(PrefabBuilder.PassengerPath));
             SetRef(views, "greyboxView", LoadGreyboxView());
 
             GameObject bus = Instantiate(PrefabBuilder.BusPath, "Bus");
@@ -98,6 +100,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "autoPilot", autoPilot);
             SetRef(context, "riders", riders);
             SetRef(context, "views", views);
+            SetRef(context, "manifest", manifest);
             SetRefArray(context, "bindables", Bindables(scene).ToArray());
 
             bus.SetActive(false);
