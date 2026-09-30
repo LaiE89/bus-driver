@@ -52,4 +52,8 @@ namespace BusDriver.Core.Data {
 
     // A look's greybox accessory (§4.8 PassengerLookDefinition; T-M3-01)
     public enum LookAccessory : int { None = 0, Cap = 1, Scarf = 2, Backpack = 3, Glasses = 4, LongCoat = 5 }
+    // Seat zones (§2.6): Front = rows R1–R3, Mid = R4–R6, Rear = R7–R9; Any = no preference (T-M3-02)
+    public enum SeatZone : int { Any = 0, Front = 1, Mid = 2, Rear = 3 }
+    // A rider's place in the night (T-M3-02). Lost = walked away from a missed stop (T-M3-04).
+    public enum RiderStatus : int { Waiting = 0, Aboard = 1, Delivered = 2, Kicked = 3, Died = 4, Lost = 5 }
 }

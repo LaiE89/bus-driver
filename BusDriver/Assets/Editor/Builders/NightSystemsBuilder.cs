@@ -43,6 +43,7 @@ namespace BusDriver.Editor.Builders {
             RouteTracker tracker = contextObject.AddComponent<RouteTracker>();
             RouteProgress progress = contextObject.AddComponent<RouteProgress>();
             ShiftClockDriver clock = contextObject.AddComponent<ShiftClockDriver>();
+            PassengerRegistry riders = contextObject.AddComponent<PassengerRegistry>();
             ViewFactory views = contextObject.AddComponent<ViewFactory>();
             SetRef(views, "greyboxView", LoadGreyboxView());
 
@@ -95,6 +96,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "progress", progress);
             SetRef(context, "clock", clock);
             SetRef(context, "autoPilot", autoPilot);
+            SetRef(context, "riders", riders);
             SetRef(context, "views", views);
             SetRefArray(context, "bindables", Bindables(scene).ToArray());
 

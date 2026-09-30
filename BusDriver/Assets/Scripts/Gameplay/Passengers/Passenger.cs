@@ -40,6 +40,9 @@ namespace BusDriver.Gameplay.Passengers {
         // The logic head, for observation linecasts and "is it on camera"
         public Transform Head { get { return anchorHead; } }
         public PassengerViewBase View { get { return view; } }
+        // Seat zone preference (§2.6, §2.9): a monster may prefer a zone, and a second one after it
+        public SeatZone PreferredZone { get; private set; } = SeatZone.Any;
+        public SeatZone FallbackZone { get; private set; } = SeatZone.Any;
         public string LookId { get; private set; } = "";
         // The night this rider belongs to; null for one placed by hand (tests)
         protected ShiftServices Shift { get; private set; }
@@ -65,8 +68,8 @@ namespace BusDriver.Gameplay.Passengers {
 
         // ------------------------------------------------------------ hooks
 
-        // Which seat to head for. A quirk could be "always sits right behind the driver".
-        protected virtual BusSeat ChooseSeat(BusCabin cabin) { return cabin.FindFreeSeat(); }
+        // Which seat to head for: a random free seat, in the preferred zones first (§2.6)
+        protected virtual BusSeat ChooseSeat(BusCabin cabin) { return cabin.FindFreeSeat(PreferredZone, FallbackZone); }
         // Through the door and standing in the aisle
         protected virtual void OnBoarded() { }
         protected virtual void OnSeated() { }
@@ -101,6 +104,11 @@ namespace BusDriver.Gameplay.Passengers {
         // From the spawner, before the rider does anything (§4.5)
         public virtual void Bind(ShiftServices shift) {
             Shift = shift;
+        }
+
+        public void SetSeatPreference(SeatZone preferred, SeatZone fallback = SeatZone.Any) {
+            PreferredZone = preferred;
+            FallbackZone = fallback;
         }
 
         // ViewFactory: the rider's visuals, replacing any previous view (the Mimic changes looks)

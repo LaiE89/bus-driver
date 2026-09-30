@@ -1,6 +1,7 @@
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Debug;
+using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.Shift;
@@ -42,6 +43,8 @@ namespace BusDriver.Gameplay.Flow {
         // On the driver camera: the rumble strip, scares
         public CameraShake Shake;
 
+        // Every rider of the night (§4.6)
+        public PassengerRegistry Riders;
         // Passenger views from looks (§4.14)
         public ViewFactory Views;
 

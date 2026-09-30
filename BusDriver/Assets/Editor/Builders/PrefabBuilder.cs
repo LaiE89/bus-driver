@@ -199,7 +199,10 @@ namespace BusDriver.Editor.Builders {
             for (int row = Rows; row >= 1; row--) {
                 for (int column = 0; column < SeatColumns.Length; column++) {
                     Transform seat = Node(seatRoot, SeatName(row, column), new Vector3(SeatColumnX[column], SeatTop, RowZ(row)));
-                    seats.Add(seat.gameObject.AddComponent<BusSeat>());
+                    BusSeat busSeat = seat.gameObject.AddComponent<BusSeat>();
+                    SetInt(busSeat, "row", row);
+                    SetInt(busSeat, "column", column);
+                    seats.Add(busSeat);
                 }
             }
             return seats;

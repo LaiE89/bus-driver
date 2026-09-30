@@ -3,6 +3,7 @@ using System.Text;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Debug;
+using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.Shift;
@@ -25,6 +26,8 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] RouteTracker tracker;
         [SerializeField] RouteProgress progress;
         [SerializeField] ShiftClockDriver clock;
+        [Tooltip("Every rider of the night (§4.6)")]
+        [SerializeField] PassengerRegistry riders;
         [Tooltip("Creates passenger views from looks (§4.14)")]
         [SerializeField] ViewFactory views;
         [Tooltip("The development and test driver (§4.18)")]
@@ -97,6 +100,7 @@ namespace BusDriver.Gameplay.Flow {
             }
             // 4. PlayerAttention (T-M4-01)
             // 5. PassengerRegistry, ViewFactory
+            shift.Riders.Init(shift);
             shift.Views.Init(shift);
             // 6–13. The ledger, sanity, scares, death, monsters, hallucinations, items and
             // journal/hints arrive with M3–M7; the legacy game over stands in for DeathDirector
@@ -144,6 +148,7 @@ namespace BusDriver.Gameplay.Flow {
                 Progress = progress,
                 Clock = clock,
                 AutoPilot = autoPilot,
+                Riders = riders,
                 Views = views,
             };
             return shift;

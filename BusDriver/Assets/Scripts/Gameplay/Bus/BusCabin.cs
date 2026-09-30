@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Passengers;
@@ -8,8 +9,6 @@ using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.World;
 
 namespace BusDriver.Gameplay.Bus {
-    public enum SeatPreference { Random, FrontFirst, RearFirst }
-
     // Everything passengers need to know about the inside of the bus: seats, the path
     // through the door, who is aboard. Game rules (penalties, monster kills, route score)
     // should subscribe to the events here and test `passenger is Monster`.
@@ -48,6 +47,7 @@ namespace BusDriver.Gameplay.Bus {
         public Vector3 ExitDirection { get { return transform.right; } }
 
         readonly List<Passenger> passengers = new List<Passenger>();
+        readonly List<BusSeat> freeBuffer = new List<BusSeat>();
         // The route's stops, handed over by ShiftContext (the bus prefab can't hold scene objects)
         IReadOnlyList<BusStop> stops = new BusStop[0];
         // The run's seating stream (§2.6); a fixed fallback before Init, for tests that build a cabin alone
@@ -125,32 +125,36 @@ namespace BusDriver.Gameplay.Bus {
             }
         }
 
-        // Random by default, scattered passengers are what make scanning the CCTV worth it
-        public BusSeat FindFreeSeat(SeatPreference preference = SeatPreference.Random) {
-            List<BusSeat> free = new List<BusSeat>();
+        // A random free seat from the seating stream (§2.6): in the first zone if it has one, else
+        // the second, else anywhere. Scattered passengers are what make scanning the CCTV worth it.
+        public BusSeat FindFreeSeat(SeatZone first = SeatZone.Any, SeatZone second = SeatZone.Any) {
+            BusSeat seat = RandomFreeSeat(first);
+            if (seat == null && second != first) {
+                seat = RandomFreeSeat(second);
+            }
+            if (seat == null && first != SeatZone.Any && second != SeatZone.Any) {
+                seat = RandomFreeSeat(SeatZone.Any);
+            }
+            return seat;
+        }
+
+        BusSeat RandomFreeSeat(SeatZone zone) {
+            freeBuffer.Clear();
             foreach (BusSeat seat in seats) {
-                if (seat.IsFree) {
-                    free.Add(seat);
+                if (seat.IsFree && (zone == SeatZone.Any || seat.Zone == zone)) {
+                    freeBuffer.Add(seat);
                 }
             }
-            if (free.Count == 0) {
+            if (freeBuffer.Count == 0) {
                 return null;
             }
-            if (preference == SeatPreference.Random) {
-                if (seating == null) {
-                    seating = new System.Random(0);
-                }
-                return free[seating.Next(free.Count)];
+            if (seating == null) {
+                seating = new System.Random(0);
             }
-            BusSeat best = free[0];
-            foreach (BusSeat seat in free) {
-                bool further = SeatLocal(seat).z > SeatLocal(best).z;
-                if (further == (preference == SeatPreference.FrontFirst)) {
-                    best = seat;
-                }
-            }
-            return best;
+            return freeBuffer[seating.Next(freeBuffer.Count)];
         }
+
+        public IReadOnlyList<BusSeat> Seats { get { return seats; } }
 
         public BusSeat NearestFreeSeat(Vector3 busLocal) {
             BusSeat best = null;
