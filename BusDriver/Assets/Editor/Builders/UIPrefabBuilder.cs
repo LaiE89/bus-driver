@@ -109,6 +109,7 @@ namespace BusDriver.Editor.Builders {
             options = BuildOptions(canvas.transform, router, controls);
             PauseScreen pause = BuildPause(canvas.transform, router, options, controls);
             BuildConfirm(canvas.transform);
+            BuildSummary(canvas.transform, router);
             IntroCardScreen intro = BuildIntro(canvas.transform);
             // The intro card and the pause screen are drawn under the screens the pause screen opens
             intro.transform.SetAsFirstSibling();
@@ -257,6 +258,45 @@ namespace BusDriver.Editor.Builders {
             SetRef(intro, "clockText", clock);
             SetRef(intro, "routeText", route);
             return intro;
+        }
+
+        // §2.21 (T-M3-06): the headline over two halves, the ledger and wallet on the left and the
+        // arrivals table on the right, with the counts and Continue underneath
+        static SummaryScreen BuildSummary(Transform parent, ScreenRouter router) {
+            SummaryScreen summary;
+            RectTransform root = ScreenRoot("SummaryScreen", parent, ScreenBackground, out summary);
+            TMP_Text title = UIBuild.Label("Title", root, "NIGHT 1 COMPLETE", ThemeRole.Title, TextAlignmentOptions.Center, Center, new Vector2(0f, 420f), new Vector2(1600f, 160f));
+            // Left: x −840..−140; right: x −100..920 (the stop names need the room)
+            TMP_Text ledgerLabels = Column("Ledger Labels", root, ThemeRole.Body, TextAlignmentOptions.TopLeft, -600f, 480f);
+            TMP_Text ledgerAmounts = Column("Ledger Amounts", root, ThemeRole.Body, TextAlignmentOptions.TopRight, -250f, 220f);
+            TMP_Text wallet = UIBuild.Label("Wallet", root, "", ThemeRole.Body, TextAlignmentOptions.Left, Center, new Vector2(-490f, -90f), new Vector2(700f, 50f));
+            UIBuild.Theme(wallet, ThemeRole.Body).SetPaletteColor(ThemeColor.Highlight);
+            TMP_Text stops = Column("Arrival Stops", root, ThemeRole.Body, TextAlignmentOptions.TopLeft, 125f, 450f);
+            TMP_Text scheduled = Column("Arrival Scheduled", root, ThemeRole.Body, TextAlignmentOptions.TopRight, 450f, 200f);
+            TMP_Text actual = Column("Arrival Actual", root, ThemeRole.Body, TextAlignmentOptions.TopRight, 640f, 180f);
+            TMP_Text ratings = Column("Arrival Ratings", root, ThemeRole.Body, TextAlignmentOptions.TopRight, 825f, 190f);
+            TMP_Text counts = UIBuild.Label("Counts", root, "", ThemeRole.Body, TextAlignmentOptions.Center, Center, new Vector2(0f, -250f), new Vector2(1700f, 50f));
+            Button next = UIBuild.CreateButton("Continue Button", root, UIText.Continue, Center, new Vector2(0f, -380f), new Vector2(380f, 80f));
+            SetRef(summary, "firstSelected", next);
+            SetRef(summary, "router", router);
+            SetRef(summary, "titleText", title);
+            SetRef(summary, "ledgerLabels", ledgerLabels);
+            SetRef(summary, "ledgerAmounts", ledgerAmounts);
+            SetRef(summary, "walletText", wallet);
+            SetRef(summary, "arrivalStops", stops);
+            SetRef(summary, "arrivalScheduled", scheduled);
+            SetRef(summary, "arrivalActual", actual);
+            SetRef(summary, "arrivalRatings", ratings);
+            SetRef(summary, "countsText", counts);
+            SetRef(summary, "continueButton", next);
+            return summary;
+        }
+
+        // A top-aligned, unwrapped text column of the Summary, centred at x
+        static TMP_Text Column(string name, Transform root, ThemeRole role, TextAlignmentOptions alignment, float x, float width) {
+            TMP_Text text = UIBuild.Label(name, root, "", role, alignment, Center, new Vector2(x, 130f), new Vector2(width, 380f));
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            return text;
         }
 
         static void BuildConfirm(Transform parent) {

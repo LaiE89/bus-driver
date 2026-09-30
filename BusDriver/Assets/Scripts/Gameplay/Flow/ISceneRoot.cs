@@ -1,5 +1,6 @@
 using BusDriver.Core.Save;
 using BusDriver.Gameplay.Route;
+using BusDriver.Gameplay.Shift;
 
 namespace BusDriver.Gameplay.Flow {
     // Exactly one per scene, on a root GameObject (§4.5). SceneLoader finds it through
@@ -12,6 +13,8 @@ namespace BusDriver.Gameplay.Flow {
     // once that is loaded, then begins the night (§4.4).
     public interface INightRoot : ISceneRoot {
         bool HasBegun { get; }
+        // The night's state machine; RunFlow follows its results (§4.4)
+        ShiftDirector Director { get; }
         void AttachRoute(RouteSceneRoot route);
         void Begin(NightSetup setup);
     }

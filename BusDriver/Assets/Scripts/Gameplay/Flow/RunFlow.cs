@@ -1,7 +1,10 @@
 using System;
+using BusDriver.Core.Data;
+using BusDriver.Core.Rules;
 using BusDriver.Core.Save;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Route;
+using BusDriver.Gameplay.Shift;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,9 +12,9 @@ namespace BusDriver.Gameplay.Flow {
     // Explicit values, append-only
     public enum RunFlowState : int { Boot = 0, FirstLaunch = 1, Menu = 2, LoadingNight = 3, InNight = 4 }
 
-    // The run state machine (§4.4), plain C# owned by GameRoot. This is the T-M1-04 skeleton:
-    // Boot, Menu, LoadingNight, InNight, New Run and the editor debug run. Night results, Continue,
-    // abandoned detection and deaths arrive with their tickets (T-M3-06, T-M4-06, T-M7-02).
+    // The run state machine (§4.4), plain C# owned by GameRoot: Boot, Menu, LoadingNight, InNight,
+    // New Run, the editor debug run, and the night results (T-M3-06). Continue, abandoned detection
+    // and deaths arrive with their tickets (T-M4-06, T-M7-02).
     public sealed class RunFlow {
         public const string DebugSeedPref = "BusDriver.DebugSeed";
         public const string DebugNightPref = "BusDriver.DebugNight";
@@ -160,8 +163,57 @@ namespace BusDriver.Gameplay.Flow {
             if (SceneManager.GetActiveScene() != routeScene) {
                 SceneManager.SetActiveScene(routeScene);
             }
+            // The director dies with its scene, and these subscriptions with it
+            ShiftDirector director = currentNight.Director;
+            if (director != null) {
+                director.OnNightCompleted += CompleteNight;
+                director.OnSummaryConfirmed += HandleSummaryConfirmed;
+                director.OnRunWon += HandleRunWon;
+            }
             currentNight.AttachRoute(route);
             currentNight.Begin(setup);
+        }
+
+        // §4.4: the night's result goes into the run: wallet, sanity carry-over (§2.15), stats and
+        // history. The next night is the run's night from now on, though it's only saved (and so
+        // only reachable by Continue) once the Summary is confirmed.
+        public void CompleteNight(NightResult result) {
+            if (Run == null || result == null) {
+                return;
+            }
+            BalanceConfig balance = game.Config != null ? game.Config.balance : null;
+            float bonus = balance != null ? balance.sanityCarryBonus : 30f;
+            float floor = balance != null ? balance.sanityCarryFloor : 60f;
+            Run.walletCents = result.WalletAfterCents;
+            Run.sanity = EconomyMath.CarriedSanity(result.sanityEnd, bonus, floor);
+            result.AddTo(Run.stats);
+            Run.nights.Add(result.ToHistory());
+            Run.nightIndex = result.nightIndex + 1;
+            Run.nightInProgress = false;
+            Log.Info(LogCat.Flow, $"night {result.nightIndex} complete: wallet {Money.Format(Run.walletCents)}, next night {Run.nightIndex}");
+        }
+
+        // Summary Continue on nights 1–4: save the run, then the next night (§4.4). Debug runs
+        // never write.
+        void HandleSummaryConfirmed() {
+            if (Run == null) {
+                return;
+            }
+            if (!IsDebugRun) {
+                game.Saves.Save(SaveSlot.Run, Run);
+            }
+            LoadNight();
+        }
+
+        // Summary Continue on night 5: the run is won and its save is gone (§4.4). The Run Won
+        // screen arrives in T-M7-07; until then the run goes straight back to the menu (D91).
+        void HandleRunWon() {
+            if (!IsDebugRun) {
+                game.Saves.Delete(SaveSlot.Run);
+                game.Meta.RecordRunWon();
+            }
+            Log.Info(LogCat.Flow, "run won");
+            LoadMenu();
         }
 
         // Editor only: seed and night from EditorPrefs (default random / 1). Debug runs never

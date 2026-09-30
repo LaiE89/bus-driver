@@ -16,6 +16,27 @@ namespace BusDriver.UI.Screens {
         public const string IntroNight = "NIGHT {0}";
         public const string RouteName = "HOLLOW PINES LINE";
 
+        // Summary (§2.21). Ratings are words plus a shape, never colour alone (§2.23).
+        public const string SummaryTitle = "NIGHT {0} COMPLETE";
+        public const string Continue = "CONTINUE";
+        public const string LedgerFares = "FARES  {0} × {1}";
+        public const string LedgerTips = "TIPS";
+        public const string LedgerRefunds = "REFUNDS";
+        public const string LedgerLost = "PASSENGERS LOST";
+        public const string LedgerBounties = "BOUNTIES";
+        public const string LedgerTotal = "NIGHT TOTAL";
+        public const string SummaryWallet = "WALLET  {0}  →  {1}";
+        public const string ArrivalsStop = "STOP";
+        public const string ArrivalsScheduled = "SCHEDULED";
+        public const string ArrivalsActual = "ARRIVED";
+        public const string ArrivalsRating = "RATING";
+        public const string ArrivalNone = "—";
+        public const string RatingEarly = "▲ EARLY";
+        public const string RatingOnTime = "● ON TIME";
+        public const string RatingLate = "▼ LATE";
+        public const string RatingMissed = "○ MISSED";
+        public const string SummaryCounts = "MONSTERS KICKED {0}    INNOCENTS KICKED {1}    RIDERS DELIVERED {2}";
+
         // Confirmations (§2.21, §2.22)
         public const string LeaveEndsRun = "Leaving now ends your run.";
         public const string Leave = "LEAVE";

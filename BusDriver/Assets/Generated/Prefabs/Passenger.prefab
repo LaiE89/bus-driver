@@ -82,6 +82,7 @@ MonoBehaviour:
   walkSpeed: 1.3
   turnSpeed: 360
   exitWalkDistance: 2.5
+  walkAwayDistance: 8
   sitTime: 0.4
   displayName: Passenger
 --- !u!136 &8118878280717727983
