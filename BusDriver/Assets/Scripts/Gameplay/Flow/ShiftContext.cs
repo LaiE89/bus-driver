@@ -130,6 +130,7 @@ namespace BusDriver.Gameplay.Flow {
                 Interactor = interactor,
                 DriverCamera = mode.DriverCamera,
                 OnFootCamera = mode.OnFootCamera,
+                Shake = mode.DriverCamera != null ? mode.DriverCamera.GetComponent<CameraShake>() : null,
                 GameOver = gameOver,
                 DebugRiders = debugRiders,
                 Director = director,

@@ -5,6 +5,7 @@ using BusDriver.Core.Util;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.Shift;
+using BusDriver.Gameplay.World;
 using BusDriver.UI.Screens;
 using TMPro;
 using UnityEngine;
@@ -54,6 +55,7 @@ namespace BusDriver.UI.Dash {
         RoutePath path;
         GpsProjection projection;
         readonly List<GpsStopMarker> markers = new List<GpsStopMarker>();
+        readonly List<TunnelZone> tunnels = new List<TunnelZone>();
         float nextTextRefresh;
 
         public bool HasSignal { get; private set; } = true;
@@ -71,6 +73,26 @@ namespace BusDriver.UI.Dash {
             Layout(tracker.Route, tracker.Path);
             SetSignal(true);
             Refresh(true);
+            // The tunnel takes the signal away (§3.3)
+            for (int i = 0; i < shift.Route.Zones.Count; i++) {
+                TunnelZone tunnel = shift.Route.Zones[i] != null ? shift.Route.Zones[i].GetComponent<TunnelZone>() : null;
+                if (tunnel != null) {
+                    tunnel.OnInsideChanged += HandleTunnel;
+                    tunnels.Add(tunnel);
+                }
+            }
+        }
+
+        void OnDestroy() {
+            for (int i = 0; i < tunnels.Count; i++) {
+                if (tunnels[i] != null) {
+                    tunnels[i].OnInsideChanged -= HandleTunnel;
+                }
+            }
+        }
+
+        void HandleTunnel(bool inside) {
+            SetSignal(!inside);
         }
 
         // The tunnel's NO SIGNAL (§3.3)

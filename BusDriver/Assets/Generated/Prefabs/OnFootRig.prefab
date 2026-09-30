@@ -182,6 +182,7 @@ GameObject:
   - component: {fileID: 1340381326467694655}
   - component: {fileID: 4616429818774541170}
   - component: {fileID: 5456929379618141291}
+  - component: {fileID: 3726032056240315259}
   m_Layer: 0
   m_Name: OnFootCamera
   m_TagString: MainCamera
@@ -299,6 +300,21 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &3726032056240315259
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4183900122158421058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4aee850f7c43e471f899e566c0932eb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Player.CameraShake
+  maxOffset: 0.08
+  maxAngle: 2
+  frequency: 22
 --- !u!1 &6277153587087888778
 GameObject:
   m_ObjectHideFlags: 0

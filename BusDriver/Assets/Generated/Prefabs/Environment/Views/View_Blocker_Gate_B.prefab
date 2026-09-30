@@ -361,7 +361,7 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &2929879777117538508
+--- !u!1 &2297230154659944724
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -369,9 +369,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 4138656281822305857}
-  - component: {fileID: 1553054518980576206}
-  - component: {fileID: 767045643301525489}
+  - component: {fileID: 4629827310108496707}
+  - component: {fileID: 732901977350219999}
+  - component: {fileID: 6646401967579554543}
   m_Layer: 0
   m_Name: Gate Post
   m_TagString: Untagged
@@ -379,13 +379,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
   m_IsActive: 1
---- !u!4 &4138656281822305857
+--- !u!4 &4629827310108496707
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2929879777117538508}
+  m_GameObject: {fileID: 2297230154659944724}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 4, y: 0.8, z: 0}
@@ -394,21 +394,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 8669633619645708833}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &1553054518980576206
+--- !u!33 &732901977350219999
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2929879777117538508}
+  m_GameObject: {fileID: 2297230154659944724}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &767045643301525489
+--- !u!23 &6646401967579554543
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2929879777117538508}
+  m_GameObject: {fileID: 2297230154659944724}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -662,7 +662,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 32693954767035357}
-  - {fileID: 4138656281822305857}
+  - {fileID: 4629827310108496707}
   - {fileID: 7321963923823774793}
   - {fileID: 1719771388525771182}
   - {fileID: 7442614552835374109}

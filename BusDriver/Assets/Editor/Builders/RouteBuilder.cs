@@ -3,6 +3,7 @@ using BusDriver.Core.Data;
 using BusDriver.Core.Rules;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Audio;
+using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.World;
 using UnityEditor;
@@ -46,6 +47,8 @@ namespace BusDriver.Editor.Builders {
             public KillPlane KillPlane;
             public Transform FallCamAnchor;
             public int NextSeed;
+            // The tunnel's ceiling lamps, handed to its TunnelZone
+            public List<LightFlicker> TunnelLights;
         }
 
         [MenuItem("Tools/Bus Driver/Builders/Route01_World")]
@@ -98,6 +101,7 @@ namespace BusDriver.Editor.Builders {
                 Stops = new List<BusStop>(),
                 Zones = new List<ZoneVolume>(),
                 FallZones = new List<FallZone>(),
+                TunnelLights = new List<LightFlicker>(),
                 NextSeed = 1,
             };
         }
@@ -173,7 +177,11 @@ namespace BusDriver.Editor.Builders {
             Transform lamps = Group("Tunnel Lights", parent).transform;
             foreach (Vector3 position in profiles.TunnelLights) {
                 RoutePose pose = b.Path.Evaluate(b.Path.Project(position).Distance);
-                EnvironmentPrefabBuilder.Place(EnvironmentKinds.TunnelLamp, lamps, position, pose.Rotation, b.NextSeed++);
+                GameObject lamp = EnvironmentPrefabBuilder.Place(EnvironmentKinds.TunnelLamp, lamps, position, pose.Rotation, b.NextSeed++);
+                LightFlicker flicker = lamp.GetComponentInChildren<LightFlicker>(true);
+                if (flicker != null) {
+                    b.TunnelLights.Add(flicker);
+                }
             }
         }
 
@@ -404,7 +412,10 @@ namespace BusDriver.Editor.Builders {
                 string name = zone.kind + (zone.span == ZoneSpan.Across ? "" : " " + zone.span) + $" {zone.start:0}–{zone.end:0}";
                 ZoneVolume volume = NewVolume(name, parent, zone.kind, zone.start, zone.end);
                 switch (zone.kind) {
-                    case RouteZoneKind.Tunnel: volume.gameObject.AddComponent<TunnelZone>(); break;
+                    case RouteZoneKind.Tunnel:
+                        TunnelZone tunnel = volume.gameObject.AddComponent<TunnelZone>();
+                        SetRefArray(tunnel, "lights", b.TunnelLights.ToArray());
+                        break;
                     case RouteZoneKind.RumbleStrip: volume.gameObject.AddComponent<RumbleZone>(); break;
                 }
                 float inner;
@@ -545,7 +556,16 @@ namespace BusDriver.Editor.Builders {
             SetRefArray(root, "fallZones", b.FallZones.ToArray());
             SetRef(root, "killPlane", b.KillPlane);
             SetRef(root, "fallCamAnchor", b.FallCamAnchor);
-            SetRefArray(root, "bindables", new Object[] { lighting, ambience });
+            // The zones with behaviour bind to the night too (T-M2-14)
+            List<Object> bindables = new List<Object> { lighting, ambience };
+            foreach (ZoneVolume zone in b.Zones) {
+                foreach (MonoBehaviour behaviour in zone.GetComponents<MonoBehaviour>()) {
+                    if (behaviour is IShiftBindable) {
+                        bindables.Add(behaviour);
+                    }
+                }
+            }
+            SetRefArray(root, "bindables", bindables.ToArray());
         }
     }
 }

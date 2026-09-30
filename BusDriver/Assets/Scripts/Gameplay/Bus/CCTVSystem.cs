@@ -34,7 +34,18 @@ namespace BusDriver.Gameplay.Bus {
         public event Action<int> OnViewChanged;
 
         Volume cctvVolume;
+        FilmGrain grain;
         GameServices game;
+
+        // The feed's film grain; the tunnel turns it up to 1.0 (§3.3)
+        public float DefaultGrain { get { return 0.8f; } }
+        public float GrainIntensity { get { return grain != null ? grain.intensity.value : 0f; } }
+
+        public void SetGrainIntensity(float intensity01) {
+            if (grain != null) {
+                grain.intensity.Override(Mathf.Clamp01(intensity01));
+            }
+        }
 
         public void Init(ShiftServices shift) {
             game = shift.Game;
@@ -112,8 +123,8 @@ namespace BusDriver.Gameplay.Bus {
             color.contrast.Override(25f);
             color.postExposure.Override(0.7f);
 
-            FilmGrain grain = profile.Add<FilmGrain>();
-            grain.intensity.Override(0.8f);
+            grain = profile.Add<FilmGrain>();
+            grain.intensity.Override(DefaultGrain);
             grain.response.Override(0.2f);
 
             Vignette vignette = profile.Add<Vignette>();

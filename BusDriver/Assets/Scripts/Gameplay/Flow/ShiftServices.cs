@@ -38,6 +38,8 @@ namespace BusDriver.Gameplay.Flow {
         public PlayerInteractor Interactor;
         public Camera DriverCamera;
         public Camera OnFootCamera;
+        // On the driver camera: the rumble strip, scares
+        public CameraShake Shake;
 
         // Legacy until DeathDirector (T-M4-06)
         public LegacyGameOver GameOver;

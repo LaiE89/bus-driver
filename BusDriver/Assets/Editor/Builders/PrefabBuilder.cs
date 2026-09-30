@@ -274,6 +274,8 @@ namespace BusDriver.Editor.Builders {
             driverCamera = CreateCamera(DriverCameraName, pivot.transform, Vector3.zero, Vector3.zero, DriverFov);
             driverCamera.tag = "MainCamera";
             driverCamera.cullingMask &= ~Layers.Mask(Layers.PlayerAvatar);
+            // The rumble strip and the scares shake the view, never the look pivot
+            driverCamera.gameObject.AddComponent<CameraShake>();
             Group(EarsName, head).AddComponent<AudioListener>();
 
             // The seated body, at the seat under the eye point (D49)
@@ -553,6 +555,7 @@ namespace BusDriver.Editor.Builders {
             cam.tag = "MainCamera";
             cam.enabled = false;
             cam.cullingMask &= ~Layers.Mask(Layers.PlayerAvatar);
+            cam.gameObject.AddComponent<CameraShake>();
             Transform avatar = Group("Avatar", rig.transform).transform;
             BuildAvatarView(avatar, PassengerPose.Standing);
             SetRef(onFoot, "head", head);
