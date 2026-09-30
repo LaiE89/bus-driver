@@ -45,3 +45,13 @@ Thumbs.db
 
 # Unity user settings
 [Uu]serSettings/
+
+###
+# Bus Driver (ROADMAP §4.21)
+###
+Builds/
+BusDriver/Logs/
+BusDriver/UserSettings/
+*.tmp
+# itch.io target for tools/push-itch.sh (T-M0-08)
+tools/itch.env

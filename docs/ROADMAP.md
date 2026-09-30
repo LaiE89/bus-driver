@@ -3802,14 +3802,14 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 |---|---|---|---|
 | `T-M0-11` | Reconcile PR #5 with the roadmap (crash death, seated kick, avatar layer) | S | Done (2026-09-29) |
 | `T-M0-01` | Repo size rules and the file-size guard (no Git LFS) | S | Done (2026-09-29) |
-| `T-M0-02` | Git attributes, ignore rules and the contributing guide | S | Todo |
+| `T-M0-02` | Git attributes, ignore rules and the contributing guide | S | Done (2026-09-29) |
 | `T-M0-03` | Domain reload back on; remove dead assets | S | Todo |
 | `T-M0-04` | Assembly definitions and namespaces (transitional layout) | M | Todo |
 | `T-M0-05` | Logging wrapper | S | Todo |
 | `T-M0-06` | Test infrastructure and the architecture-rules test (with allowlist) | S | Todo |
 | `T-M0-07` | Build scripts, build label, `--selftest` mode | M | Todo |
-| `T-M0-08` | [HUMAN] Build modules, itch.io page, butler | S | Todo |
-| `T-M0-09` | itch push script and first restricted upload | S | Todo |
+| `T-M0-08` | [HUMAN] Build modules, itch.io page, butler | S | Blocked ([HUMAN] build modules, itch page, butler; tools/itch.env is git-ignored) |
+| `T-M0-09` | itch push script and first restricted upload | S | Blocked (needs T-M0-08) |
 | `T-M0-10` | `tools/verify.sh` and `tools/unity.sh` | S | Todo |
 | `T-M1-01` | Core utilities: ids, RNG streams, money and clock formatting | S | Todo |
 | `T-M1-02` | Save store: envelopes, atomic writes, migrations | M | Todo |

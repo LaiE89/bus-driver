@@ -1,0 +1,42 @@
+# Git attributes for the Bus Driver repo (ROADMAP §4.21, docs/CONTRIBUTING.md).
+
+# Unity YAML: merge with UnityYAMLMerge (register the driver once per machine, see CONTRIBUTING)
+*.unity              merge=unityyamlmerge
+*.prefab             merge=unityyamlmerge
+*.asset              merge=unityyamlmerge
+*.mat                merge=unityyamlmerge
+*.anim               merge=unityyamlmerge
+*.controller         merge=unityyamlmerge
+*.overrideController merge=unityyamlmerge
+*.mixer              merge=unityyamlmerge
+
+# Code
+*.cs diff=csharp
+
+# Binary asset types: never line-ending converted, never text-diffed or text-merged
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.tga   binary
+*.tif   binary
+*.tiff  binary
+*.exr   binary
+*.hdr   binary
+*.psd   binary
+*.fbx   binary
+*.FBX   binary
+*.obj   binary
+*.wav   binary
+*.ogg   binary
+*.mp3   binary
+*.aif   binary
+*.aiff  binary
+*.ttf   binary
+*.otf   binary
+*.dll   binary
+*.so    binary
+*.dylib binary
+*.a     binary
+*.zip   binary
+*.pdf   binary
+*.bytes binary
