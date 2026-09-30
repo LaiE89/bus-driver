@@ -18,6 +18,8 @@ namespace BusDriver.Editor.Builders {
         // Canvas order (§4.13): CCTV under the HUD, screens over both, debug on top
         public const int CctvOrder = 5;
         public const int HudOrder = 10;
+        // Over the HUD, under the screens, so the pause menu stays readable in a fade
+        public const int FadeOrder = 15;
         public const int ScreensOrder = 20;
         public const int GameOverOrder = 30;
         public const int DebugOrder = 40;
@@ -82,6 +84,13 @@ namespace BusDriver.Editor.Builders {
             SetRef(overlay, "timestampText", timestamp);
             SetRef(overlay, "recText", rec);
             SetRef(overlay, "scanlines", scanlines);
+
+            Canvas fadeCanvas = UIBuild.CreateCanvas("Fade Canvas", root.transform, FadeOrder);
+            Object.DestroyImmediate(fadeCanvas.GetComponent<GraphicRaycaster>());
+            ScreenFadeView fade = fadeCanvas.gameObject.AddComponent<ScreenFadeView>();
+            Image black = UIBuild.Fill("Black", fadeCanvas.transform, Color.black, false);
+            black.enabled = false;
+            SetRef(fade, "image", black);
 
             SaveOrOverwritePrefab(root, HudPath);
             Object.DestroyImmediate(root);

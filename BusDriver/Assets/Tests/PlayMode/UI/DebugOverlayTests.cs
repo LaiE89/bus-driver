@@ -53,7 +53,9 @@ namespace BusDriver.Tests.PlayMode.UI {
             Assert.IsTrue(overlay.IsOpen, "F1 should open the overlay");
             StringAssert.Contains("Run", overlay.Text);
             StringAssert.Contains("seed " + game.Flow.Run.seed, overlay.Text);
-            StringAssert.Contains("Clock / Route", overlay.Text);
+            StringAssert.Contains("Clock", overlay.Text);
+            // RouteTracker's section (T-M2-09): the bus starts at the depot, before farm_gate
+            StringAssert.Contains("next farm_gate", overlay.Text);
             StringAssert.Contains("mode Road", overlay.Text);
 
             yield return Press(Key.F1);

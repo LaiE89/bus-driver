@@ -17,8 +17,11 @@ namespace BusDriver.Gameplay.Flow {
         public RngStreams Rng;
         // The F1 overlay's sections and cheats (§4.18); services register theirs in Init
         public DebugRegistry Debug;
+        // The night's fade to black (the KillPlane respawn, deaths)
+        public ScreenFade Fade;
         public RouteSceneRoot Route;
         public ShiftDirector Director;
+        public RouteTracker Tracker;
 
         public BusController Bus;
         public BusDoors Doors;

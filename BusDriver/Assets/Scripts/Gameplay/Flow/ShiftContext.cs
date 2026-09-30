@@ -21,6 +21,7 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] PlayerInteractor interactor;
         [SerializeField] LegacyGameOver gameOver;
         [SerializeField] ShiftDirector director;
+        [SerializeField] RouteTracker tracker;
         [Tooltip("Development and test riders (T-M2-07), until ManifestSpawner (T-M3-03)")]
         [SerializeField] DebugRiders debugRiders;
         [Tooltip("UI and game-scoped components of this scene, bound in list order (§4.5 step 15)")]
@@ -70,7 +71,8 @@ namespace BusDriver.Gameplay.Flow {
             shift.Director.Init(shift);
             RegisterDebugSections(shift);
 
-            // 1. RouteTracker, RouteProgress (T-M2-09, T-M2-11)
+            // 1. RouteTracker, RouteProgress (T-M2-11)
+            shift.Tracker.Init(shift);
             // 2. ShiftClockDriver (T-M2-12)
             // 3. The bus, CCTV, the mode switch and the input adapters
             shift.Cabin.Init(shift);
@@ -104,6 +106,7 @@ namespace BusDriver.Gameplay.Flow {
                 Game = Game,
                 Setup = setup,
                 Rng = new RngStreams(setup.Run.seed),
+                Fade = new ScreenFade(),
                 Debug = new DebugRegistry(),
                 Route = Route,
                 Bus = bus,
@@ -121,12 +124,13 @@ namespace BusDriver.Gameplay.Flow {
                 GameOver = gameOver,
                 DebugRiders = debugRiders,
                 Director = director,
+                Tracker = tracker,
             };
             return shift;
         }
 
-        // The first F1 sections (T-M1-18). Clock and route are placeholders until ShiftClockDriver
-        // (T-M2-12) and RouteTracker (T-M2-09) register their own.
+        // The first F1 sections (T-M1-18). The clock is a placeholder until ShiftClockDriver
+        // (T-M2-12) registers its own; RouteTracker registers "Route" (T-M2-09).
         void RegisterDebugSections(ShiftServices shift) {
             shift.Debug.Register("Run", text => {
                 text.Append("seed ").Append(shift.Setup.Run.seed)
@@ -135,9 +139,8 @@ namespace BusDriver.Gameplay.Flow {
                     .Append(shift.Setup.IsDebugRun ? "  (debug run)" : "").Append('\n');
                 text.Append("shift ").Append(shift.Director.State).Append('\n');
             });
-            shift.Debug.Register("Clock / Route", text => {
+            shift.Debug.Register("Clock", text => {
                 text.Append("clock —  (ShiftClock, T-M2-12)\n");
-                text.Append("route —  (RouteTracker, T-M2-09)\n");
             });
         }
 

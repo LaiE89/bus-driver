@@ -121,6 +121,21 @@ namespace BusDriver.Gameplay.Bus {
             rb.WakeUp();
         }
 
+        // Straight to a pose, at rest: the KillPlane respawn (§2.3) and scripted placements
+        public void PlaceAt(Vector3 position, Quaternion rotation) {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            transform.SetPositionAndRotation(position, rotation);
+            rb.position = position;
+            rb.rotation = rotation;
+            SteerAngle = 0f;
+            ForwardSpeed = 0f;
+            smoothThrottle = 0f;
+            smoothBrake = 0f;
+            appliedMotor = 0f;
+            Physics.SyncTransforms();
+        }
+
         public void ResetUpright() {
             if (IsFrozen) {
                 return;
