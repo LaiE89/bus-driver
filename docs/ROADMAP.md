@@ -270,6 +270,7 @@ Decisions are never edited once made. To change one, add a new row that supersed
 | D92 (agent) | **Fare box (T-M3-07).** `FareBoxView` (a `DashScreenView` in `Dash.prefab`, 216×120 px on the 0.18×0.10 m `Anchor_Dash_FareBox`) shows the night's net total and pops every ledger entry as a signed delta (`Money.FormatDelta`) in the theme's Positive/Danger colour; the pop holds for half of 1.6 s, then fades while rising, on unscaled time. A fare plays `bus.fare_tap`; any other gain `ui.money_up` and any loss `ui.money_down`, all at the fare box | 2026-09-30 | agent |
 | D93 (agent) | **Decoys (T-M3-08).** `DecoyDriver` is added by `ManifestSpawner.Create` to every rider with a decoy and only sets view tells, so art views get decoys for free. NodOff ramps the head down (2.5/s) for 3–6 s every 10–20 s, only while seated (its timer runs while seated); PhoneGlow and HoodUp are always on (the view pulses the glow); Mutter is always on and starts `pax.mutter_loop` attached to the head once (it returns to the pool with the rider); FacingBackwards applies only while seated. Timings come from the `decoy` stream | 2026-09-30 | agent |
 | D94 (agent) | **Night 1 end-to-end tests (T-M3-09).** `ShiftDirector.NightSeconds` counts scaled time in Intro and Driving; entering the Summary logs `[NIGHT<n>] duration=…s` and the F1 "Run" section shows it. `Night1_DurationReport` runs at timeScale 1 in the normal PlayMode run (so `verify.sh full` includes it; AutoPilot measured 288 s ≈ 4.8 min on 2026-09-30) with the full manifest (the Starer rides as a plain rider until M4), and never asserts the length. `Night1_NoMonsters_AllDelivered_LedgerMatches` derives its expected fares and tips from Night1's scripted list and the ratings the drive produced | 2026-09-30 | agent |
+| D95 (agent) | **Threat cores (T-M4-02).** `ThreatRule` {condition, ratePerSecond} is a serializable struct in `BusDriver.Core.Data` (MonsterDefinition's `rules[]` uses it). `ThreatRules` works on a `ThreatContext` {Observed, ObservedByCctv, AttentionOnRoad, PlayerOnFoot} that MonsterBrain fills from PlayerAttention, already filtered by the monster's observer kinds; no matching rule means rate 0. `ThreatMeterCore`: grace is used up before the rest of the frame moves the meter; a **frozen** meter neither moves nor uses up grace; `HeldBelowLethal` caps only rises at 99.9 and never pulls an already Lethal meter back; `SetValue` (escape resets, the Mimic's replace, cheats) is not capped by the hold; one `OnStageChanged(from, to)` per move however many stages it crosses | 2026-09-30 | agent |
 
 ---
 
@@ -3907,7 +3908,7 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 | `T-M3-08` | Decoy behaviours | S | Done (2026-09-30) |
 | `T-M3-09` | Night 1 (no monsters) end-to-end tests | S | Done (2026-09-30) |
 | `T-M4-01` | PlayerAttention | M | Todo |
-| `T-M4-02` | Threat cores | S | Todo |
+| `T-M4-02` | Threat cores | S | Done (2026-09-30) |
 | `T-M4-03` | Monster framework | L | Todo |
 | `T-M4-04` | ScareArbiter core | S | Todo |
 | `T-M4-05` | ScareDefinition, ScarePlayer, ScareDirector | L | Todo |
