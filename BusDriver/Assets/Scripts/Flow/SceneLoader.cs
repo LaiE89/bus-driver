@@ -43,10 +43,18 @@ namespace BusDriver.Gameplay.Flow {
             return Load(SceneIds.Menu);
         }
 
-        // Until T-M1-16 a night is the single legacy scene; it then becomes Night_Systems plus
-        // Route01_World loaded additively
+        // Night_Systems (single, so the previous night or the menu goes), then Route01_World
+        // additively (§4.3). RunFlow begins the night from the route scene's sceneLoaded.
         public IEnumerator LoadNight(NightSetup setup) {
-            return Load(SceneIds.LegacyNight);
+            if (IsLoading) {
+                Log.Warn(LogCat.Flow, "night load ignored: another load is running");
+                yield break;
+            }
+            yield return Load(SceneIds.NightSystems, 0f, 0.6f);
+            if (!SceneManager.GetSceneByName(SceneIds.NightSystems).isLoaded) {
+                yield break;
+            }
+            yield return Load(SceneIds.Route01World, 0.6f, 1f, LoadSceneMode.Additive);
         }
 
         // Wires scenes that were loaded before GameRoot could listen (the first scene, if Unity
@@ -61,16 +69,23 @@ namespace BusDriver.Gameplay.Flow {
         }
 
         IEnumerator Load(string sceneName) {
+            return Load(sceneName, 0f, 1f);
+        }
+
+        // Progress runs from `from` to `to` over this load; single loads stop the scene sounds
+        IEnumerator Load(string sceneName, float from, float to, LoadSceneMode mode = LoadSceneMode.Single) {
             if (IsLoading) {
                 Log.Warn(LogCat.Flow, $"load of {sceneName} ignored: another load is running");
                 yield break;
             }
             IsLoading = true;
-            Progress = 0f;
-            // Everything but UI stops on a scene change (§4.3, §4.12)
-            game.Audio.StopSceneSounds();
-            Log.Info(LogCat.Flow, "loading " + sceneName);
-            AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+            Progress = from;
+            if (mode == LoadSceneMode.Single) {
+                // Everything but UI stops on a scene change (§4.3, §4.12)
+                game.Audio.StopSceneSounds();
+            }
+            Log.Info(LogCat.Flow, "loading " + sceneName + (mode == LoadSceneMode.Additive ? " (additive)" : ""));
+            AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName, mode);
             if (operation == null) {
                 IsLoading = false;
                 Progress = 1f;
@@ -80,13 +95,13 @@ namespace BusDriver.Gameplay.Flow {
             operation.allowSceneActivation = false;
             while (!operation.isDone) {
                 // Unity parks async loads at 0.9 until activation is allowed
-                Progress = Mathf.Clamp01(operation.progress / 0.9f);
+                Progress = Mathf.Lerp(from, to, Mathf.Clamp01(operation.progress / 0.9f));
                 if (operation.progress >= 0.9f && AllowActivation) {
                     operation.allowSceneActivation = true;
                 }
                 yield return null;
             }
-            Progress = 1f;
+            Progress = to;
             IsLoading = false;
         }
 
@@ -118,21 +133,7 @@ namespace BusDriver.Gameplay.Flow {
 
         // Route01_World beside an already loaded Night_Systems (the editor debug run, §4.4)
         public IEnumerator LoadRouteAdditive() {
-            if (IsLoading) {
-                yield break;
-            }
-            IsLoading = true;
-            Log.Info(LogCat.Flow, "loading " + SceneIds.Route01World + " (additive)");
-            AsyncOperation operation = SceneManager.LoadSceneAsync(SceneIds.Route01World, LoadSceneMode.Additive);
-            if (operation == null) {
-                IsLoading = false;
-                Log.Error(LogCat.Flow, $"scene {SceneIds.Route01World} is not in the build list");
-                yield break;
-            }
-            while (!operation.isDone) {
-                yield return null;
-            }
-            IsLoading = false;
+            return Load(SceneIds.Route01World, 0f, 1f, LoadSceneMode.Additive);
         }
 
         // A component on one of the scene's root objects (roots only, like ISceneRoot)

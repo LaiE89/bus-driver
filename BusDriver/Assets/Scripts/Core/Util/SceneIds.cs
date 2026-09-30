@@ -10,9 +10,6 @@ namespace BusDriver.Core.Util {
         public const string Route01World = "Route01_World";
         public const string Route01Dressing = "Route01_Dressing";
 
-        // The MVP driving scene. Night_Systems + Route01_World replace it in T-M1-16.
-        public const string LegacyNight = "BusRoute";
-
         public const string GeneratedFolder = "Assets/Generated/Scenes";
         public const string DressingPath = "Assets/Scenes/" + Route01Dressing + ".unity";
 

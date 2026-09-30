@@ -100,10 +100,12 @@ namespace BusDriver.Tests.PlayMode.Flow {
         public IEnumerator Pause_QuitToMenuLeavesTheGameUnpaused() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
             yield return StartNight(game);
-            PauseScreen screen = Object.FindAnyObjectByType<PauseScreen>();
-            screen.Back();
+            ScreenRouter router = Object.FindAnyObjectByType<ScreenRouter>();
+            router.Back();
             Assert.IsTrue(game.Pause.IsPaused);
-            Assert.IsTrue(screen.IsOpen, "the pause panel shows");
+            PauseScreen screen = Object.FindAnyObjectByType<PauseScreen>();
+            Assert.IsNotNull(screen, "the pause screen shows");
+            Assert.AreSame(screen, router.Top);
 
             screen.QuitToMenu();
             yield return FlowTestUtil.WaitForMenu(game);
@@ -117,11 +119,12 @@ namespace BusDriver.Tests.PlayMode.Flow {
         public IEnumerator Pause_BackResumesAndFocusLossIsOffInBatchMode() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
             yield return StartNight(game);
-            PauseScreen screen = Object.FindAnyObjectByType<PauseScreen>();
-            screen.Back();
-            screen.Back();
+            ScreenRouter router = Object.FindAnyObjectByType<ScreenRouter>();
+            router.Back();
+            Assert.IsTrue(game.Pause.IsPaused);
+            router.Back();
             Assert.IsFalse(game.Pause.IsPaused);
-            Assert.IsFalse(screen.IsOpen);
+            Assert.AreEqual(0, router.Count, "the pause screen is still on the stack");
             if (Application.isBatchMode) {
                 Assert.IsFalse(game.Pause.PauseOnFocusLoss);
                 game.Pause.HandleFocus(false);

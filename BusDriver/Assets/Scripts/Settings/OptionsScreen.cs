@@ -11,10 +11,12 @@ using BusDriver.Gameplay.Player;
 using BusDriver.UI.Menu;
 
 namespace BusDriver.UI.Screens {
-    // The options screen (was OptionsMenu). It edits SettingsService.Current, applies each change
-    // at once (§2.23) and saves on Apply or when the screen is left (§4.9). The UI's UnityEvents
-    // call the public setters by name, so their names stay as the prefab has them.
-    public class OptionsScreen : MonoBehaviour, IGameBindable {
+    // The options screen (was OptionsMenu), a ScreenView in Screens.prefab (T-M1-16). It edits
+    // SettingsService.Current, applies each change at once (§2.23) and saves on Apply or when the
+    // screen is left (§4.9). Its controls are generated; the listeners are added here.
+    public class OptionsScreen : ScreenView, IGameBindable {
+        [SerializeField] ScreenRouter router;
+        [SerializeField] ControlsScreen controls;
         [SerializeField] Slider sensSlider;
         [SerializeField] TMP_Dropdown qualityDropdown;
         [SerializeField] Slider volumeSlider;
@@ -22,6 +24,12 @@ namespace BusDriver.UI.Screens {
         [SerializeField] TMP_Dropdown resolutionDropdown;
         [SerializeField] Toggle fullScreenToggle;
         [SerializeField] TMP_Dropdown targetFPSDropdown;
+        [SerializeField] Button applyButton;
+        [SerializeField] Button controlsButton;
+        [SerializeField] Button backButton;
+
+        // SettingsService.FrameRateFor's order
+        static readonly string[] TargetFpsLabels = { "30", "60", "120", "Unlimited", "VSync" };
 
         Resolution[] resolutions = new Resolution[0];
         IAudioService audio;
@@ -35,14 +43,42 @@ namespace BusDriver.UI.Screens {
             audio = game.Audio;
         }
 
-        private void Start() {
+        protected override void Awake() {
+            base.Awake();
+            sensSlider.onValueChanged.AddListener(AdjustSensitivity);
+            qualityDropdown.onValueChanged.AddListener(ChangeQuality);
+            volumeSlider.onValueChanged.AddListener(SetVolume);
+            brightnessSlider.onValueChanged.AddListener(SetBrightness);
+            resolutionDropdown.onValueChanged.AddListener(SetResolution);
+            fullScreenToggle.onValueChanged.AddListener(SetFullscreen);
+            targetFPSDropdown.onValueChanged.AddListener(SetTargetFPS);
+            applyButton.onClick.AddListener(SaveSettings);
+            controlsButton.onClick.AddListener(OpenControls);
+            backButton.onClick.AddListener(Back);
+        }
+
+        public override void OnOpened() {
+            PlayUISound();
             InitializeSettings();
         }
 
-        void OnDisable() {
+        // Leaving the screen saves (§4.9)
+        public override void OnClosed() {
             if (dirty && settings != null) {
                 settings.Save();
                 dirty = false;
+            }
+        }
+
+        public void OpenControls() {
+            PlayUISound();
+            router.Push(controls);
+        }
+
+        public void Back() {
+            PlayUISound();
+            if (router.Top == this) {
+                router.Pop();
             }
         }
 
@@ -57,6 +93,10 @@ namespace BusDriver.UI.Screens {
             resolutions = Screen.resolutions;
             resolutionDropdown.ClearOptions();
             List<string> options = new List<string>();
+            qualityDropdown.ClearOptions();
+            qualityDropdown.AddOptions(new List<string>(QualitySettings.names));
+            targetFPSDropdown.ClearOptions();
+            targetFPSDropdown.AddOptions(new List<string>(TargetFpsLabels));
             int selected = 0;
             int wantWidth = current.resolutionWidth > 0 ? current.resolutionWidth : Screen.currentResolution.width;
             int wantHeight = current.resolutionHeight > 0 ? current.resolutionHeight : Screen.currentResolution.height;

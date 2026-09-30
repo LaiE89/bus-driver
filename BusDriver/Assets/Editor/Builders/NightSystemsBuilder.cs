@@ -1,0 +1,120 @@
+using System.Collections.Generic;
+using BusDriver.Core.Util;
+using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Flow;
+using BusDriver.Gameplay.Player;
+using BusDriver.UI.Screens;
+using BusDriver.UI.Theme;
+using TMPro;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using static BusDriver.Editor.Builders.BuilderUtil;
+
+namespace BusDriver.Editor.Builders {
+    // BuildAll step 9 (§4.15): Generated/Scenes/Night_Systems.unity, the night's systems (§4.3):
+    // ShiftContext on the scene root, the Bus, OnFootRig, FallCamera, HUD and Screens instances,
+    // the mode switch and interactor, the legacy Game Over overlay (until T-M4-06) and the
+    // EventSystem. The bus is saved inactive: this scene has no ground, so ShiftContext.AttachRoute
+    // moves it to the route's spawn point and switches it on.
+    public static class NightSystemsBuilder {
+        public const string ScenePath = SceneIds.GeneratedFolder + "/" + SceneIds.NightSystems + ".unity";
+
+        [MenuItem("Tools/Bus Driver/Builders/Night_Systems")]
+        public static void Build() {
+            if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) {
+                return;
+            }
+            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            // Dark until the route scene, whose lighting is the night's, becomes active
+            RouteBuilder.ApplyNightRenderSettings();
+
+            GameObject contextObject = new GameObject("Shift Context");
+            ShiftContext context = contextObject.AddComponent<ShiftContext>();
+            LegacyGameOver gameOver = contextObject.AddComponent<LegacyGameOver>();
+
+            GameObject bus = Instantiate(PrefabBuilder.BusPath, "Bus");
+            GameObject rig = Instantiate(PrefabBuilder.OnFootRigPath, "OnFootRig");
+            Instantiate(PrefabBuilder.FallCameraPath, "FallCamera");
+            Instantiate(UIPrefabBuilder.HudPath, "HUD");
+            Instantiate(UIPrefabBuilder.ScreensPath, "Screens");
+            BuildGameOver();
+            UIInputModuleSetup.Configure(new GameObject("EventSystem"));
+
+            Transform head = bus.transform.Find(PrefabBuilder.DriverHeadName);
+            DriverLook look = head.Find(PrefabBuilder.DriverPivotName).GetComponent<DriverLook>();
+            Camera driverCamera = look.transform.Find(PrefabBuilder.DriverCameraName).GetComponent<Camera>();
+            OnFootController onFoot = rig.GetComponent<OnFootController>();
+            // The hull is one solid box around the whole interior (see OnFootController)
+            SetRefArray(onFoot, "ignoredColliders", new Object[] { bus.GetComponent<BoxCollider>() });
+            rig.SetActive(false);
+
+            GameObject systems = new GameObject("Game Systems");
+            PlayerModeController mode = systems.AddComponent<PlayerModeController>();
+            PlayerInteractor interactor = systems.AddComponent<PlayerInteractor>();
+            SetRef(mode, "busInput", bus.GetComponent<BusInput>());
+            SetRef(mode, "driverLook", look);
+            SetRef(mode, "cctv", bus.GetComponentInChildren<CCTVSystem>(true));
+            SetRef(mode, "bus", bus.GetComponent<BusController>());
+            SetRef(mode, "cabin", bus.GetComponent<BusCabin>());
+            SetRef(mode, "doors", bus.GetComponent<BusDoors>());
+            SetRef(mode, "onFoot", onFoot);
+            SetRef(mode, "driverCamera", driverCamera);
+            SetRef(mode, "onFootCamera", rig.GetComponentInChildren<Camera>(true));
+            SetRef(mode, "ears", head.Find(PrefabBuilder.EarsName));
+            SetRef(mode, "earsSeatParent", head);
+            SetRef(mode, "driverAvatar", head.Find(PrefabBuilder.DriverAvatarName).gameObject);
+
+            SetRef(context, "bus", bus.GetComponent<BusController>());
+            SetRef(context, "mode", mode);
+            SetRef(context, "onFoot", onFoot);
+            SetRef(context, "interactor", interactor);
+            SetRef(context, "gameOver", gameOver);
+            SetRefArray(context, "bindables", Bindables(scene).ToArray());
+
+            bus.SetActive(false);
+            SaveScene(scene, ScenePath);
+        }
+
+        static GameObject Instantiate(string prefabPath, string name) {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null) {
+                throw new System.InvalidOperationException("no " + prefabPath + "; PrefabBuilder runs before NightSystemsBuilder");
+            }
+            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            instance.name = name;
+            return instance;
+        }
+
+        // Every component the scene root binds, in hierarchy order (D65)
+        public static List<Object> Bindables(Scene scene) {
+            List<Object> bindables = new List<Object>();
+            foreach (GameObject root in scene.GetRootGameObjects()) {
+                foreach (MonoBehaviour behaviour in root.GetComponentsInChildren<MonoBehaviour>(true)) {
+                    if (behaviour is IShiftBindable || behaviour is IGameBindable) {
+                        bindables.Add(behaviour);
+                    }
+                }
+            }
+            return bindables;
+        }
+
+        // The PR #5 overlay: New Run / Main Menu over a dim screen (GameOverScreen replaces it, T-M4-06)
+        static void BuildGameOver() {
+            Canvas canvas = UIBuild.CreateCanvas("Game Over", null, UIPrefabBuilder.GameOverOrder);
+            GameOverMenu menu = canvas.gameObject.AddComponent<GameOverMenu>();
+            RectTransform panel = UIBuild.Panel("GameOverPanel", canvas.transform);
+            UIBuild.Fill("Dim", panel, new Color(0f, 0f, 0f, 0.6f), true);
+            Vector2 center = new Vector2(0.5f, 0.5f);
+            UIBuild.Label("GameOverTitle", panel, "GAME OVER", ThemeRole.Title, TextAlignmentOptions.Center, center, new Vector2(0f, 220f), new Vector2(1220f, 200f));
+            Button retry = UIBuild.CreateButton("Retry Button", panel, "NEW RUN", center, new Vector2(0f, 40f), new Vector2(520f, 80f));
+            Button mainMenu = UIBuild.CreateButton("Main Menu Button", panel, "MAIN MENU", center, new Vector2(0f, -70f), new Vector2(520f, 80f));
+            panel.gameObject.SetActive(false);
+            SetRef(menu, "gameOverRoot", panel.gameObject);
+            SetRef(menu, "retryButton", retry);
+            SetRef(menu, "mainMenuButton", mainMenu);
+        }
+    }
+}

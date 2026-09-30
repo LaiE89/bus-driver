@@ -39,7 +39,7 @@ namespace BusDriver.Tests.PlayMode.Flow {
             game.Flow.NewRun();
             yield return FlowTestUtil.WaitForNight(game);
             yield return null;
-            DrivingHUD hud = Object.FindAnyObjectByType<DrivingHUD>();
+            HudView hud = Object.FindAnyObjectByType<HudView>();
             StringAssert.Contains("SPACE CAMERAS", hud.ControlsHint);
 
             string error;
@@ -63,10 +63,13 @@ namespace BusDriver.Tests.PlayMode.Flow {
             game.Flow.NewRun();
             yield return FlowTestUtil.WaitForNight(game);
             yield return null;
+            ScreenRouter router = Object.FindAnyObjectByType<ScreenRouter>();
+            router.Back();
             PauseScreen pause = Object.FindAnyObjectByType<PauseScreen>();
-            pause.Back();
             pause.OpenOptions();
+            Assert.IsInstanceOf<OptionsScreen>(router.Top);
             pause.OpenControls();
+            Assert.IsInstanceOf<ControlsScreen>(router.Top);
             yield return null;
             ControlsScreen controls = Object.FindAnyObjectByType<ControlsScreen>();
             Assert.IsNotNull(controls, "the Controls screen should be open");

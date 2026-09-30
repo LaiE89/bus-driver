@@ -32,6 +32,7 @@ STATUS = {
     "T-M1-11": "Done (2026-09-30; group routing to Master until T-M1-10)",
     "T-M1-14": "Done (2026-09-30)",
     "T-M1-15": "Done (2026-09-30)",
+    "T-M1-16": "Done (2026-09-30)",
 }
 def M(mid, title, phase, goal, acceptance, note=""):
     MILESTONES.append(dict(id=mid, title=title, phase=phase, goal=goal, acceptance=acceptance, note=note, tickets=[]))

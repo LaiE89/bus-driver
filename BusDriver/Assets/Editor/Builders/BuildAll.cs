@@ -27,9 +27,10 @@ namespace BusDriver.Editor.Builders {
                     new Step { Name = "PlaceholderAudioBuilder", Run = PlaceholderAudioBuilder.Build },
                     new Step { Name = "IconBuilder", SkippedUntil = "M7 (item and journal icons)" },
                     new Step { Name = "PrefabBuilder", Run = PrefabBuilder.Build },
-                    new Step { Name = "RouteBuilder", SkippedUntil = "T-M1-16" },
-                    new Step { Name = "NightSystemsBuilder", SkippedUntil = "T-M1-16" },
-                    new Step { Name = "MenuBuilder", SkippedUntil = "T-M1-16" },
+                    new Step { Name = "RouteBuilder", Run = RouteBuilder.Build },
+                    new Step { Name = "NightSystemsBuilder", Run = NightSystemsBuilder.Build },
+                    // The build list can only point at scenes that exist, so it follows them
+                    new Step { Name = "MenuBuilder", Run = () => { MenuBuilder.Build(); ProjectSettingsBuilder.ApplyBuildList(); } },
                     new Step { Name = "ContentValidator", Run = Validate },
                 };
             }

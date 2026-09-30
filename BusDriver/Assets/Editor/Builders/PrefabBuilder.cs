@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Monsters;
+using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Views;
 using UnityEditor;
@@ -11,7 +13,8 @@ using static BusDriver.Editor.Builders.BuilderUtil;
 
 namespace BusDriver.Editor.Builders {
     // BuildAll step 7 (§4.15): the logic prefabs and their greybox views. For now: Bus, OnFootRig
-    // and FallCamera (T-M1-14). The 12 m bus geometry, camera placements and seat layout are the
+    // and FallCamera (T-M1-14), the HUD and Screens (UIPrefabBuilder, T-M1-16) and the MVP's two
+    // pooled riders (T-M1-16, until the manifest and the view split replace them in M2–M3). The 12 m bus geometry, camera placements and seat layout are the
     // MVP's, unchanged (Appendix A.2). The logic root owns every collider, camera, light and
     // anchor; the View child owns only renderers (§4.14).
     public static class PrefabBuilder {
@@ -19,6 +22,8 @@ namespace BusDriver.Editor.Builders {
         public const string BusPath = Folder + "/Bus.prefab";
         public const string OnFootRigPath = Folder + "/OnFootRig.prefab";
         public const string FallCameraPath = Folder + "/FallCamera.prefab";
+        public const string LegacyPassengerPath = Folder + "/Passenger.prefab";
+        public const string LegacyWeepingAngelPath = Folder + "/WeepingAngel.prefab";
         public const string TuningPath = "Assets/Settings/BusTuning.asset";
 
         // Names the scene builders and tests look things up by
@@ -76,6 +81,9 @@ namespace BusDriver.Editor.Builders {
             BuildBus();
             BuildOnFootRig();
             BuildFallCamera();
+            BuildLegacyRider<Passenger>(LegacyPassengerPath, "Passenger");
+            BuildLegacyRider<WeepingAngel>(LegacyWeepingAngelPath, "WeepingAngel");
+            UIPrefabBuilder.Build();
             AssetDatabase.SaveAssets();
         }
 
@@ -565,6 +573,31 @@ namespace BusDriver.Editor.Builders {
             // Pose the saved prefab too, not only at Awake
             view.SetPose(pose);
             SetLayerRecursively(parent.gameObject, Layers.PlayerAvatar);
+        }
+
+        // ======================================================= legacy riders
+
+        // The MVP rider, root at the feet; Passenger.SetPose moves the body and head between
+        // standing and seated. The angel looks like everyone else on purpose.
+        static void BuildLegacyRider<T>(string path, string name) where T : Passenger {
+            GameObject root = new GameObject(name);
+            T passenger = root.AddComponent<T>();
+            // Only there for the player's interaction ray, and only enabled while the bus is walkable
+            CapsuleCollider reach = root.AddComponent<CapsuleCollider>();
+            reach.isTrigger = true;
+            reach.center = new Vector3(0f, 0.65f, 0f);
+            reach.radius = 0.32f;
+            reach.height = 1.4f;
+            reach.enabled = false;
+            GameObject body = Prim(PrimitiveType.Capsule, "Body", root.transform, new Vector3(0f, 0.75f, 0f), new Vector3(0.42f, 0.75f, 0.42f), M("Passenger"));
+            GameObject head = Prim(PrimitiveType.Sphere, "Head", root.transform, new Vector3(0f, 1.62f, 0f), Vector3.one * 0.26f, M("Passenger"));
+            // Without a face nobody could tell which way a sphere is looking
+            Box("Face", head.transform, new Vector3(0f, 0.08f, 0.46f), new Vector3(0.6f, 0.2f, 0.15f), M("Face"));
+            SetRef(passenger, "head", head.transform);
+            SetRef(passenger, "body", body.transform);
+            SetRef(passenger, "interactCollider", reach);
+            SaveOrOverwritePrefab(root, path);
+            Object.DestroyImmediate(root);
         }
 
         // ========================================================= fall camera

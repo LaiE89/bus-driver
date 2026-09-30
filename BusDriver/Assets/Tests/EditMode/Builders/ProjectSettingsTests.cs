@@ -73,12 +73,11 @@ namespace BusDriver.Tests.EditMode.Builders {
         }
 
         [Test]
-        public void TheBuildListIsTheGeneratedOrTheLegacyScenes() {
-            EditorBuildSettingsScene[] expected = ProjectSettingsBuilder.BuildScenes();
+        public void TheBuildListIsTheGeneratedScenes() {
             EditorBuildSettingsScene[] actual = EditorBuildSettings.scenes;
-            Assert.AreEqual(expected.Length, actual.Length);
-            for (int i = 0; i < expected.Length; i++) {
-                Assert.AreEqual(expected[i].path, actual[i].path);
+            Assert.AreEqual(SceneIds.BuildList.Count, actual.Length);
+            for (int i = 0; i < actual.Length; i++) {
+                Assert.AreEqual(SceneIds.BuildList[i], actual[i].path);
                 Assert.IsTrue(actual[i].enabled);
             }
         }

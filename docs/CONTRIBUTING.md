@@ -57,7 +57,7 @@ If the driver can't merge a file, it leaves conflict markers like any other merg
 | `Assets/Scenes/Route01_Dressing.unity` | artists | The only hand-authored scene: static art only |
 | `Assets/Scripts/`, `Assets/Editor/`, `Assets/Tests/` | programmers | Code |
 
-Until M1 replaces it, the legacy greybox scene `Assets/Scenes/BusRoute.unity` is also generated, by `BusDriverSceneBuilder` plus `OverlayMenusSceneBaker`. Hand edits to it are lost on the next rebuild.
+Every scene in the build (`Menu`, `Night_Systems`, `Route01_World`) is generated under `Assets/Generated/Scenes/` by Build All. Hand edits to them are lost on the next rebuild; to see the game, press Play in `Menu`, or in `Night_Systems` for a debug run that loads the route beside it.
 
 ## 4. Conflict policy
 
@@ -80,9 +80,9 @@ Run it from the repo root. Batch mode needs the Editor to be **closed** for this
 | Command | Runs |
 |---|---|
 | `tools/verify.sh quick` | compile, then the EditMode tests |
-| `tools/verify.sh content` | `BuildAll` (every content builder, §4.15), then the legacy `BusRoute` builder and overlay baker (until T-M1-16), then the EditMode tests |
+| `tools/verify.sh content` | `BuildAll` (every content builder, §4.15), then the EditMode tests |
 | `tools/verify.sh playmode` | the PlayMode tests |
-| `tools/verify.sh smoke` | the smoke test (captures go to `BusDriver/Logs/smoke/*.png`) |
+| `tools/verify.sh smoke` | the smoke test: plays the generated Menu, starts a New Run through `RunFlow` on a throwaway save root and drives the night (captures go to `BusDriver/Logs/smoke/*.png`) |
 | `tools/verify.sh build` | a standalone build for the current OS, plus its `--selftest` |
 | `tools/verify.sh full` | content + playmode + smoke + build |
 
@@ -90,7 +90,7 @@ It exits non-zero with a one-line reason on any failure. Logs are in `BusDriver/
 
 A few details:
 
-- **`content` refuses to run while generated files have hand edits**, because a rebuild overwrites them. Today those files are everything under `Assets/Generated/`, plus the legacy `BusRoute.unity` and `Prefabs/NPCs/`. A file that is dirty only because the previous `content` run rebuilt it is fine: the script records its hash in `BusDriver/Logs/content.stamp`. Commit or discard hand edits first, or set `VERIFY_ALLOW_DIRTY=1`.
+- **`content` refuses to run while generated files have hand edits**, because a rebuild overwrites them. Those files are everything under `Assets/Generated/`. A file that is dirty only because the previous `content` run rebuilt it is fine: the script records its hash in `BusDriver/Logs/content.stamp`. Commit or discard hand edits first, or set `VERIFY_ALLOW_DIRTY=1`.
 - **`build` runs the player's self-test headless** (`-batchmode -nographics --selftest`). To check a build by hand, run the executable with `--selftest -logFile -`. It prints `[SELFTEST] OK <label>` and exits 0.
 - **Log scanning ignores two things:** the Editor's own `UnityEditor.Search` indexer exception at startup, which is an Editor bug and not ours, and exceptions that a test expects.
 - **macOS builds are Apple silicon only** until someone makes the Editor's `llvm-lipo` executable (D52). The build log prints the exact `chmod +x` command.

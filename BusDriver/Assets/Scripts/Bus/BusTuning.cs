@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace BusDriver.Gameplay.Bus {
     // Every handling number for the bus lives here rather than on the scene object,
-    // because the MVP scene is regenerated wholesale by BusDriverSceneBuilder.
+    // because the generated scenes and prefabs are rebuilt wholesale by BuildAll.
     // Edits made to this asset during Play mode persist.
     [CreateAssetMenu(fileName = "BusTuning", menuName = "Bus Driver/Bus Tuning")]
     public class BusTuning : ScriptableObject {

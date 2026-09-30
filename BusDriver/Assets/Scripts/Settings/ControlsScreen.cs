@@ -12,19 +12,17 @@ using BusDriver.Gameplay.Player;
 using BusDriver.UI.Menu;
 
 namespace BusDriver.UI.Screens {
-    // The Controls screen (was ControlsMenu): one row per keyboard/mouse binding of Driving, OnFoot
-    // and Global except Look, each with a rebind button and a reset button, plus reset-all (§4.10).
-    // Rows are built at runtime from InputService, styled on the prefab's first legacy row, so a new
-    // action shows up without touching the prefab. Screens.prefab replaces the prefab in T-M1-16.
-    public class ControlsScreen : MonoBehaviour, IGameBindable {
-        // The row the old prefab builder baked first; it's the style template for every row
-        const string LabelTemplateName = "Switch Camera";
-        const string ButtonTemplateName = "Switch Camera Button";
-        // The other baked rows, hidden in favour of the generated list
-        static readonly string[] LegacyRowNames = {
-            "HANDBRAKE", "Handbrake Button", "DOORS", "Doors Button", "LEAVE SEAT", "Leave Seat Button", "INTERACT", "Interact Button",
-        };
+    // The Controls screen (was ControlsMenu), a ScreenView in Screens.prefab (T-M1-16): one row per
+    // keyboard/mouse binding of Driving, OnFoot and Global except Look, each with a rebind button
+    // and a reset button, plus reset-all (§4.10). Rows are built at runtime from InputService,
+    // cloned from the prefab's template row, so a new action shows up without a rebuild.
+    public class ControlsScreen : ScreenView, IGameBindable {
+        public const string LabelTemplateName = "Row Label Template";
+        public const string ButtonTemplateName = "Row Button Template";
+        public const string ResetButtonName = "Reset Button";
+        public const string BackButtonName = "Back Button";
 
+        [SerializeField] ScreenRouter router;
         [SerializeField] int rowsPerColumn = 10;
         [SerializeField] float firstRowY = 380f;
         [SerializeField] float rowPitch = 42f;
@@ -51,35 +49,51 @@ namespace BusDriver.UI.Screens {
             input.OnBindingsChanged += Refresh;
         }
 
-        void Start() {
+        protected override void Awake() {
+            base.Awake();
+            Button reset = ChildButton(ResetButtonName);
+            Button back = ChildButton(BackButtonName);
+            if (reset != null) {
+                reset.onClick.AddListener(ResetKeybinds);
+            }
+            if (back != null) {
+                back.onClick.AddListener(Back);
+            }
+        }
+
+        public override void OnOpened() {
             Build();
+            SetStatus("");
             Refresh();
             SelectFirst();
         }
 
-        void OnEnable() {
-            if (built) {
-                SetStatus("");
-                Refresh();
-                SelectFirst();
-            }
-        }
-
-        void OnDisable() {
+        // Rebinds are saved as they happen; this catches a reset-all
+        public override void OnClosed() {
             if (input != null) {
                 input.CancelRebind();
             }
+            if (settings != null) {
+                settings.Save();
+            }
+        }
+
+        public void Back() {
+            PlayUISound();
+            if (router.Top == this) {
+                router.Pop();
+            }
+        }
+
+        Button ChildButton(string childName) {
+            Transform child = transform.Find(childName);
+            return child != null ? child.GetComponent<Button>() : null;
         }
 
         void OnDestroy() {
             if (input != null) {
                 input.OnBindingsChanged -= Refresh;
             }
-        }
-
-        // Called when the pause screen opens the controls
-        public void FixingText() {
-            Refresh();
         }
 
         public void Refresh() {
@@ -89,21 +103,12 @@ namespace BusDriver.UI.Screens {
             }
         }
 
-        // The prefab's Reset button calls this by name
         public void ResetKeybinds() {
             PlayUISound();
             if (input != null) {
                 input.ResetAll();
             }
             SetStatus(UIText.AllControlsReset);
-        }
-
-        // The prefab's Back button calls this by name. Rebinds are already saved as they happen.
-        public void ApplyingKeybinds() {
-            PlayUISound();
-            if (settings != null) {
-                settings.Save();
-            }
         }
 
         void Build() {
@@ -117,13 +122,6 @@ namespace BusDriver.UI.Screens {
                 Log.Error(LogCat.Input, "ControlsScreen: the prefab lost its template row");
                 return;
             }
-            for (int i = 0; i < LegacyRowNames.Length; i++) {
-                Transform legacy = transform.Find(LegacyRowNames[i]);
-                if (legacy != null) {
-                    legacy.gameObject.SetActive(false);
-                }
-            }
-
             List<RebindableBinding> bindings = input.RebindableBindings();
             for (int i = 0; i < bindings.Count; i++) {
                 int column = i / rowsPerColumn;
@@ -134,8 +132,8 @@ namespace BusDriver.UI.Screens {
             statusText = CloneLabel(labelTemplate, "Rebind Status", new Vector2(0f, firstRowY - rowsPerColumn * rowPitch - 20f), new Vector2(1200f, 30f));
             statusText.alignment = TextAlignmentOptions.Center;
             statusText.text = "";
-            Place(transform.Find("Reset Button"), new Vector2(0f, firstRowY - rowsPerColumn * rowPitch - 90f));
-            Place(transform.Find("Back Button"), new Vector2(0f, firstRowY - rowsPerColumn * rowPitch - 180f));
+            Place(transform.Find(ResetButtonName), new Vector2(0f, firstRowY - rowsPerColumn * rowPitch - 90f));
+            Place(transform.Find(BackButtonName), new Vector2(0f, firstRowY - rowsPerColumn * rowPitch - 180f));
 
             labelTemplate.gameObject.SetActive(false);
             buttonTemplate.gameObject.SetActive(false);

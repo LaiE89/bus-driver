@@ -14,12 +14,6 @@ namespace BusDriver.Editor.Builders {
         // 0.<milestone>.<patch> until G3 (§4.20, D52); bump it when a milestone is closed
         public const string Version = "0.0.1";
 
-        // The MVP scenes, listed until the generated ones exist (T-M1-16)
-        public static readonly string[] LegacyBuildList = {
-            "Assets/Scenes/Menu.unity",
-            "Assets/Scenes/" + SceneIds.LegacyNight + ".unity",
-        };
-
         const string TagManagerPath = "ProjectSettings/TagManager.asset";
         const string DynamicsManagerPath = "ProjectSettings/DynamicsManager.asset";
         const int InputSystemOnly = 1;
@@ -35,8 +29,14 @@ namespace BusDriver.Editor.Builders {
                 EditorSettings.enterPlayModeOptionsEnabled = false;
             }
             WritePlayerSettings();
-            EditorBuildSettings.scenes = BuildScenes();
+            ApplyBuildList();
             AssetDatabase.SaveAssets();
+        }
+
+        // Run again by BuildAll once the generated scenes exist (a list entry for a missing scene
+        // has no GUID)
+        public static void ApplyBuildList() {
+            EditorBuildSettings.scenes = BuildScenes();
         }
 
         // ------------------------------------------------------------ collision
@@ -148,21 +148,15 @@ namespace BusDriver.Editor.Builders {
             }
         }
 
-        // SceneIds.BuildList once every generated scene exists, the MVP scenes until then
+        // SceneIds.BuildList (Menu, Night_Systems, Route01_World), the scenes of it that exist
         public static EditorBuildSettingsScene[] BuildScenes() {
-            string[] paths = LegacyBuildList;
-            bool generated = true;
+            List<EditorBuildSettingsScene> scenes = new List<EditorBuildSettingsScene>();
             foreach (string path in SceneIds.BuildList) {
-                generated &= File.Exists(path);
+                if (File.Exists(path)) {
+                    scenes.Add(new EditorBuildSettingsScene(path, true));
+                }
             }
-            if (generated) {
-                paths = new List<string>(SceneIds.BuildList).ToArray();
-            }
-            EditorBuildSettingsScene[] scenes = new EditorBuildSettingsScene[paths.Length];
-            for (int i = 0; i < paths.Length; i++) {
-                scenes[i] = new EditorBuildSettingsScene(paths[i], true);
-            }
-            return scenes;
+            return scenes.ToArray();
         }
     }
 }

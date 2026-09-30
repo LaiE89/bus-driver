@@ -126,6 +126,12 @@ namespace BusDriver.Gameplay.Flow {
                 setup = new NightSetup(Run, IsDebugRun);
             }
             SetState(RunFlowState.InNight);
+            // The route scene's lighting is the night's (§4.3)
+            Scene routeScene = route.gameObject.scene;
+            if (SceneManager.GetActiveScene() != routeScene) {
+                SceneManager.SetActiveScene(routeScene);
+                game.Settings.ApplyScene();
+            }
             currentNight.AttachRoute(route);
             currentNight.Begin(setup);
         }

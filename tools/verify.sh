@@ -113,13 +113,10 @@ run_playmode() {
     check_log "$LOGS/playmode.log"
 }
 
-# Generated content: BuildAll's output plus the legacy scene it still builds beside it (until
-# T-M1-16). Hand edits to generated files would be lost, so refuse while they have uncommitted
-# changes (VERIFY_ALLOW_DIRTY=1 overrides)
-LEGACY_GENERATED=(
+# Generated content (BuildAll's output, §4.15). Hand edits to generated files would be lost, so
+# refuse while they have uncommitted changes (VERIFY_ALLOW_DIRTY=1 overrides)
+GENERATED=(
     "BusDriver/Assets/Generated"
-    "BusDriver/Assets/Scenes/BusRoute.unity"
-    "BusDriver/Assets/Prefabs/NPCs"
 )
 
 # Hashes of every generated file as the last content run left it. A dirty file that still matches
@@ -127,7 +124,7 @@ LEGACY_GENERATED=(
 CONTENT_STAMP="$LOGS/content.stamp"
 
 generated_hashes() {
-    (cd "$ROOT" && find "${LEGACY_GENERATED[@]}" -type f 2>/dev/null | sort | while IFS= read -r f; do
+    (cd "$ROOT" && find "${GENERATED[@]}" -type f 2>/dev/null | sort | while IFS= read -r f; do
         printf '%s %s\n' "$(git hash-object "$f")" "$f"
     done)
 }
@@ -135,7 +132,7 @@ generated_hashes() {
 run_content() {
     if [ "${VERIFY_ALLOW_DIRTY:-0}" != "1" ] && command -v git >/dev/null; then
         local dirty path hand_edited=""
-        dirty=$(cd "$ROOT" && git status --porcelain -uall -- "${LEGACY_GENERATED[@]}" 2>/dev/null | cut -c4- | sed 's/^"//;s/"$//')
+        dirty=$(cd "$ROOT" && git status --porcelain -uall -- "${GENERATED[@]}" 2>/dev/null | cut -c4- | sed 's/^"//;s/"$//')
         while IFS= read -r path; do
             [ -n "$path" ] || continue
             if [ -f "$ROOT/$path" ] && [ -f "$CONTENT_STAMP" ] \
@@ -149,18 +146,10 @@ run_content() {
             fail "generated files have uncommitted changes that no content run produced; commit or discard them first (a rebuild would overwrite them), or set VERIFY_ALLOW_DIRTY=1"
         fi
     fi
-    # BuildAll (§4.15) first; the legacy BusRoute scene is still the playable night until
-    # T-M1-16, so its builder and the overlay baker run after it
-    local method
-    for method in \
-        BusDriver.Editor.Builders.BuildAll.Run \
-        BusDriver.Editor.Builders.BusDriverSceneBuilder.BuildScene \
-        BusDriver.Editor.Builders.OverlayMenusSceneBaker.BakeIntoBusRoute; do
-        local name="${method##*.}"
-        step "content: $method"
-        unity -executeMethod "$method" -quit -logFile "$LOGS/content-$name.log" || { check_log "$LOGS/content-$name.log"; fail "$method exited non-zero"; }
-        check_log "$LOGS/content-$name.log"
-    done
+    local method=BusDriver.Editor.Builders.BuildAll.Run
+    step "content: $method"
+    unity -executeMethod "$method" -quit -logFile "$LOGS/content.log" || { check_log "$LOGS/content.log"; fail "$method exited non-zero"; }
+    check_log "$LOGS/content.log"
     generated_hashes > "$CONTENT_STAMP"
     run_editmode
 }
@@ -168,7 +157,7 @@ run_content() {
 run_smoke() {
     step "smoke test"
     mkdir -p "$LOGS/smoke"
-    unity -executeMethod BusDriver.Editor.Smoke.BusSmokeTest.Run -logFile "$LOGS/smoke.log"
+    unity -executeMethod BusDriver.Editor.Smoke.SmokeTest.Run -logFile "$LOGS/smoke.log"
     local code=$?
     local result
     result=$(grep '^\[SMOKE\] RESULT' "$LOGS/smoke.log" | tail -1)

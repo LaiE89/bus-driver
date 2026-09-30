@@ -35,11 +35,18 @@ namespace BusDriver.Gameplay.Flow {
             BindGame(bindables, game);
         }
 
+        // The bus waits inactive in Night_Systems, which has no ground, until the route is there
+        // to stand on; it starts the night at the route's spawn point
         public void AttachRoute(RouteSceneRoot route) {
             Route = route;
-            if (route != null) {
-                BindGame(route.Bindables, Game);
+            if (route == null) {
+                return;
             }
+            if (route.BusSpawn != null) {
+                bus.transform.SetPositionAndRotation(route.BusSpawn.position, route.BusSpawn.rotation);
+            }
+            bus.gameObject.SetActive(true);
+            BindGame(route.Bindables, Game);
         }
 
         public void Begin(NightSetup setup) {

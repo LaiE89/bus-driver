@@ -7,6 +7,7 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 using BusDriver.Core.Data;
+using BusDriver.Core.Util;
 using Debug = UnityEngine.Debug;
 
 namespace BusDriver.Editor.Build {
@@ -89,15 +90,13 @@ namespace BusDriver.Editor.Build {
                     + "Add it in Unity Hub (Windows/Mac Build Support (Mono), T-M0-08).");
                 return false;
             }
-            List<string> scenes = new List<string>();
-            foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes) {
-                if (scene.enabled) {
-                    scenes.Add(scene.path);
+            // The generated scenes, in SceneIds order (§4.20)
+            List<string> scenes = new List<string>(SceneIds.BuildList);
+            foreach (string scene in scenes) {
+                if (!File.Exists(scene)) {
+                    Debug.LogError($"[BUILD] FAIL: {scene} is missing; run Build All first");
+                    return false;
                 }
-            }
-            if (scenes.Count == 0) {
-                Debug.LogError("[BUILD] FAIL: the build settings list no scenes");
-                return false;
             }
             string label = $"{PlayerSettings.bundleVersion} ({GitShortHash()})";
             string previousLabel = SetConfigLabel(label);
