@@ -1,4 +1,5 @@
 using BusDriver.Core.Save;
+using BusDriver.Gameplay.Route;
 
 namespace BusDriver.Gameplay.Flow {
     // Exactly one per scene, on a root GameObject (§4.5). SceneLoader finds it through
@@ -7,9 +8,11 @@ namespace BusDriver.Gameplay.Flow {
         void Initialize(GameServices game);
     }
 
-    // The root of a night scene. RunFlow calls Begin once the night's scenes are loaded and wired.
-    // ShiftContext (T-M1-15) implements it; LegacyNightRoot does until then.
+    // The root of a night's systems scene (ShiftContext). RunFlow hands it the route scene's root
+    // once that is loaded, then begins the night (§4.4).
     public interface INightRoot : ISceneRoot {
+        bool HasBegun { get; }
+        void AttachRoute(RouteSceneRoot route);
         void Begin(NightSetup setup);
     }
 

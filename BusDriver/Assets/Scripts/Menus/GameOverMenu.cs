@@ -1,24 +1,33 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using BusDriver.Core.Data;
 using BusDriver.Gameplay.Flow;
-using BusDriver.Gameplay.Player;
 
 namespace BusDriver.UI.Screens {
-    // Full-screen game over overlay: Retry / Main Menu.
-    // UI is baked in the scene (or via Tools/Bus Driver/Bake Overlay Menus Into Scene).
-    public class GameOverMenu : MonoBehaviour, IGameBindable {
+    // The PR #5 game over overlay: New Run / Main Menu. It shows when LegacyGameOver fires; both
+    // go away with GameOverScreen and DeathDirector (T-M4-06).
+    public class GameOverMenu : MonoBehaviour, IShiftBindable {
         [SerializeField] GameObject gameOverRoot;
         [SerializeField] Button retryButton;
         [SerializeField] Button mainMenuButton;
 
         GameServices game;
+        LegacyGameOver gameOver;
 
         public bool IsOpen { get { return gameOverRoot != null && gameOverRoot.activeSelf; } }
 
-        public void Bind(GameServices services) {
-            game = services;
+        public void Bind(ShiftServices shift) {
+            game = shift.Game;
+            gameOver = shift.GameOver;
+            if (gameOver != null) {
+                gameOver.OnGameOver += Show;
+            }
+        }
+
+        void OnDestroy() {
+            if (gameOver != null) {
+                gameOver.OnGameOver -= Show;
+            }
         }
 
         void Awake() {
@@ -50,18 +59,19 @@ namespace BusDriver.UI.Screens {
             }
         }
 
-        // Reloading the scene resets pause and time scale (SceneLoader, PauseService)
+        // A fresh run, as the Game Over screen's New Run will be (§2.21). The scene load resets
+        // pause and time scale (SceneLoader, PauseService).
         public void Retry() {
             PlayUISound();
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            if (game != null) {
+                game.Flow.NewRun();
+            }
         }
 
         public void BackToMainMenu() {
             PlayUISound();
             if (game != null) {
                 game.Flow.QuitToMenu();
-            }else {
-                SceneManager.LoadScene("Menu");
             }
         }
 

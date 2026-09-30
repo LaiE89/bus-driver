@@ -13,10 +13,10 @@ namespace BusDriver.Gameplay.Monsters {
         [SerializeField] float pitchLimit = 35f;
 
         protected override void Tick(float deltaTime) {
-            if (State != PassengerState.Seated || head == null) {
+            if (State != PassengerState.Seated || head == null || Shift == null) {
                 return;
             }
-            Camera watcher = Cabin.ViewCamera;
+            Camera watcher = Shift.Cctv.ActiveCamera;
             if (watcher == null) {
                 return;
             }

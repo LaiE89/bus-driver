@@ -5,8 +5,7 @@ namespace BusDriver.Gameplay.Player {
     // Looks along the on-foot camera for something to interact with. Kicking is on foot only
     // (D46), so nothing is offered while seated. Lives on an always-active object so leaving
     // the seat does not destroy it.
-    public class PlayerInteractor : MonoBehaviour, IGameBindable {
-        [SerializeField] Camera onFootCamera;
+    public class PlayerInteractor : MonoBehaviour {
         [SerializeField] float onFootReach = 2.2f;
 
         public IInteractable Current { get; private set; }
@@ -14,63 +13,23 @@ namespace BusDriver.Gameplay.Player {
 
         readonly RaycastHit[] hits = new RaycastHit[16];
         GameServices game;
+        PlayerModeController mode;
+        Camera onFootCamera;
 
-        public void Bind(GameServices services) {
-            game = services;
-        }
-
-        void Awake() {
-            // Older scenes put this on OnFootRig; keep it alive while the player is seated
-            SceneController mode = FindAnyObjectByType<SceneController>();
-            if (mode != null && transform.parent != mode.transform) {
-                OnFootController onFootParent = GetComponentInParent<OnFootController>();
-                if (onFootParent != null) {
-                    transform.SetParent(mode.transform, true);
-                }
-            }
-            WireCamerasFromScene();
-        }
-
-        public void WireCameras(Camera onFoot) {
-            if (onFoot != null) {
-                onFootCamera = onFoot;
-            }
-        }
-
-        void WireCamerasFromScene() {
-            SceneController mode = SceneController.Instance != null
-                ? SceneController.Instance
-                : FindAnyObjectByType<SceneController>();
-            if (mode == null) {
-                return;
-            }
-            if (onFootCamera == null) {
-                onFootCamera = mode.OnFootCamera;
-            }
+        // ShiftContext, with the input adapters (§4.5 step 3)
+        public void Init(ShiftServices shift) {
+            game = shift.Game;
+            mode = shift.Mode;
+            onFootCamera = shift.OnFootCamera;
         }
 
         void Update() {
-            if (game != null && game.Pause.IsPaused) {
+            if (game == null || game.Pause.IsPaused || mode == null || mode.Mode != PlayerMode.OnFoot || onFootCamera == null) {
                 SetCurrent(null);
                 return;
             }
-            SceneController mode = SceneController.Instance;
-            if (mode == null) {
-                SetCurrent(null);
-                return;
-            }
-
-            if (onFootCamera == null) {
-                WireCamerasFromScene();
-            }
-
-            if (mode.Mode != PlayerMode.OnFoot || onFootCamera == null) {
-                SetCurrent(null);
-                return;
-            }
-
             SetCurrent(FindTarget(onFootCamera, onFootReach));
-            if (Current != null && game != null && game.Input.Actions.Interact.WasPressedThisFrame()) {
+            if (Current != null && game.Input.Actions.Interact.WasPressedThisFrame()) {
                 Current.Interact();
             }
         }

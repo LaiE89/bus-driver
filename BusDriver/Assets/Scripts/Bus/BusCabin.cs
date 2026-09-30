@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Passengers;
+using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.World;
 
 namespace BusDriver.Gameplay.Bus {
@@ -13,11 +15,10 @@ namespace BusDriver.Gameplay.Bus {
     public class BusCabin : MonoBehaviour {
         [SerializeField] BusController bus;
         [SerializeField] BusDoors doors;
-        [SerializeField] CCTVSystem cctv;
         [SerializeField] BusSeat[] seats;
         [SerializeField] Transform passengerRoot;
         [SerializeField] GameObject interiorColliders;
-        [SerializeField] BusStop[] stops;
+        [SerializeField] DriverSeat driverSeat;
         // Already sitting on the bus when the scene starts
         [SerializeField] Passenger[] initialPassengers;
 
@@ -37,8 +38,6 @@ namespace BusDriver.Gameplay.Bus {
         public Transform PassengerRoot { get { return passengerRoot; } }
         public IReadOnlyList<Passenger> Passengers { get { return passengers; } }
         public bool IsWalkable { get; private set; }
-        // The camera currently looking into the bus: a CCTV camera, the driver, or the player on foot
-        public Camera ViewCamera { get { return cctv != null ? cctv.ActiveCamera : null; } }
 
         public Vector3 AisleAtDoorLocal { get { return ToLocal(aisleAtDoor); } }
         public Vector3 DoorStepLocal { get { return ToLocal(doorStep); } }
@@ -48,6 +47,16 @@ namespace BusDriver.Gameplay.Bus {
         public Vector3 ExitDirection { get { return transform.right; } }
 
         readonly List<Passenger> passengers = new List<Passenger>();
+        // The route's stops, handed over by ShiftContext (the bus prefab can't hold scene objects)
+        IReadOnlyList<BusStop> stops = new BusStop[0];
+
+        // ShiftContext, step 3 of the Init order (§4.5)
+        public void Init(ShiftServices shift) {
+            stops = shift.Route.Stops;
+            if (driverSeat != null) {
+                driverSeat.Bind(shift.Mode);
+            }
+        }
 
         void OnEnable() {
             doors.OnChanged += HandleDoorsChanged;
@@ -149,9 +158,9 @@ namespace BusDriver.Gameplay.Bus {
         // The bus stop the door is lined up with, if any
         public BusStop CurrentStop {
             get {
-                foreach (BusStop stop in stops) {
-                    if (stop != null && stop.Contains(this)) {
-                        return stop;
+                for (int i = 0; i < stops.Count; i++) {
+                    if (stops[i] != null && stops[i].Contains(this)) {
+                        return stops[i];
                     }
                 }
                 return null;

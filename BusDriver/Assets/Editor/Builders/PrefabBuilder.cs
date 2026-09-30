@@ -136,7 +136,8 @@ namespace BusDriver.Editor.Builders {
             // Height is found with a raycast at run time: road or kerb
             Transform doorOutside = Node(root, "DoorOutside", new Vector3(1.9f, 0f, DoorZ));
             Transform standPoint = Node(root, "StandPoint", new Vector3(0.15f, FloorTop, 4.5f));
-            GameObject interior = BuildInteriorColliders(root);
+            DriverSeat driverSeat;
+            GameObject interior = BuildInteriorColliders(root, out driverSeat);
             Transform passengerRoot = Group("Passengers", root).transform;
 
             Camera driverCamera;
@@ -161,12 +162,11 @@ namespace BusDriver.Editor.Builders {
             SetRef(doors, "view", view);
             SetRef(cabin, "bus", controller);
             SetRef(cabin, "doors", doors);
-            SetRef(cabin, "cctv", cctv);
             SetRefArray(cabin, "seats", seats.ToArray());
             SetRef(cabin, "passengerRoot", passengerRoot);
             SetRef(cabin, "interiorColliders", interior);
-            // Stops belong to the route scene; the scene builder fills them in
-            SetRefArray(cabin, "stops", new Object[0]);
+            // Stops belong to the route scene: BusCabin.Init takes them from RouteSceneRoot
+            SetRef(cabin, "driverSeat", driverSeat);
             SetRefArray(cabin, "initialPassengers", new Object[0]);
             SetRef(cabin, "aisleAtDoor", aisleAtDoor);
             SetRef(cabin, "doorStep", doorStep);
@@ -194,7 +194,7 @@ namespace BusDriver.Editor.Builders {
         // Saved inactive and only switched on while the bus is frozen for walking, so these
         // never join the hull's compound collider or change the driving inertia tensor.
         // Unscaled empties with sized BoxColliders, floor top at 0.55.
-        static GameObject BuildInteriorColliders(Transform root) {
+        static GameObject BuildInteriorColliders(Transform root, out DriverSeat driverSeat) {
             Transform interior = Group("InteriorColliders", root).transform;
             InteriorBox(interior, "Floor", new Vector3(0f, 0.35f, 0f), new Vector3(BusWidth, 0.4f, BusLength));
             InteriorBox(interior, "Wall L", new Vector3(-1.29f, 1.95f, 0f), new Vector3(0.2f, 2.8f, BusLength));
@@ -209,7 +209,7 @@ namespace BusDriver.Editor.Builders {
             InteriorBox(interior, "Bench R", new Vector3(0.8175f, 1.175f, -1.425f), new Vector3(0.835f, 1.25f, 8.95f));
             InteriorBox(interior, "Arch FL", new Vector3(-TrackHalf, 0.875f, FrontAxleZ), new Vector3(0.45f, 0.65f, 1.4f));
             InteriorBox(interior, "Arch FR", new Vector3(TrackHalf, 0.875f, FrontAxleZ), new Vector3(0.45f, 0.65f, 1.4f));
-            InteriorBox(interior, "Driver Seat", new Vector3(-0.7f, 1.25f, 4.675f), new Vector3(0.6f, 1.4f, 1.05f)).AddComponent<DriverSeat>();
+            driverSeat = InteriorBox(interior, "Driver Seat", new Vector3(-0.7f, 1.25f, 4.675f), new Vector3(0.6f, 1.4f, 1.05f)).AddComponent<DriverSeat>();
             SetLayerRecursively(interior.gameObject, Layers.BusInterior);
             interior.gameObject.SetActive(false);
             return interior.gameObject;

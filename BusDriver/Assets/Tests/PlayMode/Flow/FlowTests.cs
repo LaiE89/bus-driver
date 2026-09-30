@@ -46,10 +46,12 @@ namespace BusDriver.Tests.PlayMode.Flow {
             yield return FlowTestUtil.WaitForNight(game);
 
             Assert.AreEqual(SceneIds.LegacyNight, SceneManager.GetActiveScene().name);
-            LegacyNightRoot night = Object.FindAnyObjectByType<LegacyNightRoot>();
-            Assert.IsNotNull(night, "the night scene has no LegacyNightRoot");
+            ShiftContext night = Object.FindAnyObjectByType<ShiftContext>();
+            Assert.IsNotNull(night, "the night scene has no ShiftContext");
             Assert.AreSame(game, night.Game, "the night root was not initialized with the running services");
             Assert.IsNotNull(night.Setup, "Begin was not called");
+            Assert.IsTrue(night.HasBegun);
+            Assert.IsNotNull(night.Route, "the route was not attached");
             Assert.AreEqual(1, night.Setup.NightIndex);
             Assert.IsFalse(night.Setup.IsDebugRun);
             Assert.IsFalse(game.Flow.IsDebugRun);

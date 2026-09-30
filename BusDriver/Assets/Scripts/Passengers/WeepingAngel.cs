@@ -31,7 +31,7 @@ namespace BusDriver.Gameplay.Monsters {
         }
 
         protected override void Tick(float deltaTime) {
-            if (SceneController.Instance != null && SceneController.Instance.IsGameOver) {
+            if (Shift == null || IsGameOver) {
                 return;
             }
             if (!canHunt || Time.time < huntReadyAt || !IsAboard || Cabin == null) {
@@ -41,7 +41,7 @@ namespace BusDriver.Gameplay.Monsters {
                 return;
             }
 
-            Camera watcher = Cabin.ViewCamera;
+            Camera watcher = Shift.Cctv.ActiveCamera;
             if (watcher == null || IsBeingWatched(watcher)) {
                 return;
             }
@@ -62,6 +62,10 @@ namespace BusDriver.Gameplay.Monsters {
                 }
             }
             return false;
+        }
+
+        bool IsGameOver {
+            get { return Shift.GameOver != null && Shift.GameOver.IsGameOver; }
         }
 
         void Move(float deltaTime) {
@@ -90,7 +94,7 @@ namespace BusDriver.Gameplay.Monsters {
         }
 
         void TryKillPlayer() {
-            if (!hunting || SceneController.Instance == null || SceneController.Instance.IsGameOver) {
+            if (!hunting || Shift == null || IsGameOver || Shift.GameOver == null) {
                 return;
             }
             Vector3 current = transform.localPosition;
@@ -98,7 +102,7 @@ namespace BusDriver.Gameplay.Monsters {
             Vector3 flat = target - current;
             flat.y = 0f;
             if (flat.magnitude <= killDistance) {
-                SceneController.Instance.TriggerGameOver();
+                Shift.GameOver.TriggerGameOver();
             }
         }
 
@@ -142,8 +146,8 @@ namespace BusDriver.Gameplay.Monsters {
         // Seated: path to the stand point behind the driver so the angel can finish the
         // approach outside the windshield view. On foot: chase the player body.
         Vector3 HuntTargetLocal() {
-            if (SceneController.Instance != null
-                && SceneController.Instance.Mode == PlayerMode.Driving
+            if (Shift != null
+                && Shift.Mode.Mode == PlayerMode.Driving
                 && Cabin != null) {
                 return Cabin.StandPointLocal;
             }
@@ -151,8 +155,8 @@ namespace BusDriver.Gameplay.Monsters {
         }
 
         Vector3 PlayerLocalPosition() {
-            Vector3 world = SceneController.Instance != null
-                ? SceneController.Instance.PlayerPosition
+            Vector3 world = Shift != null
+                ? Shift.Mode.PlayerPosition
                 : transform.position;
             if (Cabin.PassengerRoot != null) {
                 return Cabin.PassengerRoot.InverseTransformPoint(world);

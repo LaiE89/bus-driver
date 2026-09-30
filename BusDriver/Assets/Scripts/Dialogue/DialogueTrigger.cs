@@ -1,12 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using BusDriver.Core.Util;
-using BusDriver.Gameplay.Player;
 
 namespace BusDriver.UI.Screens {
+    // Inherited and unused by the design; T-M1-19 deletes the dialogue system. Its controllers
+    // were reached through SceneController, which T-M1-15 split up.
     public class DialogueTrigger : MonoBehaviour {
         public Dialogue dialogue;
+        [SerializeField] DialogueController dialogueController;
+        [SerializeField] DialogueController objectivesController;
 
         [Header("Trigger methods")]
         public bool whenEnabled;
@@ -18,16 +18,9 @@ namespace BusDriver.UI.Screens {
         }
 
         public void TriggerDialogue() {
-            if (SceneController.Instance == null) {
-                Log.Warn(LogCat.Flow, "DialogueTrigger needs a SceneController in the scene");
-                return;
-            }
-            if (dialogue.isObjective) {
-                if (SceneController.Instance.objectivesController != null) {
-                    SceneController.Instance.objectivesController.StartDialogue(dialogue);
-                }
-            }else if (SceneController.Instance.dialogueController != null) {
-                SceneController.Instance.dialogueController.StartDialogue(dialogue);
+            DialogueController target = dialogue.isObjective ? objectivesController : dialogueController;
+            if (target != null) {
+                target.StartDialogue(dialogue);
             }
         }
     }

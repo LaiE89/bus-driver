@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.World;
 
@@ -28,6 +29,8 @@ namespace BusDriver.Gameplay.Passengers {
         public bool IsAboard { get; private set; }
         public bool WasKicked { get; private set; }
         public string DisplayName { get { return displayName; } }
+        // The night this rider belongs to; null for one placed by hand (tests)
+        protected ShiftServices Shift { get; private set; }
 
         BusStop homeStop;
         Vector3 waitPosition;
@@ -80,6 +83,11 @@ namespace BusDriver.Gameplay.Passengers {
         }
 
         // -------------------------------------------------------------- API
+
+        // From the spawner, before the rider does anything (§4.5)
+        public virtual void Bind(ShiftServices shift) {
+            Shift = shift;
+        }
 
         // Reset a pooled passenger so they can wait at a stop again.
         public void PrepareForWaiting(BusStop stop, Vector3 position, Quaternion rotation) {
@@ -254,8 +262,8 @@ namespace BusDriver.Gameplay.Passengers {
 
             yield return WalkWorld(() => away, null);
             State = PassengerState.Gone;
-            if (SceneController.Instance != null) {
-                SceneController.Instance.DespawnNpc(this);
+            if (Shift != null && Shift.Riders != null) {
+                Shift.Riders.Despawn(this);
             }else {
                 Destroy(gameObject);
             }

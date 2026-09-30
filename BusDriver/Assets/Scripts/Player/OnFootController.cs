@@ -8,7 +8,7 @@ namespace BusDriver.Gameplay.Player {
     // bus: the bus is frozen while anyone is on foot, and this way the view stays level
     // even when the bus is parked with two wheels up a kerb.
     [RequireComponent(typeof(CharacterController))]
-    public class OnFootController : MonoBehaviour, IGameBindable {
+    public class OnFootController : MonoBehaviour {
         [SerializeField] Transform head;
         [SerializeField] Transform avatarRoot;
         // The bus hull is one solid box around the whole interior
@@ -34,11 +34,11 @@ namespace BusDriver.Gameplay.Player {
         float pitch;
         float fallSpeed;
 
-        // From the scene root (LegacyNightRoot, later ShiftContext)
-        public void Bind(GameServices game) {
-            settings = game.Settings;
-            pause = game.Pause;
-            input = game.Input;
+        // ShiftContext, with the input adapters (§4.5 step 3)
+        public void Init(ShiftServices shift) {
+            settings = shift.Game.Settings;
+            pause = shift.Game.Pause;
+            input = shift.Game.Input;
         }
 
         internal float Sensitivity {

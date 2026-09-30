@@ -5,7 +5,7 @@ using BusDriver.Gameplay.Input;
 namespace BusDriver.Gameplay.Bus {
     // Driving actions → BusController. Throttle and steer stay analogue end to end (controller-ready
     // rule 5, §4.10); BusController does its own steering smoothing.
-    public class BusInput : MonoBehaviour, IGameBindable {
+    public class BusInput : MonoBehaviour {
         [SerializeField] BusController bus;
 
         // Something else (the smoke test, AutoPilot) calls bus.SetInput. Parking on disable still applies.
@@ -13,8 +13,8 @@ namespace BusDriver.Gameplay.Bus {
 
         GameServices game;
 
-        public void Bind(GameServices services) {
-            game = services;
+        public void Init(ShiftServices shift) {
+            game = shift.Game;
         }
 
         void OnEnable() {

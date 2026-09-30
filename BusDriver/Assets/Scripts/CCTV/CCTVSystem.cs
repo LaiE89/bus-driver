@@ -9,7 +9,7 @@ using BusDriver.Gameplay.Flow;
 namespace BusDriver.Gameplay.Bus {
     // Fullscreen camera switching: exactly one camera renders at a time, so checking
     // the cabin hides the road completely while the bus keeps moving.
-    public class CCTVSystem : MonoBehaviour, IGameBindable {
+    public class CCTVSystem : MonoBehaviour {
         [SerializeField] Camera homeCamera;
         [Tooltip("Cycle order: Home → CAM 1 → CAM 2 → CAM 3 → Home (§2.2)")]
         [SerializeField] CctvCamera[] cameras = new CctvCamera[0];
@@ -36,8 +36,8 @@ namespace BusDriver.Gameplay.Bus {
         Volume cctvVolume;
         GameServices game;
 
-        public void Bind(GameServices services) {
-            game = services;
+        public void Init(ShiftServices shift) {
+            game = shift.Game;
         }
 
         void Awake() {

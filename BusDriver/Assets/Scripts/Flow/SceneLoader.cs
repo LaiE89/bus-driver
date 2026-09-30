@@ -116,6 +116,52 @@ namespace BusDriver.Gameplay.Flow {
             }
         }
 
+        // Route01_World beside an already loaded Night_Systems (the editor debug run, §4.4)
+        public IEnumerator LoadRouteAdditive() {
+            if (IsLoading) {
+                yield break;
+            }
+            IsLoading = true;
+            Log.Info(LogCat.Flow, "loading " + SceneIds.Route01World + " (additive)");
+            AsyncOperation operation = SceneManager.LoadSceneAsync(SceneIds.Route01World, LoadSceneMode.Additive);
+            if (operation == null) {
+                IsLoading = false;
+                Log.Error(LogCat.Flow, $"scene {SceneIds.Route01World} is not in the build list");
+                yield break;
+            }
+            while (!operation.isDone) {
+                yield return null;
+            }
+            IsLoading = false;
+        }
+
+        // A component on one of the scene's root objects (roots only, like ISceneRoot)
+        public static T FindInScene<T>(Scene scene) where T : Component {
+            if (!scene.IsValid() || !scene.isLoaded) {
+                return null;
+            }
+            List<GameObject> roots = new List<GameObject>();
+            scene.GetRootGameObjects(roots);
+            for (int i = 0; i < roots.Count; i++) {
+                T found = roots[i].GetComponent<T>();
+                if (found != null) {
+                    return found;
+                }
+            }
+            return null;
+        }
+
+        // The first such root component in any loaded scene
+        public static T FindLoaded<T>() where T : Component {
+            for (int i = 0; i < SceneManager.sceneCount; i++) {
+                T found = FindInScene<T>(SceneManager.GetSceneAt(i));
+                if (found != null) {
+                    return found;
+                }
+            }
+            return null;
+        }
+
         ISceneRoot FindRoot(Scene scene) {
             ISceneRoot found = null;
             rootObjects.Clear();

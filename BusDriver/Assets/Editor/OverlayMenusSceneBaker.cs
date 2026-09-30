@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
-using BusDriver.Gameplay.Player;
+using BusDriver.Gameplay.Flow;
 using BusDriver.UI.Screens;
 
 namespace BusDriver.Editor.Builders {
@@ -52,17 +52,6 @@ namespace BusDriver.Editor.Builders {
                 Transform gameOverPanel = hud != null ? hud.Find("GameOverPanel") : null;
                 GameOverMenu existingMenu = Object.FindAnyObjectByType<GameOverMenu>(FindObjectsInactive.Include);
                 if (gameOverPanel != null && existingMenu != null) {
-                    SceneController controller = Object.FindAnyObjectByType<SceneController>();
-                    if (controller != null) {
-                        SerializedObject so = new SerializedObject(controller);
-                        SerializedProperty gameOverProp = so.FindProperty("gameOverMenu");
-                        if (gameOverProp != null && gameOverProp.objectReferenceValue == null) {
-                            gameOverProp.objectReferenceValue = existingMenu;
-                            so.ApplyModifiedPropertiesWithoutUndo();
-                            EditorSceneManager.MarkSceneDirty(scene);
-                            EditorSceneManager.SaveScene(scene);
-                        }
-                    }
                     return;
                 }
                 BakeOpenScene();
@@ -97,14 +86,10 @@ namespace BusDriver.Editor.Builders {
                 canvas.gameObject.AddComponent<GraphicRaycaster>();
             }
 
-            SceneController controller = Object.FindAnyObjectByType<SceneController>();
-            if (controller != null) {
-                SerializedObject so = new SerializedObject(controller);
-                SerializedProperty gameOverProp = so.FindProperty("gameOverMenu");
-                if (gameOverProp != null) {
-                    gameOverProp.objectReferenceValue = gameOverMenu;
-                }
-                so.ApplyModifiedPropertiesWithoutUndo();
+            // The game over menu listens to LegacyGameOver; ShiftContext binds every screen
+            ShiftContext context = Object.FindAnyObjectByType<ShiftContext>();
+            if (context != null) {
+                BusDriverSceneBuilder.SetShiftBindables(context);
             }
 
             EditorSceneManager.MarkSceneDirty(canvas.gameObject.scene);

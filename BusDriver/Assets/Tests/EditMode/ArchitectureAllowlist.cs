@@ -5,18 +5,13 @@ namespace BusDriver.Tests.EditMode {
     static class ArchitectureAllowlist {
         // "<path under Assets/Scripts>|<rule>"
         public static readonly string[] Patterns = {
-            "SceneController.cs|GameObjectFind",
-            "SceneController.cs|FindObjectByType",
-            "SceneController.cs|UnityRandom",
             "Bus/BusCabin.cs|UnityRandom",
             "Passengers/WeepingAngel.cs|UnityRandom",
-            "Player/PlayerInteractor.cs|FindObjectByType",
         };
 
         // "<type full name>.<field>" for static mutable fields (auto-property backing fields show
         // as <Name>k__BackingField)
         public static readonly string[] Statics = {
-            "BusDriver.Gameplay.Player.SceneController.<Instance>k__BackingField",
         };
     }
 }

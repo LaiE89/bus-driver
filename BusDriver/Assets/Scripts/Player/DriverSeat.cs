@@ -1,18 +1,24 @@
 using UnityEngine;
 
 namespace BusDriver.Gameplay.Player {
-    // Sits on the driver seat's interior collider, so it is only reachable on foot
+    // Sits on the driver seat's interior collider, so it is only reachable on foot. BusCabin binds
+    // it to the mode switch in its Init (T-M1-15).
     public class DriverSeat : MonoBehaviour, IInteractable {
+        PlayerModeController mode;
+
+        public void Bind(PlayerModeController controller) {
+            mode = controller;
+        }
+
         public string Prompt { get { return "Sit down"; } }
         public bool CanInteract {
-            get {
-                return SceneController.Instance != null
-                    && SceneController.Instance.Mode == PlayerMode.OnFoot;
-            }
+            get { return mode != null && mode.Mode == PlayerMode.OnFoot; }
         }
 
         public void Interact() {
-            SceneController.Instance.TrySitDown();
+            if (mode != null) {
+                mode.TrySitDown();
+            }
         }
 
         public void SetFocused(bool focused) { }

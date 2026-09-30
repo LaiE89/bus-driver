@@ -8,13 +8,13 @@ using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.World;
 
 namespace BusDriver.UI.Hud {
-    public class DrivingHUD : MonoBehaviour, IGameBindable {
-        [SerializeField] BusController bus;
-        [SerializeField] CCTVSystem cctv;
-        [SerializeField] SceneController mode;
-        [SerializeField] PlayerInteractor interactor;
-        [SerializeField] BusDoors doors;
-        [SerializeField] BusCabin cabin;
+    public class DrivingHUD : MonoBehaviour, IShiftBindable {
+        BusController bus;
+        CCTVSystem cctv;
+        PlayerModeController mode;
+        PlayerInteractor interactor;
+        BusDoors doors;
+        BusCabin cabin;
 
         [Header("Panels")]
         [SerializeField] GameObject driverPanel;
@@ -47,11 +47,20 @@ namespace BusDriver.UI.Hud {
         string leaveSeatKey = "";
         string doorsKey = "";
 
-        // From the scene root, before OnEnable of anything activated later and before Start
-        public void Bind(GameServices services) {
-            game = services;
+        // ShiftContext, with the other UI (§4.5 step 15)
+        public void Bind(ShiftServices shift) {
+            game = shift.Game;
+            bus = shift.Bus;
+            cctv = shift.Cctv;
+            mode = shift.Mode;
+            interactor = shift.Interactor;
+            doors = shift.Doors;
+            cabin = shift.Cabin;
             game.Pause.OnPauseChanged += HandlePauseChanged;
             game.Input.OnBindingsChanged += RefreshControlsHint;
+            cctv.OnViewChanged += HandleViewChanged;
+            mode.OnModeChanged += HandleModeChanged;
+            HandleViewChanged(cctv.ActiveIndex);
             RefreshControlsHint();
         }
 
@@ -59,6 +68,12 @@ namespace BusDriver.UI.Hud {
             if (game != null) {
                 game.Pause.OnPauseChanged -= HandlePauseChanged;
                 game.Input.OnBindingsChanged -= RefreshControlsHint;
+            }
+            if (cctv != null) {
+                cctv.OnViewChanged -= HandleViewChanged;
+            }
+            if (mode != null) {
+                mode.OnModeChanged -= HandleModeChanged;
             }
         }
 
@@ -72,17 +87,6 @@ namespace BusDriver.UI.Hud {
             if (scanlines != null) {
                 scanlines.texture = CreateScanlineTexture();
             }
-        }
-
-        void OnEnable() {
-            cctv.OnViewChanged += HandleViewChanged;
-            mode.OnModeChanged += HandleModeChanged;
-            HandleViewChanged(cctv.ActiveIndex);
-        }
-
-        void OnDisable() {
-            cctv.OnViewChanged -= HandleViewChanged;
-            mode.OnModeChanged -= HandleModeChanged;
         }
 
         void HandleModeChanged(PlayerMode newMode) {
@@ -124,6 +128,9 @@ namespace BusDriver.UI.Hud {
         }
 
         void Update() {
+            if (bus == null) {
+                return;
+            }
             clock += Time.deltaTime;
             promptText.text = BuildPrompt();
             statusText.text = doors.IsClosed ? "" : "DOORS OPEN";

@@ -1,6 +1,7 @@
 using System;
 using BusDriver.Core.Save;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Route;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -17,6 +18,8 @@ namespace BusDriver.Gameplay.Flow {
 
         readonly GameServices game;
         NightSetup pendingNight;
+        // The loaded night's systems root, waiting for its route or already begun
+        INightRoot currentNight;
 
         public RunFlowState State { get; private set; } = RunFlowState.Boot;
         public RunState Run { get; private set; }
@@ -64,25 +67,67 @@ namespace BusDriver.Gameplay.Flow {
             game.Scenes.Run(game.Scenes.LoadNight(pendingNight));
         }
 
+        // A night needs both its systems scene (the INightRoot) and its route scene (the
+        // RouteSceneRoot); whichever is wired second starts it. Both hooks run from sceneLoaded, so
+        // the night begins before any Start in the route scene.
         void HandleSceneReady(Scene scene, ISceneRoot root) {
             INightRoot night = root as INightRoot;
-            if (night == null) {
-                if (scene.name == SceneIds.Menu || State == RunFlowState.Boot) {
-                    SetState(RunFlowState.Menu);
+            if (night != null) {
+                HandleNightRoot(scene, night);
+                return;
+            }
+            RouteSceneRoot route = SceneLoader.FindInScene<RouteSceneRoot>(scene);
+            if (route != null) {
+                if (currentNight != null && !currentNight.HasBegun) {
+                    BeginNight(route);
                 }
                 return;
             }
-            if (State != RunFlowState.LoadingNight || pendingNight == null) {
-                // Play pressed in a night scene, or legacy code loaded one directly
+            if (scene.name == SceneIds.Menu || State == RunFlowState.Boot) {
+                currentNight = null;
+                SetState(RunFlowState.Menu);
+            }
+        }
+
+        void HandleNightRoot(Scene scene, INightRoot night) {
+            currentNight = night;
+            bool loadingByFlow = State == RunFlowState.LoadingNight && pendingNight != null;
+            if (!loadingByFlow) {
+                // Play pressed in a night scene (the editor debug run, §4.4)
                 if (Run == null || State == RunFlowState.Boot) {
                     StartDebugRun();
                 }
                 pendingNight = new NightSetup(Run, IsDebugRun);
             }
+            // A route in the same scene (the legacy single-scene night) starts it at once
+            RouteSceneRoot route = SceneLoader.FindInScene<RouteSceneRoot>(scene);
+            if (route != null) {
+                BeginNight(route);
+                return;
+            }
+            // SceneLoader.LoadNight loads the route next; its own sceneLoaded begins the night.
+            // Outside that, the route may already be open beside it (both scenes open in the
+            // editor), or it is loaded now.
+            if (loadingByFlow) {
+                return;
+            }
+            route = SceneLoader.FindLoaded<RouteSceneRoot>();
+            if (route != null) {
+                BeginNight(route);
+            }else {
+                game.Scenes.Run(game.Scenes.LoadRouteAdditive());
+            }
+        }
+
+        void BeginNight(RouteSceneRoot route) {
             NightSetup setup = pendingNight;
             pendingNight = null;
+            if (setup == null) {
+                setup = new NightSetup(Run, IsDebugRun);
+            }
             SetState(RunFlowState.InNight);
-            night.Begin(setup);
+            currentNight.AttachRoute(route);
+            currentNight.Begin(setup);
         }
 
         // Editor only: seed and night from EditorPrefs (default random / 1). Debug runs never

@@ -5,7 +5,7 @@ using BusDriver.Gameplay.Input;
 
 namespace BusDriver.Gameplay.Player {
     // Seated head look, sits on the pivot that parents the driver camera
-    public class DriverLook : MonoBehaviour, IGameBindable {
+    public class DriverLook : MonoBehaviour {
         [SerializeField] CCTVSystem cctv;
         [SerializeField] float yawLimit = 100f;
         [SerializeField] float pitchMin = -50f;
@@ -22,11 +22,11 @@ namespace BusDriver.Gameplay.Player {
         PauseService pause;
         InputService input;
 
-        // From the scene root (LegacyNightRoot, later ShiftContext)
-        public void Bind(GameServices game) {
-            settings = game.Settings;
-            pause = game.Pause;
-            input = game.Input;
+        // ShiftContext, with the input adapters (§4.5 step 3)
+        public void Init(ShiftServices shift) {
+            settings = shift.Game.Settings;
+            pause = shift.Game.Pause;
+            input = shift.Game.Input;
         }
 
         internal float Sensitivity {

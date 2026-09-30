@@ -15,6 +15,7 @@ using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
+using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.World;
 using BusDriver.UI.Hud;
 using BusDriver.UI.Screens;
@@ -88,6 +89,7 @@ namespace BusDriver.Editor.Builders {
             GameObject bus = InstantiateBus();
             BuildLighting();
             BuildHUDAndSystems(bus);
+            BuildRouteRoot();
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             FixBuildSettings();
@@ -587,7 +589,7 @@ namespace BusDriver.Editor.Builders {
                 Box("Shelter Roof", stop, new Vector3(edge + 1.9f, 2.45f, 0f), new Vector3(1.6f, 0.1f, 4f), "Wall").isStatic = true;
                 StreetLamp(stop, stop.TransformPoint(new Vector3(edge + 1.2f, 0f, -4f)), -Right(sample.heading));
 
-                // Waiting NPCs are spawned at runtime by SceneController via ObjectPooling
+                // Waiting NPCs are spawned at runtime by LegacyRiderSpawner via ObjectPooling
                 BusStop busStop = stop.gameObject.AddComponent<BusStop>();
                 SetInt(busStop, "spawnCount", waitingCounts[stopIndex]);
                 SetVector(busStop, "firstWaitLocal", new Vector3(edge + 1.2f, 0f, -1.2f));
@@ -609,8 +611,7 @@ namespace BusDriver.Editor.Builders {
             bus.name = "Bus";
             RoadSample spawn = SampleAt(12f);
             bus.transform.SetPositionAndRotation(RoadPoint(spawn, 2f, 0.05f), Quaternion.Euler(0f, spawn.heading, 0f));
-            // The stops are this scene's; the prefab can't hold them
-            SetRefArray(bus.GetComponent<BusCabin>(), "stops", busStops.ToArray());
+            // The stops reach the cabin through RouteSceneRoot and ShiftContext (T-M1-15)
             return bus;
         }
 
@@ -656,26 +657,10 @@ namespace BusDriver.Editor.Builders {
             rig.SetActive(false);
 
             DrivingHUD hud = BuildHUD();
-            SetRef(hud, "doors", bus.GetComponent<BusDoors>());
-            SetRef(hud, "cabin", cabin);
-            SetRef(hud, "bus", bus.GetComponent<BusController>());
-            SetRef(hud, "cctv", cctv);
-
-            // The scene root GameRoot wires this scene through (T-M1-04, until ShiftContext); it
-            // releases the bus's DriveLock.Scripted until ShiftDirector exists (T-M1-17)
-            LegacyNightRoot nightRoot = new GameObject("Night Root").AddComponent<LegacyNightRoot>();
-            SetRef(nightRoot, "bus", bus.GetComponent<BusController>());
 
             GameObject systems = new GameObject("Game Systems");
-            SceneController mode = systems.AddComponent<SceneController>();
+            PlayerModeController mode = systems.AddComponent<PlayerModeController>();
             PlayerInteractor interactor = systems.AddComponent<PlayerInteractor>();
-            SetRef(interactor, "onFootCamera", onFootCamera);
-            SetRef(hud, "interactor", interactor);
-            ObjectPooling npcPool = systems.AddComponent<ObjectPooling>();
-            ConfigureNpcPools(npcPool, passengerPrefab, monsterPrefab);
-            ConfigureSpawnableNpcs(mode);
-            SetRef(mode, "npcPool", npcPool);
-            SetBool(mode, "populateStopsOnStart", true);
             SetRef(mode, "busInput", bus.GetComponent<BusInput>());
             SetRef(mode, "driverLook", look);
             SetRef(mode, "cctv", cctv);
@@ -688,14 +673,59 @@ namespace BusDriver.Editor.Builders {
             SetRef(mode, "ears", ears);
             SetRef(mode, "earsSeatParent", anchor);
             SetRef(mode, "driverAvatar", driverAvatarRoot);
-            GameOverMenu gameOverMenu = Object.FindAnyObjectByType<GameOverMenu>(FindObjectsInactive.Include);
-            if (gameOverMenu != null) {
-                SetRef(mode, "gameOverMenu", gameOverMenu);
-            }
-            SetRef(hud, "mode", mode);
 
+            // The scene root GameRoot wires this scene through (§4.5). Until ShiftDirector exists
+            // (T-M1-17) its Begin releases the bus's DriveLock.Scripted.
+            GameObject contextObject = new GameObject("Shift Context");
+            ShiftContext context = contextObject.AddComponent<ShiftContext>();
+            LegacyGameOver gameOver = contextObject.AddComponent<LegacyGameOver>();
+            SetRef(context, "bus", bus.GetComponent<BusController>());
+            SetRef(context, "mode", mode);
+            SetRef(context, "onFoot", onFoot);
+            SetRef(context, "interactor", interactor);
+            SetRef(context, "gameOver", gameOver);
+            SetShiftBindables(context);
+        }
+
+        // Every bindable of the night's systems (the HUD, the pause/options/controls screens, the
+        // game over menu), in hierarchy order; the overlay baker calls it again after baking
+        public static void SetShiftBindables(ShiftContext context) {
+            List<Object> bindables = new List<Object>();
+            foreach (GameObject root in context.gameObject.scene.GetRootGameObjects()) {
+                if (root.GetComponent<RouteSceneRoot>() != null) {
+                    continue;
+                }
+                foreach (MonoBehaviour behaviour in root.GetComponentsInChildren<MonoBehaviour>(true)) {
+                    if (behaviour is IShiftBindable || behaviour is IGameBindable) {
+                        bindables.Add(behaviour);
+                    }
+                }
+            }
+            SetRefArray(context, "bindables", bindables.ToArray());
+        }
+
+        // The route's lists (T-M1-15): stops, the bus spawn, the pooled waiting riders and the
+        // night's ambience
+        static void BuildRouteRoot() {
+            GameObject rootObject = new GameObject("Route Root");
+            RouteSceneRoot route = rootObject.AddComponent<RouteSceneRoot>();
+            LegacyRiderSpawner riders = rootObject.AddComponent<LegacyRiderSpawner>();
+            ObjectPooling npcPool = rootObject.AddComponent<ObjectPooling>();
+            ConfigureNpcPools(npcPool, passengerPrefab, monsterPrefab);
+            ConfigureSpawnableNpcs(riders);
+            SetRef(riders, "npcPool", npcPool);
+            SetBool(riders, "populateStopsOnInit", true);
             // The night's ambience loops (amb.wind), through AudioService (T-M1-11)
-            systems.AddComponent<SceneAmbience>();
+            SceneAmbience ambience = rootObject.AddComponent<SceneAmbience>();
+
+            RoadSample spawn = SampleAt(12f);
+            Transform spawnPoint = Group("Bus Spawn", rootObject.transform).transform;
+            spawnPoint.SetPositionAndRotation(RoadPoint(spawn, 2f, 0.05f), Quaternion.Euler(0f, spawn.heading, 0f));
+
+            SetRefArray(route, "stops", busStops.ToArray());
+            SetRef(route, "busSpawn", spawnPoint);
+            SetRef(route, "riders", riders);
+            SetRefArray(route, "bindables", new Object[] { ambience });
         }
 
         static void ConfigureNpcPools(ObjectPooling pooling, GameObject passenger, GameObject monster) {
@@ -716,8 +746,8 @@ namespace BusDriver.Editor.Builders {
             element.FindPropertyRelative("prewarm").intValue = prewarm;
         }
 
-        static void ConfigureSpawnableNpcs(SceneController controller) {
-            SerializedObject so = new SerializedObject(controller);
+        static void ConfigureSpawnableNpcs(LegacyRiderSpawner spawner) {
+            SerializedObject so = new SerializedObject(spawner);
             SerializedProperty list = FindProp(so, "spawnableNpcs");
             if (list == null) {
                 return;

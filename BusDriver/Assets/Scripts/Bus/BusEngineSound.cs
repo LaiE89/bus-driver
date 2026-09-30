@@ -6,7 +6,7 @@ using BusDriver.Gameplay.Flow;
 namespace BusDriver.Gameplay.Bus {
     // Drives the engine loop (bus.engine_loop) from bus speed, and plays bus.handbrake once when a
     // handbrake stop reaches ~0 speed (the PR #5 cue, Appendix A.3).
-    public class BusEngineSound : MonoBehaviour, IGameBindable {
+    public class BusEngineSound : MonoBehaviour {
         [SerializeField] BusController bus;
         [SerializeField] float fullSpeedKmh = 50f;
         [SerializeField] float minPitch = 0.85f;
@@ -26,8 +26,8 @@ namespace BusDriver.Gameplay.Bus {
         public bool IsEngineLoopPlaying { get { return audio != null && audio.IsPlaying(engine); } }
         public float EnginePitch { get { return pitch; } }
 
-        public void Bind(GameServices game) {
-            audio = game.Audio;
+        public void Init(ShiftServices shift) {
+            audio = shift.Game.Audio;
         }
 
         void Awake() {

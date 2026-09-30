@@ -43,7 +43,7 @@ namespace BusDriver.Editor.Smoke {
         static bool midCaptureDone;
 
         // Passenger phases
-        static SceneController mode;
+        static PlayerModeController mode;
         static BusCabin cabin;
         static BusDoors doors;
         static OnFootController onFoot;
@@ -120,7 +120,7 @@ namespace BusDriver.Editor.Smoke {
 
         static void Step() {
             if (bus == null) {
-                // Let SceneController.Start run before taking the controls away from it
+                // Let the night begin (ShiftContext) and settle before taking the controls away
                 if (Time.timeSinceLevelLoad < 0.3f) {
                     return;
                 }
@@ -133,7 +133,7 @@ namespace BusDriver.Editor.Smoke {
                 // The mode controller stays live so seat and door transitions run the real code.
                 // Only the keyboard is taken away from the bus.
                 bus.GetComponent<BusInput>().ExternalControl = true;
-                mode = UnityEngine.Object.FindAnyObjectByType<SceneController>();
+                mode = UnityEngine.Object.FindAnyObjectByType<PlayerModeController>();
                 cabin = bus.GetComponent<BusCabin>();
                 doors = bus.GetComponent<BusDoors>();
                 // Stops also spawn extra angels at random (weight 1 in 11), so the test monster is

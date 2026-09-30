@@ -81,6 +81,10 @@ namespace BusDriver.Gameplay.Audio {
         }
 
         SoundHandle Start(string id, Transform attach, bool isAttached, Vector3 position, bool positioned) {
+            // The pool went with its GameRoot; a scene still holding this service plays nothing
+            if (voices[0].Source == null) {
+                return SoundHandle.None;
+            }
             SoundDefinition definition;
             if (library == null || !library.TryGet(id, out definition)) {
                 WarnOnce(id, $"no sound definition for '{id}'");
@@ -266,7 +270,9 @@ namespace BusDriver.Gameplay.Audio {
                 return null;
             }
             for (int i = 0; i < voices.Length; i++) {
-                if (voices[i].HandleId == handle.Id) {
+                // A destroyed pool (GameRoot torn down under a scene that outlived it, as test
+                // reboots do) leaves no playing handles
+                if (voices[i].HandleId == handle.Id && voices[i].Source != null) {
                     return voices[i];
                 }
             }

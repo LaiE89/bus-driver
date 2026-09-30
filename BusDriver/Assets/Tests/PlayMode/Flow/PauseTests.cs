@@ -28,7 +28,7 @@ namespace BusDriver.Tests.PlayMode.Flow {
         IEnumerator StartNight(GameServices game) {
             game.Flow.NewRun();
             yield return FlowTestUtil.WaitForNight(game);
-            // SceneController.Start puts the player in the seat
+            // ShiftContext.Begin puts the player in the seat
             yield return null;
             yield return null;
         }
@@ -91,7 +91,7 @@ namespace BusDriver.Tests.PlayMode.Flow {
             Assert.AreEqual(1f, Time.timeScale);
 
             yield return StartNight(game);
-            SceneController.Instance.TriggerGameOver();
+            Object.FindAnyObjectByType<LegacyGameOver>().TriggerGameOver();
             Assert.IsFalse(game.Pause.TrySetPaused(true), "Game Over can't be paused");
             Assert.AreEqual(InputContext.Screen, game.Input.EffectiveContext);
         }
