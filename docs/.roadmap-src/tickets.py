@@ -11,6 +11,7 @@ STATUS = {
     "T-M0-02": "Done (2026-09-29)",
     "T-M0-08": "Blocked ([HUMAN] build modules, itch page, butler; tools/itch.env is git-ignored)",
     "T-M0-09": "Blocked (needs T-M0-08)",
+    "T-M0-03": "Done (2026-09-29)",
 }
 def M(mid, title, phase, goal, acceptance, note=""):
     MILESTONES.append(dict(id=mid, title=title, phase=phase, goal=goal, acceptance=acceptance, note=note, tickets=[]))
