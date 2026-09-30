@@ -55,19 +55,11 @@ namespace BusDriver.Editor.Builders {
             }
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             RouteDefinition route = LoadRoute();
-            Built b = new Built {
-                Route = route,
-                Path = new RoutePath(route),
-                Gen = route.generation,
-                Stops = new List<BusStop>(),
-                Zones = new List<ZoneVolume>(),
-                FallZones = new List<FallZone>(),
-                NextSeed = 1,
-            };
+            Built b = NewBuilt(route);
             EnsureFolder(MeshFolder);
 
             Transform world = Group("World", null).transform;
-            List<RouteOpening> openings = StubOpenings(b);
+            List<RouteOpening> openings = StubOpenings(route, b.Path);
             RoadMeshBuilder.Build(route, b.Path, Group("Road", world).transform, MeshFolder);
             ProfileBuildResult profiles = ProfileBuilder.Build(route, b.Path, Group("Profiles", world).transform, openings, MeshFolder);
             BuildDressing(ref b, profiles, Group("Dressing", world).transform);
@@ -84,6 +76,30 @@ namespace BusDriver.Editor.Builders {
             LightingPresetApplier lighting = LightingBuild.CreateApplier(null);
             BuildRouteRoot(ref b, lighting);
             SaveScene(scene, ScenePath);
+        }
+
+        // Only what §3.5 checks, in the open scene with the meshes kept in memory: the profiles and
+        // their containment, the stubs and the fall zones. RouteContainmentTests builds this from a
+        // modified copy of the data to prove the check catches a missing guardrail.
+        public static GameObject BuildContainment(RouteDefinition route) {
+            Built b = NewBuilt(route);
+            GameObject root = Group("Containment Only", null);
+            ProfileBuilder.Build(route, b.Path, Group("Profiles", root.transform).transform, StubOpenings(route, b.Path), null);
+            BuildStubs(ref b, Group("Stubs", root.transform).transform);
+            BuildCliff(ref b, Group(CliffName, root.transform).transform);
+            return root;
+        }
+
+        static Built NewBuilt(RouteDefinition route) {
+            return new Built {
+                Route = route,
+                Path = new RoutePath(route),
+                Gen = route.generation,
+                Stops = new List<BusStop>(),
+                Zones = new List<ZoneVolume>(),
+                FallZones = new List<FallZone>(),
+                NextSeed = 1,
+            };
         }
 
         static RouteDefinition LoadRoute() {
@@ -104,7 +120,11 @@ namespace BusDriver.Editor.Builders {
         }
 
         static SideProfile ProfileAt(Built b, RouteSide side, float distance) {
-            RouteSegment segment = b.Route.segments[b.Path.SegmentIndexAt(distance)];
+            return ProfileAt(b.Route, b.Path, side, distance);
+        }
+
+        static SideProfile ProfileAt(RouteDefinition route, RoutePath path, RouteSide side, float distance) {
+            RouteSegment segment = route.segments[path.SegmentIndexAt(distance)];
             return side == RouteSide.Left ? segment.left : segment.right;
         }
 
@@ -174,11 +194,15 @@ namespace BusDriver.Editor.Builders {
         }
 
         static StubFrame FrameOf(Built b, RouteStub stub) {
-            RoutePose pose = b.Path.Evaluate(stub.distance);
+            return FrameOf(b.Route, b.Path, stub);
+        }
+
+        static StubFrame FrameOf(RouteDefinition route, RoutePath path, RouteStub stub) {
+            RoutePose pose = path.Evaluate(stub.distance);
             float sign = Sign(stub.side);
             float angle = stub.angleDeg * Mathf.Deg2Rad;
             Vector3 axis = (pose.Forward * Mathf.Cos(angle) + pose.Right * (sign * Mathf.Sin(angle))).normalized;
-            float mouthLateral = RoadMeshBuilder.ShoulderEdge(b.Route, stub.distance, stub.side);
+            float mouthLateral = RoadMeshBuilder.ShoulderEdge(route, stub.distance, stub.side);
             return new StubFrame {
                 Pose = pose,
                 Sign = sign,
@@ -207,11 +231,11 @@ namespace BusDriver.Editor.Builders {
         }
 
         // The main road's containment line opens exactly between the two stub walls' crossings (§3.3)
-        static List<RouteOpening> StubOpenings(Built b) {
+        public static List<RouteOpening> StubOpenings(RouteDefinition route, RoutePath path) {
             List<RouteOpening> openings = new List<RouteOpening>();
-            foreach (RouteStub stub in b.Route.stubs) {
-                StubFrame f = FrameOf(b, stub);
-                float line = ProfileBuilder.ContainmentOffset(b.Gen, ProfileAt(b, stub.side, stub.distance));
+            foreach (RouteStub stub in route.stubs) {
+                StubFrame f = FrameOf(route, path, stub);
+                float line = ProfileBuilder.ContainmentOffset(route.generation, ProfileAt(route, path, stub.side, stub.distance));
                 if (line < 0f) {
                     continue;
                 }
