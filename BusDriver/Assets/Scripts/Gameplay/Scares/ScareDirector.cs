@@ -62,6 +62,14 @@ namespace BusDriver.Gameplay.Scares {
 
         // True when the scare plays now or waits in the queue; false when it was dropped
         public bool Request(ScareDefinition definition, ScareContext context) {
+            ScareHandle handle;
+            return Request(definition, context, out handle);
+        }
+
+        // The same, with the running scare when it started at once (a kill sequence waits for its
+        // kill scare to end before the death, §2.14); none when it was queued or dropped
+        public bool Request(ScareDefinition definition, ScareContext context, out ScareHandle handle) {
+            handle = default(ScareHandle);
             if (definition == null || arbiter == null) {
                 return false;
             }
@@ -69,7 +77,7 @@ namespace BusDriver.Gameplay.Scares {
             ScareDecision decision = arbiter.Request(definition.id, definition.tier, new Pending { Definition = definition, Context = context });
             Decided(decision);
             if (decision.Accepted) {
-                Play(definition, context);
+                handle = Play(definition, context);
             }
             return decision.Outcome != ScareOutcome.Dropped;
         }
@@ -100,7 +108,7 @@ namespace BusDriver.Gameplay.Scares {
             arbiter.Paused = shift.Game.Pause.IsPaused;
         }
 
-        void Play(ScareDefinition definition, ScareContext context) {
+        ScareHandle Play(ScareDefinition definition, ScareContext context) {
             if (definition.tier == ScareTier.Kill) {
                 // Kill preempts every running scare (§2.17)
                 player.Interrupt();
@@ -113,6 +121,7 @@ namespace BusDriver.Gameplay.Scares {
             if (OnScareStarted != null) {
                 OnScareStarted(definition);
             }
+            return handle;
         }
 
         void Decided(ScareDecision decision) {

@@ -62,6 +62,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6684634957674693429, guid: 01c64dbfdca32426fb90afe8a5578f2b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4806879462451407535}
+    - targetCorrespondingSourceObject: {fileID: 6684634957674693429, guid: 01c64dbfdca32426fb90afe8a5578f2b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6220231016587126532}
   m_SourcePrefab: {fileID: 100100000, guid: 01c64dbfdca32426fb90afe8a5578f2b, type: 3}
 --- !u!1 &2439779750513369075 stripped
 GameObject:
@@ -93,3 +96,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Monsters.MonsterBrain
   definition: {fileID: 11400000, guid: bb8149314fbba4fe0bbded8a9ad355c3, type: 2}
+--- !u!114 &6220231016587126532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2439779750513369075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 257ce842bed834c9fbdb555ffbe5eba9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Monsters.KillSequence
+  expelFlashSeconds: 0.3
+  expelFlashIntensity: 8

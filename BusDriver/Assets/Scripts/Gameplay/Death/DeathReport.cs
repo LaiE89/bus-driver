@@ -21,5 +21,9 @@ namespace BusDriver.Gameplay.Death {
     // mode cheat (T-M4-10). Return true to prevent it; a one-use preventer consumes itself here.
     public interface IDeathPreventer {
         bool TryPrevent(DeathReport report);
+        // When it stops a monster kill at the end of a telegraph: true expels the monster (the Salt
+        // charm: it despawns, fare kept, no bounty); false lets it off as if the player escaped
+        // (god mode), so testing a night never loses the monster
+        bool ExpelsMonster { get; }
     }
 }

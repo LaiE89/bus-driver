@@ -395,6 +395,34 @@ namespace BusDriver.Gameplay.Passengers {
             }
         }
 
+        // A seated monster moving itself (§2.10 the Starer's advance and its escape): straight into
+        // another free seat, no walk. False when it isn't sitting aboard or the seat is taken.
+        public bool MoveToSeat(BusSeat seat) {
+            if (!IsAboard || State != PassengerState.Seated || seat == null || Cabin == null || !seat.Reserve(this)) {
+                return false;
+            }
+            if (Seat != null && Seat != seat) {
+                Seat.Release(this);
+            }
+            Seat = seat;
+            transform.localPosition = Cabin.SeatLocal(seat);
+            transform.localRotation = Quaternion.identity;
+            SetSeatedPose(true);
+            RefreshInteractable();
+            return true;
+        }
+
+        // A seated monster standing up where it is told (a kill-sequence telegraph, §2.14): its seat
+        // is freed and it stays kickable (State stays Seated, as it counts as riding)
+        public void StandAt(Vector3 cabinLocal, Quaternion localRotation) {
+            if (!IsAboard || State != PassengerState.Seated) {
+                return;
+            }
+            VacateSeat();
+            transform.localPosition = cabinLocal;
+            transform.localRotation = localRotation;
+        }
+
         // Stand up and free the seat so the angel (or similar) can walk the aisle.
         protected void VacateSeat() {
             if (Seat != null) {

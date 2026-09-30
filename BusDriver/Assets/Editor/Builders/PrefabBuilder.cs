@@ -636,8 +636,9 @@ namespace BusDriver.Editor.Builders {
         }
 
         // One prefab variant of Passenger.prefab per MonsterDefinition (§4.15 step 7, T-M4-03): the
-        // rider plus a ThreatMeter and a MonsterBrain pointing at its definition. The definition's
-        // logicPrefab is the one Data field the builder owns (D98).
+        // rider plus a ThreatMeter and a MonsterBrain pointing at its definition, a KillSequence
+        // when its escape isn't None (T-M4-07). The definition's logicPrefab is the one Data field
+        // the builder owns (D98).
         static void BuildMonsterVariants() {
             EnsureFolder(MonstersFolder);
             GameObject rider = AssetDatabase.LoadAssetAtPath<GameObject>(PassengerPath);
@@ -651,6 +652,9 @@ namespace BusDriver.Editor.Builders {
                 instance.AddComponent<ThreatMeter>();
                 MonsterBrain brain = instance.AddComponent<MonsterBrain>();
                 SetRef(brain, "definition", monster);
+                if (monster.escape.kind != EscapeKind.None) {
+                    instance.AddComponent<KillSequence>();
+                }
                 GameObject saved = SaveOrOverwritePrefab(instance, MonsterPath(monster.id));
                 Object.DestroyImmediate(instance);
                 if (monster.logicPrefab != saved) {

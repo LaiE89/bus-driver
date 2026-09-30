@@ -119,1036 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1001 &621319228
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 892539494687988024, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: ignoredColliders.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 892539494687988024, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: 'ignoredColliders.Array.data[0]'
-      value: 
-      objectReference: {fileID: 1368877789}
-    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7637339657535398609, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: m_Name
-      value: OnFootRig
-      objectReference: {fileID: 0}
-    - target: {fileID: 7637339657535398609, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
---- !u!20 &621319229 stripped
-Camera:
-  m_CorrespondingSourceObject: {fileID: 4616429818774541170, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-  m_PrefabInstance: {fileID: 621319228}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &621319230 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 892539494687988024, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
-  m_PrefabInstance: {fileID: 621319228}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bef2016dda1c14a89b0b13a1175f1686, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Player.OnFootController
---- !u!1001 &841140151
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9217723654776760882, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-      propertyPath: m_Name
-      value: HUD
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 110992ef3b59b454396b4add40e06447, type: 3}
---- !u!114 &841140152 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2343181141902914223, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-  m_PrefabInstance: {fileID: 841140151}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 504af97a7dd714347b625791cfdb620b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Hud.ScreenFadeView
---- !u!114 &841140153 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5584234355029318756, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-  m_PrefabInstance: {fileID: 841140151}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03feee82ada194856b2e157144ea1668, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Hud.ScareOverlayView
---- !u!114 &841140154 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2696926477347392288, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-  m_PrefabInstance: {fileID: 841140151}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd7f8a5c668834371868d12241575fac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Hud.CctvOverlayView
---- !u!114 &841140155 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8569950913988344481, guid: 110992ef3b59b454396b4add40e06447, type: 3}
-  m_PrefabInstance: {fileID: 841140151}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c215f374f82a49c78f8e5c23e50ebf7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Hud.HudView
---- !u!1001 &968979665
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 2756882598697576469, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_Name
-      value: Screens
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_Pivot.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_Pivot.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
---- !u!114 &968979666 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6309574837965293953, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-  m_PrefabInstance: {fileID: 968979665}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51daa834763314186b7a87ffb651b9c1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.ScreenRouter
---- !u!114 &968979667 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8714326395386319179, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-  m_PrefabInstance: {fileID: 968979665}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d18c9f2364b76074586b662ed51822f4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.PauseScreen
---- !u!114 &968979668 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 9208385283245812264, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-  m_PrefabInstance: {fileID: 968979665}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cf4a64bfb6fd6c549834cacb28232d1e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.ControlsScreen
---- !u!114 &968979669 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7148046750174105146, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-  m_PrefabInstance: {fileID: 968979665}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 11da741896780bc4d80f962e01b18669, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.OptionsScreen
---- !u!114 &968979670 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7858741474678644855, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-  m_PrefabInstance: {fileID: 968979665}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 115e09cd0796648dbbbb899a81e27b7f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.GameOverScreen
---- !u!114 &968979671 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 612237179464035000, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-  m_PrefabInstance: {fileID: 968979665}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91c44354cd81b4be1976ac009fc1441d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.SummaryScreen
---- !u!114 &968979672 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8987769977426659986, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
-  m_PrefabInstance: {fileID: 968979665}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 347dc3cca95d242859bbc91663babc41, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.IntroCardScreen
---- !u!1001 &1108675211
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4620115112730090910, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
-      propertyPath: m_Name
-      value: FallCamera
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
---- !u!1001 &1368877785
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 5996932253779982855, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-      propertyPath: m_Name
-      value: Bus
-      objectReference: {fileID: 0}
-    - target: {fileID: 5996932253779982855, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
---- !u!1 &1368877786 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7244808298088139923, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-  m_PrefabInstance: {fileID: 1368877785}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &1368877787 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7762448565528035009, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-  m_PrefabInstance: {fileID: 1368877785}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &1368877788 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8662384568200351212, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-  m_PrefabInstance: {fileID: 1368877785}
-  m_PrefabAsset: {fileID: 0}
---- !u!65 &1368877789 stripped
-BoxCollider:
-  m_CorrespondingSourceObject: {fileID: 8906452726499063315, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-  m_PrefabInstance: {fileID: 1368877785}
-  m_PrefabAsset: {fileID: 0}
---- !u!20 &1368877790 stripped
-Camera:
-  m_CorrespondingSourceObject: {fileID: 4552736681754855803, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-  m_PrefabInstance: {fileID: 1368877785}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1368877791 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 67860807151120027, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-  m_PrefabInstance: {fileID: 1368877785}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22afeec8c47644c05816a8adeb7adef9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Bus.BusDoors
---- !u!114 &1368877792 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3720524538175230237, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-  m_PrefabInstance: {fileID: 1368877785}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fd24a50a723a48afa92a0d6f07adac7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Bus.BusCabin
---- !u!114 &1368877793 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7971124723320149692, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-  m_PrefabInstance: {fileID: 1368877785}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f8432a44587104c7599687d7f1cc5ce0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Bus.BusController
---- !u!114 &1368877794 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5214449821430513611, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-  m_PrefabInstance: {fileID: 1368877785}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 805198b4f10da40f485bf1f5c98bdf37, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Bus.CCTVSystem
---- !u!114 &1368877795 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 835382153907322198, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-  m_PrefabInstance: {fileID: 1368877785}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2dec67505c80f4251adb0b4babe63ee8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Player.DriverLook
---- !u!114 &1368877796 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8522631652008534295, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
-  m_PrefabInstance: {fileID: 1368877785}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0f0d240de6a5944689b41d27b131b45b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Bus.BusInput
---- !u!1001 &1399455890
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8361832077300437702, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-      propertyPath: m_Name
-      value: Dash
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
---- !u!114 &1399455891 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1677293568131149825, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-  m_PrefabInstance: {fileID: 1399455890}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bfb713cdfe2844537aeda479a6c608ec, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Dash.RouteMapView
---- !u!114 &1399455892 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1275466223872269494, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-  m_PrefabInstance: {fileID: 1399455890}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 44fc1ccfda81543628aac467bcdcfb0d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Dash.FareBoxView
---- !u!114 &1399455893 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 838267727624094202, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
-  m_PrefabInstance: {fileID: 1399455890}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcdf07982891742ea935958fceaefe63, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Dash.DashClockView
---- !u!1 &1461065555
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1461065571}
-  - component: {fileID: 1461065570}
-  - component: {fileID: 1461065569}
-  - component: {fileID: 1461065568}
-  - component: {fileID: 1461065567}
-  - component: {fileID: 1461065566}
-  - component: {fileID: 1461065565}
-  - component: {fileID: 1461065564}
-  - component: {fileID: 1461065563}
-  - component: {fileID: 1461065562}
-  - component: {fileID: 1461065561}
-  - component: {fileID: 1461065560}
-  - component: {fileID: 1461065559}
-  - component: {fileID: 1461065558}
-  - component: {fileID: 1461065557}
-  - component: {fileID: 1461065556}
-  m_Layer: 0
-  m_Name: Shift Context
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1461065556
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 65e2ecf6ab64f4a95a5a74e602df7d1c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Death.BlackoutPresenter
-  fallbackSeconds: 2
---- !u!114 &1461065557
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ffa0250cca36b4c06925207c100ad6a3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Death.MonsterKillPresenter
-  holdSeconds: 0.5
---- !u!114 &1461065558
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de6dbd298399c4beb86807c791e0be35, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Death.DeathDirector
-  presenters:
-  - {fileID: 1461065557}
-  - {fileID: 1461065556}
-  fallbackFadeSeconds: 1
---- !u!114 &1461065559
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 19f58ed5651db4eaeb8856b03c13fe96, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Scares.ScareDirector
---- !u!114 &1461065560
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 29b2dca8ababf4ee4ae5befba124f29e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Scares.ScarePlayer
-  scareHeadPrefab: {fileID: 702818445050976832, guid: aafe9ec146bcb420c912c6ffe6968426, type: 3}
-  defaultOverlay: {fileID: 2800000, guid: f970ce5c5546f4686a3035de8ecd01e7, type: 3}
-  reducedFadeSeconds: 0.15
-  reducedMaxAlpha: 0.5
-  reducedVolume: 0.5
---- !u!114 &1461065561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7748370b460f04a49a96f0d90c0ed055, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Monsters.MonsterSystem
---- !u!114 &1461065562
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d49ac3c48e7640bcac840260f2806e9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Passengers.ManifestSpawner
-  riderPrefab: {fileID: 8149302268048245825, guid: 01c64dbfdca32426fb90afe8a5578f2b, type: 3}
---- !u!114 &1461065563
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f6e68082d5af4e46b4093ade6d28d0b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Views.ViewFactory
-  greyboxView: {fileID: 4343473831402700503, guid: a0953d3e4ce6f4e27a4856f0f4f5ae73, type: 3}
---- !u!114 &1461065564
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad353c409b34c48dfb0c8070125dce18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Attention.PlayerAttention
---- !u!114 &1461065565
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23a873ee73634434ebc208ed477b1de1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Passengers.PassengerRegistry
---- !u!114 &1461065566
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 669a5584bb83b4809b52647d122bd73b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Shift.ShiftClockDriver
---- !u!114 &1461065567
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 416dfe390e226493288e30b0c4706829, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Route.RouteProgress
---- !u!114 &1461065568
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e4e7c2223e0b94ef58da872899912d3a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Route.RouteTracker
---- !u!114 &1461065569
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f6a4538aacd0474ab831d0b265cfec8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Shift.ShiftDirector
-  introSeconds: 3
---- !u!114 &1461065570
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f23fc915a5672474ea35ae6a268ab1cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Flow.ShiftContext
-  bus: {fileID: 1368877793}
-  mode: {fileID: 1891670504}
-  onFoot: {fileID: 621319230}
-  interactor: {fileID: 1891670503}
-  death: {fileID: 1461065558}
-  director: {fileID: 1461065569}
-  tracker: {fileID: 1461065568}
-  progress: {fileID: 1461065567}
-  clock: {fileID: 1461065566}
-  attention: {fileID: 1461065564}
-  riders: {fileID: 1461065565}
-  views: {fileID: 1461065563}
-  manifest: {fileID: 1461065562}
-  monsters: {fileID: 1461065561}
-  scarePlayer: {fileID: 1461065560}
-  scares: {fileID: 1461065559}
-  autoPilot: {fileID: 1891670501}
-  debugRiders: {fileID: 1891670502}
-  bindables:
-  - {fileID: 841140155}
-  - {fileID: 841140154}
-  - {fileID: 841140153}
-  - {fileID: 841140152}
-  - {fileID: 1399455893}
-  - {fileID: 1399455892}
-  - {fileID: 1399455891}
-  - {fileID: 968979666}
-  - {fileID: 968979667}
-  - {fileID: 968979672}
-  - {fileID: 968979668}
-  - {fileID: 968979669}
-  - {fileID: 968979671}
-  - {fileID: 968979670}
-  - {fileID: 1897934069}
---- !u!4 &1461065571
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1461065555}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1891670500
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1891670505}
-  - component: {fileID: 1891670504}
-  - component: {fileID: 1891670503}
-  - component: {fileID: 1891670502}
-  - component: {fileID: 1891670501}
-  m_Layer: 0
-  m_Name: Game Systems
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1891670501
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1891670500}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 266e7865155e14e6f8a28b1ef189587b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Debug.AutoPilot
---- !u!114 &1891670502
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1891670500}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f317d2b6ffc4a4c4cbff41f9cd375f17, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Debug.DebugRiders
---- !u!114 &1891670503
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1891670500}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c7196df11f324405dbd57981d8c20b50, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Player.PlayerInteractor
-  onFootReach: 2.2
---- !u!114 &1891670504
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1891670500}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd6755bb1d0f14f4087824ba80b2de1d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Player.PlayerModeController
-  busInput: {fileID: 1368877796}
-  driverLook: {fileID: 1368877795}
-  cctv: {fileID: 1368877794}
-  bus: {fileID: 1368877793}
-  cabin: {fileID: 1368877792}
-  doors: {fileID: 1368877791}
-  onFoot: {fileID: 621319230}
-  driverCamera: {fileID: 1368877790}
-  onFootCamera: {fileID: 621319229}
-  ears: {fileID: 1368877788}
-  earsSeatParent: {fileID: 1368877787}
-  driverAvatar: {fileID: 1368877786}
---- !u!4 &1891670505
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1891670500}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &1897934068
+--- !u!1001 &195370215
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -1245,10 +216,10 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: aa5ce7b6223b84b4b8b31b0c60ec6595, type: 3}
---- !u!114 &1897934069 stripped
+--- !u!114 &195370216 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6134975016185775126, guid: aa5ce7b6223b84b4b8b31b0c60ec6595, type: 3}
-  m_PrefabInstance: {fileID: 1897934068}
+  m_PrefabInstance: {fileID: 195370215}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -1256,7 +227,97 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84e7f952ab8f6444f93ceb474bfb732a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Debug.DebugOverlay
---- !u!1 &1932360190
+--- !u!1001 &406088983
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7584283718319837682, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8361832077300437702, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+      propertyPath: m_Name
+      value: Dash
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+--- !u!114 &406088984 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1677293568131149825, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+  m_PrefabInstance: {fileID: 406088983}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfb713cdfe2844537aeda479a6c608ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Dash.RouteMapView
+--- !u!114 &406088985 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1275466223872269494, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+  m_PrefabInstance: {fileID: 406088983}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44fc1ccfda81543628aac467bcdcfb0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Dash.FareBoxView
+--- !u!114 &406088986 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 838267727624094202, guid: 220768fc8c6184590baf38fe29cf8a47, type: 3}
+  m_PrefabInstance: {fileID: 406088983}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcdf07982891742ea935958fceaefe63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Dash.DashClockView
+--- !u!1 &510273107
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1264,9 +325,279 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1932360193}
-  - component: {fileID: 1932360192}
-  - component: {fileID: 1932360191}
+  - component: {fileID: 510273112}
+  - component: {fileID: 510273111}
+  - component: {fileID: 510273110}
+  - component: {fileID: 510273109}
+  - component: {fileID: 510273108}
+  m_Layer: 0
+  m_Name: Game Systems
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &510273108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510273107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 266e7865155e14e6f8a28b1ef189587b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Debug.AutoPilot
+--- !u!114 &510273109
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510273107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f317d2b6ffc4a4c4cbff41f9cd375f17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Debug.DebugRiders
+--- !u!114 &510273110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510273107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7196df11f324405dbd57981d8c20b50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Player.PlayerInteractor
+  onFootReach: 2.2
+--- !u!114 &510273111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510273107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd6755bb1d0f14f4087824ba80b2de1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Player.PlayerModeController
+  busInput: {fileID: 967859797}
+  driverLook: {fileID: 967859796}
+  cctv: {fileID: 967859795}
+  bus: {fileID: 967859794}
+  cabin: {fileID: 967859793}
+  doors: {fileID: 967859792}
+  onFoot: {fileID: 1083571561}
+  driverCamera: {fileID: 967859791}
+  onFootCamera: {fileID: 1083571560}
+  ears: {fileID: 967859789}
+  earsSeatParent: {fileID: 967859788}
+  driverAvatar: {fileID: 967859787}
+--- !u!4 &510273112
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510273107}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &600646954
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2756882598697576469, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_Name
+      value: Screens
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7501654724699844159, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+--- !u!114 &600646955 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6309574837965293953, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+  m_PrefabInstance: {fileID: 600646954}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51daa834763314186b7a87ffb651b9c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.ScreenRouter
+--- !u!114 &600646956 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8714326395386319179, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+  m_PrefabInstance: {fileID: 600646954}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d18c9f2364b76074586b662ed51822f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.PauseScreen
+--- !u!114 &600646957 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9208385283245812264, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+  m_PrefabInstance: {fileID: 600646954}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf4a64bfb6fd6c549834cacb28232d1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.ControlsScreen
+--- !u!114 &600646958 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7148046750174105146, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+  m_PrefabInstance: {fileID: 600646954}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11da741896780bc4d80f962e01b18669, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.OptionsScreen
+--- !u!114 &600646959 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7858741474678644855, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+  m_PrefabInstance: {fileID: 600646954}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 115e09cd0796648dbbbb899a81e27b7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.GameOverScreen
+--- !u!114 &600646960 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 612237179464035000, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+  m_PrefabInstance: {fileID: 600646954}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91c44354cd81b4be1976ac009fc1441d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.SummaryScreen
+--- !u!114 &600646961 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8987769977426659986, guid: 142874e416dbf448eb67fda2379e2914, type: 3}
+  m_PrefabInstance: {fileID: 600646954}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 347dc3cca95d242859bbc91663babc41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Screens.IntroCardScreen
+--- !u!1 &621653084
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 621653087}
+  - component: {fileID: 621653086}
+  - component: {fileID: 621653085}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -1274,13 +605,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1932360191
+--- !u!114 &621653085
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1932360190}
+  m_GameObject: {fileID: 621653084}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
@@ -1305,13 +636,13 @@ MonoBehaviour:
   m_PointerBehavior: 0
   m_CursorLockBehavior: 0
   m_ScrollDeltaPerTick: 6
---- !u!114 &1932360192
+--- !u!114 &621653086
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1932360190}
+  m_GameObject: {fileID: 621653084}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
@@ -1320,13 +651,682 @@ MonoBehaviour:
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
   m_DragThreshold: 10
---- !u!4 &1932360193
+--- !u!4 &621653087
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1932360190}
+  m_GameObject: {fileID: 621653084}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &967859786
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 5996932253779982855, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+      propertyPath: m_Name
+      value: Bus
+      objectReference: {fileID: 0}
+    - target: {fileID: 5996932253779982855, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9091772288946119065, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+--- !u!1 &967859787 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7244808298088139923, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+  m_PrefabInstance: {fileID: 967859786}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &967859788 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7762448565528035009, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+  m_PrefabInstance: {fileID: 967859786}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &967859789 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8662384568200351212, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+  m_PrefabInstance: {fileID: 967859786}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &967859790 stripped
+BoxCollider:
+  m_CorrespondingSourceObject: {fileID: 8906452726499063315, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+  m_PrefabInstance: {fileID: 967859786}
+  m_PrefabAsset: {fileID: 0}
+--- !u!20 &967859791 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 4552736681754855803, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+  m_PrefabInstance: {fileID: 967859786}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &967859792 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 67860807151120027, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+  m_PrefabInstance: {fileID: 967859786}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22afeec8c47644c05816a8adeb7adef9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Bus.BusDoors
+--- !u!114 &967859793 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3720524538175230237, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+  m_PrefabInstance: {fileID: 967859786}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fd24a50a723a48afa92a0d6f07adac7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Bus.BusCabin
+--- !u!114 &967859794 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7971124723320149692, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+  m_PrefabInstance: {fileID: 967859786}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8432a44587104c7599687d7f1cc5ce0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Bus.BusController
+--- !u!114 &967859795 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5214449821430513611, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+  m_PrefabInstance: {fileID: 967859786}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 805198b4f10da40f485bf1f5c98bdf37, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Bus.CCTVSystem
+--- !u!114 &967859796 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 835382153907322198, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+  m_PrefabInstance: {fileID: 967859786}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dec67505c80f4251adb0b4babe63ee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Player.DriverLook
+--- !u!114 &967859797 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8522631652008534295, guid: 3bfa828eaa66c4c239e28c616cf9c755, type: 3}
+  m_PrefabInstance: {fileID: 967859786}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f0d240de6a5944689b41d27b131b45b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Bus.BusInput
+--- !u!1001 &1083571559
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 892539494687988024, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: ignoredColliders.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 892539494687988024, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: 'ignoredColliders.Array.data[0]'
+      value: 
+      objectReference: {fileID: 967859790}
+    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2464755312983245686, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7637339657535398609, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: m_Name
+      value: OnFootRig
+      objectReference: {fileID: 0}
+    - target: {fileID: 7637339657535398609, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+--- !u!20 &1083571560 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 4616429818774541170, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+  m_PrefabInstance: {fileID: 1083571559}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1083571561 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 892539494687988024, guid: 225f72b0daee74848b290fc59e0b6750, type: 3}
+  m_PrefabInstance: {fileID: 1083571559}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bef2016dda1c14a89b0b13a1175f1686, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Player.OnFootController
+--- !u!1001 &1422179732
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 254809562524639242, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4620115112730090910, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
+      propertyPath: m_Name
+      value: FallCamera
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5c86cdc2a1b1e44f4880d833d892f53a, type: 3}
+--- !u!1001 &1998964147
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1958077191251482393, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9217723654776760882, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+      propertyPath: m_Name
+      value: HUD
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+--- !u!114 &1998964148 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2343181141902914223, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+  m_PrefabInstance: {fileID: 1998964147}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 504af97a7dd714347b625791cfdb620b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Hud.ScreenFadeView
+--- !u!114 &1998964149 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5584234355029318756, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+  m_PrefabInstance: {fileID: 1998964147}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03feee82ada194856b2e157144ea1668, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Hud.ScareOverlayView
+--- !u!114 &1998964150 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2696926477347392288, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+  m_PrefabInstance: {fileID: 1998964147}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd7f8a5c668834371868d12241575fac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Hud.CctvOverlayView
+--- !u!114 &1998964151 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8569950913988344481, guid: 110992ef3b59b454396b4add40e06447, type: 3}
+  m_PrefabInstance: {fileID: 1998964147}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c215f374f82a49c78f8e5c23e50ebf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Hud.HudView
+--- !u!1 &2094857491
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2094857507}
+  - component: {fileID: 2094857506}
+  - component: {fileID: 2094857505}
+  - component: {fileID: 2094857504}
+  - component: {fileID: 2094857503}
+  - component: {fileID: 2094857502}
+  - component: {fileID: 2094857501}
+  - component: {fileID: 2094857500}
+  - component: {fileID: 2094857499}
+  - component: {fileID: 2094857498}
+  - component: {fileID: 2094857497}
+  - component: {fileID: 2094857496}
+  - component: {fileID: 2094857495}
+  - component: {fileID: 2094857494}
+  - component: {fileID: 2094857493}
+  - component: {fileID: 2094857492}
+  m_Layer: 0
+  m_Name: Shift Context
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2094857492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65e2ecf6ab64f4a95a5a74e602df7d1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Death.BlackoutPresenter
+  fallbackSeconds: 2
+--- !u!114 &2094857493
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffa0250cca36b4c06925207c100ad6a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Death.MonsterKillPresenter
+  holdSeconds: 0.5
+--- !u!114 &2094857494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de6dbd298399c4beb86807c791e0be35, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Death.DeathDirector
+  presenters:
+  - {fileID: 2094857493}
+  - {fileID: 2094857492}
+  fallbackFadeSeconds: 1
+--- !u!114 &2094857495
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19f58ed5651db4eaeb8856b03c13fe96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Scares.ScareDirector
+--- !u!114 &2094857496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29b2dca8ababf4ee4ae5befba124f29e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Scares.ScarePlayer
+  scareHeadPrefab: {fileID: 702818445050976832, guid: aafe9ec146bcb420c912c6ffe6968426, type: 3}
+  defaultOverlay: {fileID: 2800000, guid: f970ce5c5546f4686a3035de8ecd01e7, type: 3}
+  reducedFadeSeconds: 0.15
+  reducedMaxAlpha: 0.5
+  reducedVolume: 0.5
+--- !u!114 &2094857497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7748370b460f04a49a96f0d90c0ed055, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Monsters.MonsterSystem
+--- !u!114 &2094857498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d49ac3c48e7640bcac840260f2806e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Passengers.ManifestSpawner
+  riderPrefab: {fileID: 8149302268048245825, guid: 01c64dbfdca32426fb90afe8a5578f2b, type: 3}
+--- !u!114 &2094857499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f6e68082d5af4e46b4093ade6d28d0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Views.ViewFactory
+  greyboxView: {fileID: 4343473831402700503, guid: a0953d3e4ce6f4e27a4856f0f4f5ae73, type: 3}
+--- !u!114 &2094857500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad353c409b34c48dfb0c8070125dce18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Attention.PlayerAttention
+--- !u!114 &2094857501
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23a873ee73634434ebc208ed477b1de1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Passengers.PassengerRegistry
+--- !u!114 &2094857502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 669a5584bb83b4809b52647d122bd73b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Shift.ShiftClockDriver
+--- !u!114 &2094857503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 416dfe390e226493288e30b0c4706829, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Route.RouteProgress
+--- !u!114 &2094857504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4e7c2223e0b94ef58da872899912d3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Route.RouteTracker
+--- !u!114 &2094857505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f6a4538aacd0474ab831d0b265cfec8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Shift.ShiftDirector
+  introSeconds: 3
+--- !u!114 &2094857506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f23fc915a5672474ea35ae6a268ab1cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Flow.ShiftContext
+  bus: {fileID: 967859794}
+  mode: {fileID: 510273111}
+  onFoot: {fileID: 1083571561}
+  interactor: {fileID: 510273110}
+  death: {fileID: 2094857494}
+  director: {fileID: 2094857505}
+  tracker: {fileID: 2094857504}
+  progress: {fileID: 2094857503}
+  clock: {fileID: 2094857502}
+  attention: {fileID: 2094857500}
+  riders: {fileID: 2094857501}
+  views: {fileID: 2094857499}
+  manifest: {fileID: 2094857498}
+  monsters: {fileID: 2094857497}
+  scarePlayer: {fileID: 2094857496}
+  scares: {fileID: 2094857495}
+  autoPilot: {fileID: 510273108}
+  debugRiders: {fileID: 510273109}
+  bindables:
+  - {fileID: 1998964151}
+  - {fileID: 1998964150}
+  - {fileID: 1998964149}
+  - {fileID: 1998964148}
+  - {fileID: 406088986}
+  - {fileID: 406088985}
+  - {fileID: 406088984}
+  - {fileID: 600646955}
+  - {fileID: 600646956}
+  - {fileID: 600646961}
+  - {fileID: 600646957}
+  - {fileID: 600646958}
+  - {fileID: 600646960}
+  - {fileID: 600646959}
+  - {fileID: 195370216}
+--- !u!4 &2094857507
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094857491}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -1339,13 +1339,13 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1461065571}
-  - {fileID: 1368877785}
-  - {fileID: 621319228}
-  - {fileID: 1108675211}
-  - {fileID: 841140151}
-  - {fileID: 1399455890}
-  - {fileID: 968979665}
-  - {fileID: 1897934068}
-  - {fileID: 1932360193}
-  - {fileID: 1891670505}
+  - {fileID: 2094857507}
+  - {fileID: 967859786}
+  - {fileID: 1083571559}
+  - {fileID: 1422179732}
+  - {fileID: 1998964147}
+  - {fileID: 406088983}
+  - {fileID: 600646954}
+  - {fileID: 195370215}
+  - {fileID: 621653087}
+  - {fileID: 510273112}

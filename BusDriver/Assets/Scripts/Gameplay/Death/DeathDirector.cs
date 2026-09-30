@@ -58,7 +58,26 @@ namespace BusDriver.Gameplay.Death {
         // KillSequence asks before the kill scare plays (§2.14 step 4): true when a preventer
         // (the Salt charm) takes this death instead
         public bool TryPrevent(DeathCause cause, string sourceId) {
-            return cause != DeathCause.Abandoned && Prevented(BuildReport(cause, sourceId));
+            return PreventedBy(cause, sourceId) != null;
+        }
+
+        // The same, naming the preventer that took it (null when none did), so a kill sequence
+        // knows whether to expel its monster or let it off
+        public IDeathPreventer PreventedBy(DeathCause cause, string sourceId) {
+            if (cause == DeathCause.Abandoned || shift == null) {
+                return null;
+            }
+            DeathReport report = BuildReport(cause, sourceId);
+            for (int i = 0; i < preventers.Count; i++) {
+                if (preventers[i].TryPrevent(report)) {
+                    return preventers[i];
+                }
+            }
+            return null;
+        }
+
+        public bool HasPreventer(IDeathPreventer preventer) {
+            return preventers.Contains(preventer);
         }
 
         // True when the death started

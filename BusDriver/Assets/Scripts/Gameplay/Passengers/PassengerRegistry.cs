@@ -183,6 +183,15 @@ namespace BusDriver.Gameplay.Passengers {
             }
         }
 
+        // A monster the Salt charm expelled (§2.14): off the bus, fare kept, no bounty
+        public void MarkExpelled(Passenger passenger) {
+            RiderRecord record = For(passenger);
+            if (record != null) {
+                record.ExitStopId = CurrentStopId();
+                SetStatus(record, RiderStatus.Expelled);
+            }
+        }
+
         // The rule BusStop runs when the doors open: this stop is their destination
         bool AlightsAt(Passenger passenger, BusStop stop) {
             RiderRecord record = For(passenger);

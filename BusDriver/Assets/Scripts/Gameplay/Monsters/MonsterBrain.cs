@@ -22,6 +22,7 @@ namespace BusDriver.Gameplay.Monsters {
         ShiftServices shift;
         MonsterSystem system;
         PlayerAttention attention;
+        IMonsterPart[] parts;
         bool seatedOnce;
 
         public MonsterDefinition Definition { get { return definition; } }
@@ -47,6 +48,10 @@ namespace BusDriver.Gameplay.Monsters {
         public float TimeSinceObserved {
             get { return attention != null && definition != null ? attention.TimeSinceObserved(passenger, definition.observerKinds) : 0f; }
         }
+        // Its kill sequence (§2.14); null for a monster without one (the Whisperer)
+        public KillSequence Kill { get; private set; }
+        // Its kill sequence is running (the telegraph, or the kill scare after it)
+        public bool InKillSequence { get { return Kill != null && Kill.IsRunning; } }
 
         // It reached Lethal and the kill-sequence slot is its own. KillSequence (T-M4-07) takes it
         // from here; MonsterSystem frees the slot again when nothing does.
@@ -55,6 +60,8 @@ namespace BusDriver.Gameplay.Monsters {
         void Awake() {
             passenger = GetComponent<Passenger>();
             meter = GetComponent<ThreatMeter>();
+            Kill = GetComponent<KillSequence>();
+            parts = GetComponents<IMonsterPart>();
         }
 
         // ManifestSpawner, right after the rider is created (§4.5 step 14). A definition passed in
@@ -71,6 +78,9 @@ namespace BusDriver.Gameplay.Monsters {
             meter.Init(this);
             meter.OnStageChanged += HandleStageChanged;
             system.Register(this);
+            for (int i = 0; i < parts.Length; i++) {
+                parts[i].Bind(services, this);
+            }
         }
 
         void OnDestroy() {
