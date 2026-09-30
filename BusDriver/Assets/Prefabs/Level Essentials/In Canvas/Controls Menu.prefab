@@ -256,7 +256,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7368765683899659986}
-        m_TargetAssemblyTypeName: ControlsMenu, Assembly-CSharp
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.ControlsMenu, BusDriver.Runtime
         m_MethodName: StartRebindSwitchCamera
         m_Mode: 1
         m_Arguments:
@@ -389,7 +389,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7368765683899659986}
-        m_TargetAssemblyTypeName: ControlsMenu, Assembly-CSharp
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.ControlsMenu, BusDriver.Runtime
         m_MethodName: ResetKeybinds
         m_Mode: 1
         m_Arguments:
@@ -1188,7 +1188,7 @@ MonoBehaviour:
           m_BoolArgument: 1
         m_CallState: 2
       - m_Target: {fileID: 7368765683899659986}
-        m_TargetAssemblyTypeName: ControlsMenu, Assembly-CSharp
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.ControlsMenu, BusDriver.Runtime
         m_MethodName: ApplyingKeybinds
         m_Mode: 1
         m_Arguments:
@@ -1455,7 +1455,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7368765683899659986}
-        m_TargetAssemblyTypeName: ControlsMenu, Assembly-CSharp
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.ControlsMenu, BusDriver.Runtime
         m_MethodName: StartRebindHandbrake
         m_Mode: 1
         m_Arguments:
@@ -1856,7 +1856,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7368765683899659986}
-        m_TargetAssemblyTypeName: ControlsMenu, Assembly-CSharp
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.ControlsMenu, BusDriver.Runtime
         m_MethodName: StartRebindDoors
         m_Mode: 1
         m_Arguments:
@@ -2257,7 +2257,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7368765683899659986}
-        m_TargetAssemblyTypeName: ControlsMenu, Assembly-CSharp
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.ControlsMenu, BusDriver.Runtime
         m_MethodName: StartRebindLeaveSeat
         m_Mode: 1
         m_Arguments:
@@ -2658,7 +2658,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7368765683899659986}
-        m_TargetAssemblyTypeName: ControlsMenu, Assembly-CSharp
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.ControlsMenu, BusDriver.Runtime
         m_MethodName: StartRebindInteract
         m_Mode: 1
         m_Arguments:

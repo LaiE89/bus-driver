@@ -136,7 +136,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 07174bce71ec64e1f989bf4f3222e855, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Passenger
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Passengers.Passenger
   head: {fileID: 224378197295009208}
   body: {fileID: 2562649263272381990}
   interactCollider: {fileID: 88943515497073570}

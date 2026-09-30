@@ -224,6 +224,7 @@ Decisions are never edited once made. To change one, add a new row that supersed
 | D48 | **Key bindings from PR #5 are the defaults:** Interact (on foot) = right mouse button, Doors = Q, Leave seat = E. Mouse **buttons** can be bound; mouse axes can't. Gamepad bindings are unchanged | 2026-09-29 | this doc |
 | D49 | **The player has a visible body** (from PR #5): a seated body at the wheel and a standing body on foot, on the `PlayerAvatar` layer (19). CCTV and the Mirror render it; the driver and on-foot cameras cull it. The greybox capsule body is replaced by an art view in Phase B (Appendix A.1) | 2026-09-29 | this doc |
 | D50 (agent) | **Kicked riders are destroyed, never pooled.** PR #5 returned every departing rider to the NPC pool, so a kicked rider was only deactivated and could be respawned at a stop, which breaks §2.13 ("kicked riders never come back") and the smoke test. `SceneController.DespawnNpc` now destroys kicked riders; others still recycle until the pool is deleted in T-M2-07 | 2026-09-29 | agent (T-M0-11) |
+| D51 (agent) | **Namespaces for the legacy scripts (T-M0-04)**, where §4.2 leaves the home open: `CCTVSystem` → `BusDriver.Gameplay.Bus` (its cameras live on the bus prefab); `Monster`, `StaringMonster`, `WeepingAngel` → `BusDriver.Gameplay.Monsters`; `SceneController` (the future `PlayerModeController`), `GameKeys` → `BusDriver.Gameplay.Player`; `ObjectPooling` → `BusDriver.Gameplay.World`; `Dialogue/*`, `OptionsSaveSystem`, `OptionsData` → `BusDriver.UI.Screens`; `ToolMethods` → `BusDriver.Core.Util` (still compiled in `BusDriver.Runtime`). **Gotcha:** once a namespace such as `BusDriver.Gameplay.Debug` or `BusDriver.Gameplay.Input` exists, the simple names `Debug` and `Input` inside any `BusDriver.Gameplay.*` namespace resolve to it, so write `UnityEngine.Debug`/`UnityEngine.Input` (or avoid those names until the legacy reads are gone) | 2026-09-29 | agent (T-M0-04) |
 
 ---
 
@@ -3804,7 +3805,7 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 | `T-M0-01` | Repo size rules and the file-size guard (no Git LFS) | S | Done (2026-09-29) |
 | `T-M0-02` | Git attributes, ignore rules and the contributing guide | S | Done (2026-09-29) |
 | `T-M0-03` | Domain reload back on; remove dead assets | S | Done (2026-09-29) |
-| `T-M0-04` | Assembly definitions and namespaces (transitional layout) | M | Todo |
+| `T-M0-04` | Assembly definitions and namespaces (transitional layout) | M | Done (2026-09-29) |
 | `T-M0-05` | Logging wrapper | S | Todo |
 | `T-M0-06` | Test infrastructure and the architecture-rules test (with allowlist) | S | Todo |
 | `T-M0-07` | Build scripts, build label, `--selftest` mode | M | Todo |

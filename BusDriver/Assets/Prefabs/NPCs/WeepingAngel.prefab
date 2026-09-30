@@ -227,7 +227,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d5927d4a5b6092a45a960f9650d0672a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WeepingAngel
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Monsters.WeepingAngel
   head: {fileID: 5451790913397862420}
   body: {fileID: 6259219856718932864}
   interactCollider: {fileID: 964023720703617621}

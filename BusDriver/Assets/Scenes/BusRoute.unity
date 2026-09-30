@@ -1930,7 +1930,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &43807864
 GameObject:
   m_ObjectHideFlags: 0
@@ -4617,7 +4617,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &117811456
 GameObject:
   m_ObjectHideFlags: 0
@@ -4885,7 +4885,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &127158415
 GameObject:
   m_ObjectHideFlags: 0
@@ -5367,7 +5367,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &148797989
 GameObject:
   m_ObjectHideFlags: 0
@@ -5411,7 +5411,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &149492182
 GameObject:
   m_ObjectHideFlags: 0
@@ -6050,7 +6050,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca3d18a0f84c94dda87fe82f91a57528, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusStop
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.World.BusStop
   waiting: []
   spawnCount: 3
   firstWaitLocal: {x: 5.2, y: 0, z: -1.2}
@@ -7572,7 +7572,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &188954376
 GameObject:
   m_ObjectHideFlags: 0
@@ -11636,7 +11636,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &273305422
 GameObject:
   m_ObjectHideFlags: 0
@@ -12274,7 +12274,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &291719027
 GameObject:
   m_ObjectHideFlags: 0
@@ -13524,7 +13524,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &317401257
 GameObject:
   m_ObjectHideFlags: 0
@@ -13658,7 +13658,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &320725295
 GameObject:
   m_ObjectHideFlags: 0
@@ -16245,7 +16245,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2dec67505c80f4251adb0b4babe63ee8, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DriverLook
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Player.DriverLook
   cctv: {fileID: 1971909196}
   yawLimit: 100
   pitchMin: -50
@@ -18006,7 +18006,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &426209608
 GameObject:
   m_ObjectHideFlags: 0
@@ -22374,7 +22374,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &501933330
 GameObject:
   m_ObjectHideFlags: 0
@@ -23316,7 +23316,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a7c4e2b91f684d0e9d3a5c8b6e1f4029, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GameOverMenu
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Screens.GameOverMenu
   gameOverRoot: {fileID: 1365872969}
   retryButton: {fileID: 748380795}
   mainMenuButton: {fileID: 1931722218}
@@ -23353,7 +23353,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d18c9f2364b76074586b662ed51822f4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PauseMenu
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Screens.PauseMenu
   pauseRoot: {fileID: 461923754}
   optionsRoot: {fileID: 173029321}
   controlsRoot: {fileID: 968113412}
@@ -23388,7 +23388,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e28b2eccc2d1947f0bd31f7a1a626447, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DrivingHUD
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Hud.DrivingHUD
   bus: {fileID: 700072233}
   cctv: {fileID: 1971909196}
   mode: {fileID: 1996055141}
@@ -23499,7 +23499,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &525498992
 GameObject:
   m_ObjectHideFlags: 0
@@ -27442,7 +27442,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &631002743
 GameObject:
   m_ObjectHideFlags: 0
@@ -28147,7 +28147,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &646663311
 GameObject:
   m_ObjectHideFlags: 0
@@ -28225,7 +28225,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &646977594
 GameObject:
   m_ObjectHideFlags: 0
@@ -28269,7 +28269,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &651537610
 GameObject:
   m_ObjectHideFlags: 0
@@ -30015,7 +30015,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 22afeec8c47644c05816a8adeb7adef9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusDoors
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusDoors
   bus: {fileID: 700072233}
   panel: {fileID: 892957805}
   closedLocalPos: {x: 1.3, y: 1.6, z: 4.8}
@@ -30032,7 +30032,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9fd24a50a723a48afa92a0d6f07adac7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusCabin
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusCabin
   bus: {fileID: 700072233}
   doors: {fileID: 700072231}
   cctv: {fileID: 1971909196}
@@ -30095,7 +30095,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f8432a44587104c7599687d7f1cc5ce0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusController
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusController
   tuning: {fileID: 11400000, guid: e0baeb53ba9da4472bb1e35039ac6c49, type: 2}
   frontWheels:
   - {fileID: 406141149}
@@ -30121,7 +30121,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0f0d240de6a5944689b41d27b131b45b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusInput
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusInput
   bus: {fileID: 700072233}
   resetKey: 114
 --- !u!114 &700072235
@@ -30135,7 +30135,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a7c3e91f4b2d8e6a0c5f1d9e3b7a2468, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusEngineSound
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusEngineSound
   bus: {fileID: 700072233}
   soundName: Bus Engine
   fullSpeedKmh: 50
@@ -30155,7 +30155,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8ac364268bc9a410f9c8b01ed2452460, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CrashDetector
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.CrashDetector
   minorDeltaV: 1
   majorDeltaV: 4
   cooldown: 0.5
@@ -32045,7 +32045,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &766340325
 GameObject:
   m_ObjectHideFlags: 0
@@ -32944,7 +32944,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &783236063
 GameObject:
   m_ObjectHideFlags: 0
@@ -33100,7 +33100,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &790664237
 GameObject:
   m_ObjectHideFlags: 0
@@ -36380,7 +36380,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &890559717
 GameObject:
   m_ObjectHideFlags: 0
@@ -40159,7 +40159,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &999430254
 GameObject:
   m_ObjectHideFlags: 0
@@ -40843,7 +40843,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bef2016dda1c14a89b0b13a1175f1686, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::OnFootController
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Player.OnFootController
   head: {fileID: 484573170}
   avatarRoot: {fileID: 441047333}
   ignoredColliders:
@@ -42052,7 +42052,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &1043149629
 GameObject:
   m_ObjectHideFlags: 0
@@ -48234,7 +48234,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca3d18a0f84c94dda87fe82f91a57528, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusStop
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.World.BusStop
   waiting: []
   spawnCount: 2
   firstWaitLocal: {x: 5.2, y: 0, z: -1.2}
@@ -49551,7 +49551,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &1201867642
 GameObject:
   m_ObjectHideFlags: 0
@@ -58279,7 +58279,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &1452253435
 GameObject:
   m_ObjectHideFlags: 0
@@ -59207,7 +59207,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca3d18a0f84c94dda87fe82f91a57528, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusStop
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.World.BusStop
   waiting: []
   spawnCount: 2
   firstWaitLocal: {x: 5.2, y: 0, z: -1.2}
@@ -59796,7 +59796,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &1485299260
 GameObject:
   m_ObjectHideFlags: 0
@@ -60168,7 +60168,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &1498405143
 GameObject:
   m_ObjectHideFlags: 0
@@ -61200,7 +61200,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &1535630018
 GameObject:
   m_ObjectHideFlags: 0
@@ -64969,7 +64969,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &1653394149
 GameObject:
   m_ObjectHideFlags: 0
@@ -70558,7 +70558,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &1822864780
 GameObject:
   m_ObjectHideFlags: 0
@@ -73578,7 +73578,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &1915202378
 GameObject:
   m_ObjectHideFlags: 0
@@ -73712,7 +73712,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &1926329894
 GameObject:
   m_ObjectHideFlags: 0
@@ -75655,7 +75655,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &1966887446
 GameObject:
   m_ObjectHideFlags: 0
@@ -75944,7 +75944,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 805198b4f10da40f485bf1f5c98bdf37, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CCTVSystem
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.CCTVSystem
   homeCamera: {fileID: 1452253438}
   cctvCameras:
   - {fileID: 291719030}
@@ -76300,7 +76300,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4f4abcee5cae84cdbba16ef32b347ba4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DriverSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Player.DriverSeat
 --- !u!65 &1981332406
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -76712,7 +76712,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 36346a0fc44a69042b36f75c305999a1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ObjectPooling
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.World.ObjectPooling
   pools:
   - id: Passenger
     prefab: {fileID: 3207918234352957270, guid: 9aebcf39571c94d1caa47692afac76f6, type: 3}
@@ -76731,7 +76731,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c7196df11f324405dbd57981d8c20b50, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteractor
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Player.PlayerInteractor
   onFootCamera: {fileID: 166218444}
   onFootReach: 2.2
 --- !u!114 &1996055141
@@ -76745,7 +76745,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dd6755bb1d0f14f4087824ba80b2de1d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SceneController
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Player.SceneController
   busInput: {fileID: 700072234}
   driverLook: {fileID: 387016296}
   cctv: {fileID: 1971909196}
@@ -77462,7 +77462,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &2012469390
 GameObject:
   m_ObjectHideFlags: 0
@@ -79019,7 +79019,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &2061768819
 GameObject:
   m_ObjectHideFlags: 0
@@ -81673,7 +81673,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a430f7afdaa314067876e80d6c61c919, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BusSeat
+  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Bus.BusSeat
 --- !u!1 &2122765998
 GameObject:
   m_ObjectHideFlags: 0

@@ -231,7 +231,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1291271300}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
+        m_TargetAssemblyTypeName: BusDriver.UI.Menu.MainMenu, BusDriver.Runtime
         m_MethodName: PlayUISound
         m_Mode: 1
         m_Arguments:
@@ -590,7 +590,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1291271300}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
+        m_TargetAssemblyTypeName: BusDriver.UI.Menu.MainMenu, BusDriver.Runtime
         m_MethodName: PlayGame
         m_Mode: 1
         m_Arguments:
@@ -2074,7 +2074,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1291271300}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
+        m_TargetAssemblyTypeName: BusDriver.UI.Menu.MainMenu, BusDriver.Runtime
         m_MethodName: QuitGame
         m_Mode: 1
         m_Arguments:
