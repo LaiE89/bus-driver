@@ -196,7 +196,8 @@ namespace BusDriver.Gameplay.Flow {
                     .Append("  night ").Append(shift.Setup.NightIndex)
                     .Append("  wallet ").Append(Money.Format(shift.Ledger.WalletNowCents))
                     .Append(shift.Setup.IsDebugRun ? "  (debug run)" : "").Append('\n');
-                text.Append("shift ").Append(shift.Director.State).Append('\n');
+                text.Append("shift ").Append(shift.Director.State)
+                    .Append("  night time ").Append(shift.Director.NightSeconds.ToString("0.0")).Append(" s\n");
             });
         }
 

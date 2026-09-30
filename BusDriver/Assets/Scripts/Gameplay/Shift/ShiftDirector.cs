@@ -42,6 +42,9 @@ namespace BusDriver.Gameplay.Shift {
         public float StateTime { get { return stateTime; } }
         // The completed night, from the moment the Summary opens
         public NightResult Result { get; private set; }
+        // Scaled seconds from the intro card to now, or to the Summary once the night is done: the
+        // night's length (D43 aims night 1 at about 5 minutes; reported, never enforced)
+        public float NightSeconds { get; private set; }
         public bool IsLastNight { get { return NightIndex >= LastNight; } }
 
         public event Action<ShiftState> OnStateChanged;
@@ -145,6 +148,9 @@ namespace BusDriver.Gameplay.Shift {
                 return;
             }
             stateTime += Time.deltaTime;
+            if (State == ShiftState.Intro || State == ShiftState.Driving) {
+                NightSeconds += Time.deltaTime;
+            }
             if (State == ShiftState.Intro && stateTime >= introSeconds) {
                 SetState(ShiftState.Driving);
             }else if (State == ShiftState.Depot) {
@@ -164,6 +170,7 @@ namespace BusDriver.Gameplay.Shift {
             }
             Result = BuildResult();
             Log.Info(LogCat.Flow, $"night {NightIndex} complete: {Money.FormatDelta(Result.NetCents)}, {Result.stats.ridersDelivered} delivered");
+            Log.Info(LogCat.Flow, $"[NIGHT{NightIndex}] duration={NightSeconds:0.0}s");
             if (OnNightCompleted != null) {
                 OnNightCompleted(Result);
             }
