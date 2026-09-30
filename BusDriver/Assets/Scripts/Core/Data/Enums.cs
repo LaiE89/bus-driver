@@ -38,4 +38,13 @@ namespace BusDriver.Core.Data {
     public enum DashScreen : int { Clock = 0, FareBox = 1, Gps = 2, Mirror = 3 }
     // Mirrors UnityEngine.FullScreenMode's values; save models hold no Unity types (§4.9)
     public enum WindowMode : int { ExclusiveFullScreen = 0, FullScreenWindow = 1, MaximizedWindow = 2, Windowed = 3 }
+
+    // Route geometry (§3, RouteDefinition; T-M2-01, D71)
+    public enum SegmentKind : int { Straight = 0, Arc = 1 }
+    public enum RouteSide : int { Left = 0, Right = 1 }
+    public enum RouteZoneKind : int { Tunnel = 0, Bridge = 1, Cliff = 2, RumbleStrip = 3 }
+    // Where a zone lies across the road: the full width, or a strip along one edge
+    public enum ZoneSpan : int { Across = 0, LeftEdge = 1, RightEdge = 2 }
+    public enum SignKind : int { BridgeAhead = 0, NoGuardrailAhead = 1, SharpCurveRight = 2, Chevron = 3, TunnelAhead = 4, StopSign = 5 }
+    public enum BlockerVariant : int { A = 0, B = 1 }
 }

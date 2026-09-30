@@ -1,0 +1,399 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e580785ccac6483c97ef44b0178fc03, type: 3}
+  m_Name: Route01
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.RouteDefinition
+  id: route01
+  displayName: Hollow Pines Line
+  roadWidth: 7
+  shoulderWidth: 1
+  cliffRoadWidth: 6.5
+  cliffOuterShoulder: 0.3
+  segments:
+  - kind: 0
+    length: 150
+    radius: 0
+    angleDeg: 0
+    gradePercent: 0
+    left: 0
+    right: 0
+  - kind: 1
+    length: 0
+    radius: 120
+    angleDeg: 30
+    gradePercent: 1
+    left: 0
+    right: 0
+  - kind: 0
+    length: 207.17
+    radius: 0
+    angleDeg: 0
+    gradePercent: 2
+    left: 0
+    right: 0
+  - kind: 1
+    length: 0
+    radius: 80
+    angleDeg: -45
+    gradePercent: 0
+    left: 0
+    right: 2
+  - kind: 0
+    length: 77.17
+    radius: 0
+    angleDeg: 0
+    gradePercent: 1
+    left: 0
+    right: 0
+  - kind: 1
+    length: 0
+    radius: 60
+    angleDeg: 90
+    gradePercent: 3
+    left: 2
+    right: 1
+  - kind: 0
+    length: 245.75
+    radius: 0
+    angleDeg: 0
+    gradePercent: 0
+    left: 0
+    right: 0
+  - kind: 0
+    length: 100
+    radius: 0
+    angleDeg: 0
+    gradePercent: -2
+    left: 0
+    right: 0
+  - kind: 0
+    length: 60
+    radius: 0
+    angleDeg: 0
+    gradePercent: 0
+    left: 4
+    right: 4
+  - kind: 0
+    length: 60
+    radius: 0
+    angleDeg: 0
+    gradePercent: 2
+    left: 0
+    right: 0
+  - kind: 1
+    length: 0
+    radius: 100
+    angleDeg: -60
+    gradePercent: 3
+    left: 1
+    right: 2
+  - kind: 0
+    length: 105.28
+    radius: 0
+    angleDeg: 0
+    gradePercent: 1
+    left: 0
+    right: 0
+  - kind: 1
+    length: 0
+    radius: 150
+    angleDeg: 20
+    gradePercent: 4
+    left: 2
+    right: 1
+  - kind: 0
+    length: 67.64
+    radius: 0
+    angleDeg: 0
+    gradePercent: 4
+    left: 2
+    right: 1
+  - kind: 1
+    length: 0
+    radius: 127.324
+    angleDeg: 90
+    gradePercent: 2
+    left: 3
+    right: 1
+  - kind: 0
+    length: 50
+    radius: 0
+    angleDeg: 0
+    gradePercent: 0
+    left: 2
+    right: 1
+  - kind: 1
+    length: 0
+    radius: 120
+    angleDeg: -60
+    gradePercent: 3
+    left: 1
+    right: 2
+  - kind: 0
+    length: 224.34
+    radius: 0
+    angleDeg: 0
+    gradePercent: 1
+    left: 0
+    right: 0
+  - kind: 0
+    length: 150
+    radius: 0
+    angleDeg: 0
+    gradePercent: 0
+    left: 5
+    right: 5
+  - kind: 0
+    length: 60
+    radius: 0
+    angleDeg: 0
+    gradePercent: -1
+    left: 0
+    right: 0
+  - kind: 1
+    length: 0
+    radius: 60
+    angleDeg: -90
+    gradePercent: -2
+    left: 0
+    right: 2
+  - kind: 0
+    length: 205.75
+    radius: 0
+    angleDeg: 0
+    gradePercent: 0
+    left: 0
+    right: 0
+  - kind: 1
+    length: 0
+    radius: 80
+    angleDeg: 45
+    gradePercent: 3
+    left: 2
+    right: 1
+  - kind: 0
+    length: 207.17
+    radius: 0
+    angleDeg: 0
+    gradePercent: 2
+    left: 0
+    right: 0
+  - kind: 1
+    length: 0
+    radius: 120
+    angleDeg: -30
+    gradePercent: 1
+    left: 0
+    right: 0
+  - kind: 0
+    length: 107.17
+    radius: 0
+    angleDeg: 0
+    gradePercent: 0
+    left: 0
+    right: 0
+  stops:
+  - stopId: farm_gate
+    displayName: Mill Road Farm
+    kind: 1
+    distance: 350
+  - stopId: gas_station
+    displayName: Pinecrest Gas
+    kind: 2
+    distance: 800
+  - stopId: campground
+    displayName: Hollow Creek Campground
+    kind: 3
+    distance: 1250
+  - stopId: church
+    displayName: St. Agnes Church
+    kind: 4
+    distance: 1900
+  - stopId: clinic
+    displayName: Ridge Clinic
+    kind: 5
+    distance: 2400
+  - stopId: trailhead
+    displayName: Summit Trailhead
+    kind: 6
+    distance: 2750
+  - stopId: lodge
+    displayName: Summit Lodge
+    kind: 7
+    distance: 2960
+  stubs:
+  - distance: 260
+    side: 0
+    angleDeg: 70
+    length: 20
+    width: 8
+    blocker: 0
+    variant: 0
+  - distance: 720
+    side: 1
+    angleDeg: 70
+    length: 20
+    width: 8
+    blocker: 1
+    variant: 0
+  - distance: 1300
+    side: 1
+    angleDeg: 70
+    length: 20
+    width: 8
+    blocker: 4
+    variant: 0
+  - distance: 1980
+    side: 0
+    angleDeg: 70
+    length: 20
+    width: 8
+    blocker: 2
+    variant: 0
+  - distance: 2500
+    side: 1
+    angleDeg: 70
+    length: 20
+    width: 8
+    blocker: 3
+    variant: 0
+  - distance: 2680
+    side: 0
+    angleDeg: 70
+    length: 20
+    width: 8
+    blocker: 0
+    variant: 1
+  zones:
+  - kind: 0
+    start: 2040
+    end: 2210
+    span: 0
+    edgeWidth: 0
+  - kind: 1
+    start: 1000
+    end: 1060
+    span: 0
+    edgeWidth: 0
+  - kind: 2
+    start: 1450
+    end: 1650
+    span: 0
+    edgeWidth: 0
+  - kind: 3
+    start: 1435
+    end: 1450
+    span: 0
+    edgeWidth: 0
+  - kind: 3
+    start: 1450
+    end: 1650
+    span: 1
+    edgeWidth: 0.8
+  signs:
+  - distance: 970
+    side: 1
+    kind: 0
+  - distance: 1360
+    side: 1
+    kind: 1
+  - distance: 1400
+    side: 1
+    kind: 2
+  - distance: 1450
+    side: 0
+    kind: 3
+  - distance: 1470
+    side: 0
+    kind: 3
+  - distance: 1490
+    side: 0
+    kind: 3
+  - distance: 1510
+    side: 0
+    kind: 3
+  - distance: 1530
+    side: 0
+    kind: 3
+  - distance: 1550
+    side: 0
+    kind: 3
+  - distance: 1570
+    side: 0
+    kind: 3
+  - distance: 1590
+    side: 0
+    kind: 3
+  - distance: 1610
+    side: 0
+    kind: 3
+  - distance: 1630
+    side: 0
+    kind: 3
+  - distance: 1650
+    side: 0
+    kind: 3
+  - distance: 2020
+    side: 1
+    kind: 4
+  schedule:
+    shiftStartGameSeconds: 1800
+    gameSecondsPerRealSecond: 6
+    scheduleSpeed: 9
+    dwellAllowanceSeconds: 40
+    earlyThresholdGameSeconds: 60
+    lateThresholdGameSeconds: 60
+    missedStopMargin: 30
+  depotSpawnDistance: 20
+  depotPadEnd: 60
+  terminusStopId: lodge
+  generation:
+    dressingSeed: 1234
+    sampleStep: 1
+    chunkLength: 100
+    uvLength: 4
+    containmentWallHeight: 4
+    forestShoulderOuter: 7.5
+    forestWallOffset: 7.5
+    treeRowStart: 8
+    treeRowEnd: 16
+    treeRows: 2
+    treeSpacing: 4
+    treeJitter: 1.5
+    forestGroundWidth: 30
+    forestGroundDrop: 0.05
+    rockfaceOffset: 5.5
+    rockfaceHeight: 10
+    rockfaceLean: 10
+    guardrailOffset: 5
+    guardrailHeight: 0.8
+    guardrailSegmentLength: 4
+    dropSlopeAngle: 40
+    dropSlopeLength: 20
+    dropFlatLength: 40
+    valleyFloorY: -40
+    valleyFloorDepth: 150
+    fallZoneInset: 1
+    fallZoneWidth: 40
+    fallZoneTopBelowRoad: 1.5
+    fallZoneAboveFloor: 1
+    endCapOverlap: 2
+    chevronSpacing: 20
+    bridgeRailingOffset: 4.5
+    creekDepth: 8
+    tunnelWallOffset: 5
+    tunnelCeilingHeight: 6
+    tunnelLightSpacing: 12
+    tunnelLightRange: 8
+    safetyFloorY: -80
+    killPlaneY: -70
+    nightEndBarrierOffset: 60

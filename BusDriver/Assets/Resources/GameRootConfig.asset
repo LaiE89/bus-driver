@@ -18,3 +18,5 @@ MonoBehaviour:
   soundLibrary: {fileID: 11400000, guid: 26dc90fd214144fa0b258cd7e9beefbd, type: 2}
   audioConfig: {fileID: 11400000, guid: 4e5151e53fe56441698bab482fc9ab81, type: 2}
   uiTheme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}
+  routes:
+  - {fileID: 11400000, guid: 8f8cbec31f24846e1bc582eeab448f64, type: 2}

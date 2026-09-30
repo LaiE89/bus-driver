@@ -49,6 +49,7 @@ namespace BusDriver.Editor.Builders {
             }
             yield return Seed.Of<SoundLibrary>(AudioSeed.LibraryRelativePath, AudioSeed.FillLibrary);
             yield return Seed.Of<AudioConfig>(AudioSeed.ConfigRelativePath, AudioSeed.FillConfig);
+            yield return Seed.Of<RouteDefinition>(RouteSeed.RelativePath, RouteSeed.Fill);
         }
 
         [MenuItem("Tools/Bus Driver/Builders/Data Seeder (create missing)")]
@@ -128,7 +129,25 @@ namespace BusDriver.Editor.Builders {
             if (config.uiTheme == null) {
                 config.uiTheme = AssetDatabase.LoadAssetAtPath<UITheme>(root + "/" + UIThemeSeed.RelativePath);
             }
+            AdoptRoute(config, AssetDatabase.LoadAssetAtPath<RouteDefinition>(root + "/" + RouteSeed.RelativePath));
             EditorUtility.SetDirty(config);
+        }
+
+        // Appends the route if the config doesn't list it yet; never removes or reorders one
+        static void AdoptRoute(GameRootConfig config, RouteDefinition route) {
+            if (route == null) {
+                return;
+            }
+            if (config.routes == null) {
+                config.routes = new RouteDefinition[0];
+            }
+            if (Array.IndexOf(config.routes, route) >= 0) {
+                return;
+            }
+            RouteDefinition[] routes = new RouteDefinition[config.routes.Length + 1];
+            Array.Copy(config.routes, routes, config.routes.Length);
+            routes[routes.Length - 1] = route;
+            config.routes = routes;
         }
 
         // Created in T-M1-04; this only rebuilds it if someone deleted it

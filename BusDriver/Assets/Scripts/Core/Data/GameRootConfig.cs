@@ -27,5 +27,17 @@ namespace BusDriver.Core.Data {
 
         [Tooltip("Data/UI/Theme.asset (a BusDriver.UI.Theme.UITheme; typed loosely because Core can't see UI, D61)")]
         public ScriptableObject uiTheme;
+
+        [Tooltip("Every route (Data/Routes). Route 1 is the only one (§1.5)")]
+        public RouteDefinition[] routes = new RouteDefinition[0];
+
+        public RouteDefinition Route(string routeId) {
+            for (int i = 0; i < routes.Length; i++) {
+                if (routes[i] != null && routes[i].id == routeId) {
+                    return routes[i];
+                }
+            }
+            return null;
+        }
     }
 }

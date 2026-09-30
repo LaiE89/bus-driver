@@ -58,6 +58,7 @@ namespace BusDriver.Tests.EditMode.Builders {
             Assert.IsNotNull(config.uiTheme, "uiTheme");
             Assert.IsNotNull(config.mixer, "mixer");
             Assert.IsNotNull(config.inputActions, "inputActions");
+            Assert.IsNotNull(config.Route(RouteSeed.RouteId), "routes: " + RouteSeed.RouteId);
         }
     }
 }
