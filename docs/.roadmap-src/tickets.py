@@ -4,6 +4,9 @@
 import re, sys, os
 
 MILESTONES = []
+# Ticket status for the §6 tracker: "Doing", "Blocked (<reason>)" or "Done (<date>)". Missing = Todo.
+STATUS = {
+}
 def M(mid, title, phase, goal, acceptance, note=""):
     MILESTONES.append(dict(id=mid, title=title, phase=phase, goal=goal, acceptance=acceptance, note=note, tickets=[]))
 def T(tid, title, size, typ, deps, blockers, spec, do, acc):
@@ -1129,7 +1132,7 @@ w("| Ticket | Title | Size | Status |")
 w("|---|---|---|---|")
 for m in MILESTONES:
     for t in m["tickets"]:
-        w(f"| `{t['id']}` | {t['title']} | {t['size']} | Todo |")
+        w(f"| `{t['id']}` | {t['title']} | {t['size']} | {STATUS.get(t['id'], 'Todo')} |")
 w("| **A** | Alpha (§1.4) | — | Todo |")
 w("| **G1** | Playable Greybox (§1.4) | — | Todo |")
 w("| **G2** | Content complete (§1.4) | — | Todo |")
