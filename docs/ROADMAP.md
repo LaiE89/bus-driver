@@ -86,6 +86,8 @@ A **milestone** is done when all its tickets are done, `tools/verify.sh full` pa
 | `build` | Standalone build for the current OS (`BusDriver.Editor.Build.BuildScripts.BuildCurrent`) |
 | `full` | `content` + `playmode` + `smoke` + `build` |
 
+Until T-M1-13 and T-M1-16 land, `content` runs the legacy builders (`BusDriverSceneBuilder.BuildScene`, `OverlayMenusSceneBaker.BakeIntoBusRoute`, `ControlsMenuPrefabBuilder.Upgrade`), and `smoke` runs `BusDriver.Editor.Smoke.BusSmokeTest.Run`. `tools/unity.sh <args>` runs the Editor in batch mode, and `docs/CONTRIBUTING.md` §6 has the details.
+
 Raw forms (run from `BusDriver/`):
 ```
 $UNITY -batchmode -projectPath "$PWD" -quit -logFile Logs/compile.log                      # compile
@@ -3812,7 +3814,7 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 | `T-M0-07` | Build scripts, build label, `--selftest` mode | M | Done (2026-09-29; macOS Apple-silicon only until llvm-lipo is chmod +x, D52; Windows needs T-M0-08) |
 | `T-M0-08` | [HUMAN] Build modules, itch.io page, butler | S | Blocked ([HUMAN] build modules, itch page, butler; tools/itch.env is git-ignored) |
 | `T-M0-09` | itch push script and first restricted upload | S | Blocked (needs T-M0-08) |
-| `T-M0-10` | `tools/verify.sh` and `tools/unity.sh` | S | Todo |
+| `T-M0-10` | `tools/verify.sh` and `tools/unity.sh` | S | Done (2026-09-29) |
 | `T-M1-01` | Core utilities: ids, RNG streams, money and clock formatting | S | Todo |
 | `T-M1-02` | Save store: envelopes, atomic writes, migrations | M | Todo |
 | `T-M1-03` | Save models and v1 fixtures | S | Todo |

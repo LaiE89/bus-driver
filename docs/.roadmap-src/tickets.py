@@ -16,6 +16,7 @@ STATUS = {
     "T-M0-05": "Done (2026-09-29)",
     "T-M0-06": "Done (2026-09-29)",
     "T-M0-07": "Done (2026-09-29; macOS Apple-silicon only until llvm-lipo is chmod +x, D52; Windows needs T-M0-08)",
+    "T-M0-10": "Done (2026-09-29)",
 }
 def M(mid, title, phase, goal, acceptance, note=""):
     MILESTONES.append(dict(id=mid, title=title, phase=phase, goal=goal, acceptance=acceptance, note=note, tickets=[]))
