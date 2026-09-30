@@ -14,6 +14,9 @@ namespace BusDriver.Gameplay.Passengers {
     // are in the night (§2.6). Outlives the Passenger, so the Summary can still read it.
     public sealed class RiderRecord {
         public readonly string RiderId;
+        // Position in PassengerRegistry.All, fixed for the night: per-rider arrays (PlayerAttention)
+        // are keyed by it
+        public readonly int Index;
         public readonly RiderSpec Spec;
         public Passenger Passenger { get; internal set; }
         public RiderStatus Status { get; internal set; }
@@ -28,8 +31,9 @@ namespace BusDriver.Gameplay.Passengers {
         public string MonsterId { get { return Spec.monsterId; } }
         public bool IsAboard { get { return Status == RiderStatus.Aboard; } }
 
-        public RiderRecord(string riderId, RiderSpec spec) {
+        public RiderRecord(string riderId, int index, RiderSpec spec) {
             RiderId = riderId;
+            Index = index;
             Spec = spec;
             DestinationStopId = spec.destinationStopId;
         }
@@ -140,7 +144,7 @@ namespace BusDriver.Gameplay.Passengers {
 
         // The spawner registers every rider it creates, in manifest order
         public RiderRecord Register(RiderSpec spec, Passenger passenger) {
-            RiderRecord record = new RiderRecord("r" + (all.Count + 1).ToString("00"), spec) {
+            RiderRecord record = new RiderRecord("r" + (all.Count + 1).ToString("00"), all.Count, spec) {
                 Passenger = passenger,
                 Status = RiderStatus.Waiting,
             };

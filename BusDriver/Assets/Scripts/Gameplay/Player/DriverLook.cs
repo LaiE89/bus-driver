@@ -38,6 +38,13 @@ namespace BusDriver.Gameplay.Player {
             get { return settings != null && settings.Current.invertY ? -1f : 1f; }
         }
 
+        // Points the head straight at a yaw and pitch, degrees (tests: the road-yaw check, §2.8)
+        internal void SetLook(float yawDegrees, float pitchDegrees) {
+            yaw = Mathf.Clamp(yawDegrees, -yawLimit, yawLimit);
+            pitch = Mathf.Clamp(pitchDegrees, pitchMin, pitchMax);
+            transform.localRotation = Quaternion.Euler(-pitch, yaw, 0f);
+        }
+
         void Update() {
             if (input == null || (pause != null && pause.IsPaused) || (cctv != null && cctv.IsViewingCCTV)) {
                 return;

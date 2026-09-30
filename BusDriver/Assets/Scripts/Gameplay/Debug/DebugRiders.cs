@@ -53,9 +53,13 @@ namespace BusDriver.Gameplay.Debug {
 
         // A rider already sitting in a free seat (aboard without boarding: no Boarded event)
         internal Passenger SpawnSeated(RiderSpec spec) {
+            return SpawnSeated(spec, shift.Cabin.FindFreeSeat());
+        }
+
+        // The same, in a given free seat (tests that need a rider where a camera can see them)
+        internal Passenger SpawnSeated(RiderSpec spec, BusSeat seat) {
             BusCabin cabin = shift.Cabin;
-            BusSeat seat = cabin.FindFreeSeat();
-            if (seat == null || riderPrefab == null) {
+            if (seat == null || !seat.IsFree || riderPrefab == null) {
                 return null;
             }
             Passenger passenger = shift.Manifest.Create(spec, riderPrefab, seat.transform.position, seat.transform.rotation, cabin.PassengerRoot);

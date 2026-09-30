@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using BusDriver.Core.Data;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Economy;
@@ -16,8 +17,8 @@ namespace BusDriver.Gameplay.Flow {
     // The night systems scene's root (§4.3, §4.5). SceneLoader calls Initialize when the scene is
     // wired; RunFlow calls AttachRoute once the route scene is loaded, then Begin. Begin builds
     // ShiftServices and calls Init in the fixed order. Steps whose services don't exist yet are
-    // skipped: they arrive with their tickets (RouteTracker T-M2-09, ShiftClockDriver T-M2-12,
-    // PlayerAttention T-M4-01, …). ShiftDirector owns the drive lock and the pause predicate.
+    // skipped: they arrive with their tickets (sanity, scares, death and monsters in M4–M7).
+    // ShiftDirector owns the drive lock and the pause predicate.
     public sealed class ShiftContext : MonoBehaviour, INightRoot {
         [SerializeField] BusController bus;
         [SerializeField] PlayerModeController mode;
@@ -28,6 +29,8 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] RouteTracker tracker;
         [SerializeField] RouteProgress progress;
         [SerializeField] ShiftClockDriver clock;
+        [Tooltip("Observer evaluation (§2.8)")]
+        [SerializeField] PlayerAttention attention;
         [Tooltip("Every rider of the night (§4.6)")]
         [SerializeField] PassengerRegistry riders;
         [Tooltip("Creates passenger views from looks (§4.14)")]
@@ -106,7 +109,8 @@ namespace BusDriver.Gameplay.Flow {
             if (shift.AutoPilot != null) {
                 shift.AutoPilot.Init(shift);
             }
-            // 4. PlayerAttention (T-M4-01)
+            // 4. PlayerAttention
+            shift.Attention.Init(shift);
             // 5. PassengerRegistry, ViewFactory
             shift.Riders.Init(shift);
             shift.Views.Init(shift);
@@ -157,6 +161,7 @@ namespace BusDriver.Gameplay.Flow {
                 Tracker = tracker,
                 Progress = progress,
                 Clock = clock,
+                Attention = attention,
                 AutoPilot = autoPilot,
                 Riders = riders,
                 Views = views,

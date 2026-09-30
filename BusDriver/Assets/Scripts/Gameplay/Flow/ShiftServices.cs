@@ -1,5 +1,6 @@
 using BusDriver.Core.Data;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Economy;
@@ -48,6 +49,8 @@ namespace BusDriver.Gameplay.Flow {
         public Camera OnFootCamera;
         // On the driver camera: the rumble strip, scares
         public CameraShake Shake;
+        // Where the player is looking and who they can see (§2.8)
+        public PlayerAttention Attention;
 
         // Every rider of the night (§4.6)
         public PassengerRegistry Riders;

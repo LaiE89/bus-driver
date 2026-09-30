@@ -80,18 +80,6 @@ namespace BusDriver.Gameplay.Player {
         public void Init(ShiftServices shift) {
             game = shift.Game;
             SetMode(PlayerMode.Driving);
-            // The attention mode as §2.8 names it; PlayerAttention takes this section over (T-M4-01)
-            shift.Debug.Register("Attention", text => {
-                text.Append("mode ");
-                if (Mode == PlayerMode.OnFoot) {
-                    text.Append("OnFoot");
-                }else if (IsViewingCCTV) {
-                    text.Append("Cctv(").Append(cctv.ActiveIndex).Append(')');
-                }else {
-                    text.Append("Road");
-                }
-                text.Append('\n');
-            });
         }
 
         public bool TryLeaveSeat() {

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Flow;
@@ -44,6 +45,7 @@ namespace BusDriver.Editor.Builders {
             RouteProgress progress = contextObject.AddComponent<RouteProgress>();
             ShiftClockDriver clock = contextObject.AddComponent<ShiftClockDriver>();
             PassengerRegistry riders = contextObject.AddComponent<PassengerRegistry>();
+            PlayerAttention attention = contextObject.AddComponent<PlayerAttention>();
             ViewFactory views = contextObject.AddComponent<ViewFactory>();
             ManifestSpawner manifest = contextObject.AddComponent<ManifestSpawner>();
             SetRef(manifest, "riderPrefab", LoadRider(PrefabBuilder.PassengerPath));
@@ -97,6 +99,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "tracker", tracker);
             SetRef(context, "progress", progress);
             SetRef(context, "clock", clock);
+            SetRef(context, "attention", attention);
             SetRef(context, "autoPilot", autoPilot);
             SetRef(context, "riders", riders);
             SetRef(context, "views", views);
