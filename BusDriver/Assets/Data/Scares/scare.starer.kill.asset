@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2c356750f5442709b5eff5e35d3e4b, type: 3}
+  m_Name: scare.starer.kill
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.ScareDefinition
+  id: scare.starer.kill
+  tier: 3
+  steps:
+  - at: 0
+    kind: 6
+    duration: 2.2
+    soundId: 
+    overlay: {fileID: 0}
+    intensity: 0
+    anchor: 
+    param: 
+  - at: 0
+    kind: 7
+    duration: 0
+    soundId: 
+    overlay: {fileID: 0}
+    intensity: 0
+    anchor: 
+    param: 
+  - at: 0
+    kind: 9
+    duration: 1.6
+    soundId: 
+    overlay: {fileID: 0}
+    intensity: 0
+    anchor: DriverShoulder
+    param: lookAt
+  - at: 0
+    kind: 1
+    duration: 0
+    soundId: mon.starer.kill
+    overlay: {fileID: 0}
+    intensity: 0
+    anchor: 
+    param: 
+  - at: 0
+    kind: 3
+    duration: 0.6
+    soundId: 
+    overlay: {fileID: 0}
+    intensity: 0.5
+    anchor: 
+    param: 
+  - at: 0
+    kind: 4
+    duration: 1.2
+    soundId: 
+    overlay: {fileID: 0}
+    intensity: 0
+    anchor: 
+    param: 
+  - at: 1.2
+    kind: 12
+    duration: 0.4
+    soundId: 
+    overlay: {fileID: 0}
+    intensity: 0
+    anchor: 
+    param: 
+  - at: 1.6
+    kind: 13
+    duration: 0.6
+    soundId: 
+    overlay: {fileID: 0}
+    intensity: 0
+    anchor: 
+    param: 
+  timelineOverride: {fileID: 0}
+  overrideSanityCost: 0
+  sanityCost: 0

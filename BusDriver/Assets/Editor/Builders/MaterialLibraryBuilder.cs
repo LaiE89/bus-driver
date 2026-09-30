@@ -64,6 +64,8 @@ namespace BusDriver.Editor.Builders {
             New("Hood", new Color(0.04f, 0.04f, 0.05f)),
             New("PhoneGlow", new Color(0.6f, 0.8f, 1f), new Color(0.55f, 0.75f, 1f) * 1.5f),
             New("Accessory", new Color(0.22f, 0.24f, 0.3f)),
+            // The greybox scare head (T-M4-05): pale and faintly self-lit, so it reads in the dark
+            New("ScareSkin", new Color(0.78f, 0.8f, 0.74f), new Color(0.6f, 0.64f, 0.58f) * 0.35f),
         };
 
         static Spec Instanced(Spec spec) {

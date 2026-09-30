@@ -38,7 +38,11 @@ namespace BusDriver.Gameplay.Player {
             get { return settings != null && settings.Current.invertY ? -1f : 1f; }
         }
 
-        // Points the head straight at a yaw and pitch, degrees (tests: the road-yaw check, §2.8)
+        internal float Yaw { get { return yaw; } }
+        internal float Pitch { get { return pitch; } }
+
+        // Points the head straight at a yaw and pitch, degrees (tests: the road-yaw check, §2.8;
+        // scares turning the driver's head to a scare head)
         internal void SetLook(float yawDegrees, float pitchDegrees) {
             yaw = Mathf.Clamp(yawDegrees, -yawLimit, yawLimit);
             pitch = Mathf.Clamp(pitchDegrees, pitchMin, pitchMax);

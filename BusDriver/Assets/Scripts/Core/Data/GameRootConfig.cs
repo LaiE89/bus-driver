@@ -46,6 +46,9 @@ namespace BusDriver.Core.Data {
         [Tooltip("Every monster type (Data/Monsters): starer, whisperer, mimic, weeping_angel")]
         public MonsterDefinition[] monsters = new MonsterDefinition[0];
 
+        [Tooltip("Every scare (Data/Scares)")]
+        public ScareDefinition[] scares = new ScareDefinition[0];
+
         public RouteDefinition Route(string routeId) {
             for (int i = 0; i < routes.Length; i++) {
                 if (routes[i] != null && routes[i].id == routeId) {
@@ -69,6 +72,15 @@ namespace BusDriver.Core.Data {
             for (int i = 0; i < monsters.Length; i++) {
                 if (monsters[i] != null && monsters[i].id == monsterId) {
                     return monsters[i];
+                }
+            }
+            return null;
+        }
+
+        public ScareDefinition Scare(string scareId) {
+            for (int i = 0; i < scares.Length; i++) {
+                if (scares[i] != null && scares[i].id == scareId) {
+                    return scares[i];
                 }
             }
             return null;

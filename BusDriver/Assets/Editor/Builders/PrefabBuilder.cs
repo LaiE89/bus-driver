@@ -87,6 +87,7 @@ namespace BusDriver.Editor.Builders {
             BuildOnFootRig();
             BuildFallCamera();
             EnsureFolder(ViewsFolder);
+            ScareFxBuilder.Build();
             BuildGreyboxPassengerView();
             BuildRider<Passenger>(PassengerPath, "Passenger");
             BuildMonsterVariants();
@@ -163,7 +164,7 @@ namespace BusDriver.Editor.Builders {
             CCTVSystem cctv = BuildCctv(root, driverCamera);
             SetRef(look, "cctv", cctv);
 
-            BuildLights(root);
+            BuildLights(root, view);
             BuildScareAnchors(root);
             BuildOccluderShell(root);
 
@@ -314,7 +315,7 @@ namespace BusDriver.Editor.Builders {
             return cctv;
         }
 
-        static void BuildLights(Transform root) {
+        static void BuildLights(Transform root, BusViewBase view) {
             float frontZ = BusLength * 0.5f + 0.1f;
             for (int i = 0; i < 2; i++) {
                 Transform anchor = Node(root, i == 0 ? "Anchor_Headlight_L" : "Anchor_Headlight_R",
@@ -348,6 +349,16 @@ namespace BusDriver.Editor.Builders {
             dash.intensity = 0.12f;
             dash.color = new Color(1f, 0.6f, 0.25f);
             dash.shadows = LightShadows.None;
+            // Scares and telegraphs flicker or cut the cabin lights, not the dash (§2.14, §2.17)
+            CabinLights group = cabinLights.gameObject.AddComponent<CabinLights>();
+            List<Object> overhead = new List<Object>();
+            foreach (Light light in cabinLights.GetComponentsInChildren<Light>()) {
+                if (light != dash) {
+                    overhead.Add(light);
+                }
+            }
+            SetRefArray(group, "lights", overhead.ToArray());
+            SetRef(group, "view", view);
         }
 
         // §4.8: DriverShoulder 0.35 m right of and 0.25 m behind the driver's head; DriverWindow
@@ -355,14 +366,21 @@ namespace BusDriver.Editor.Builders {
         // CabinCenter mid-aisle at head height. +Z of each faces what it frames.
         static void BuildScareAnchors(Transform root) {
             Transform group = Group("ScareAnchors", root).transform;
-            Node(group, "Anchor_Scare_DriverShoulder", DriverHeadPos + new Vector3(0.35f, 0f, -0.25f), new Vector3(0f, 180f, 0f));
-            Node(group, "Anchor_Scare_DriverWindow", new Vector3(-BusWidth * 0.5f - 0.6f, DriverHeadPos.y, DriverHeadPos.z), new Vector3(0f, 90f, 0f));
+            Transform shoulder = Node(group, "Anchor_Scare_DriverShoulder", DriverHeadPos + new Vector3(0.35f, 0f, -0.25f), new Vector3(0f, 180f, 0f));
+            Transform window = Node(group, "Anchor_Scare_DriverWindow", new Vector3(-BusWidth * 0.5f - 0.6f, DriverHeadPos.y, DriverHeadPos.z), new Vector3(0f, 90f, 0f));
+            Object[] lenses = new Object[Cctv.Length];
             for (int i = 0; i < Cctv.Length; i++) {
                 Quaternion rotation = Quaternion.Euler(Cctv[i].Euler);
                 Transform lens = Node(group, "Anchor_Scare_CctvLens" + (i + 1), Cctv[i].Position + rotation * new Vector3(0f, 0f, 0.35f));
                 lens.localRotation = Quaternion.LookRotation(rotation * Vector3.back, Vector3.up);
+                lenses[i] = lens;
             }
-            Node(group, "Anchor_Scare_CabinCenter", new Vector3(0f, 1.6f, 0f));
+            Transform center = Node(group, "Anchor_Scare_CabinCenter", new Vector3(0f, 1.6f, 0f));
+            ScareAnchors anchors = group.gameObject.AddComponent<ScareAnchors>();
+            SetRef(anchors, "driverShoulder", shoulder);
+            SetRef(anchors, "driverWindow", window);
+            SetRef(anchors, "cabinCenter", center);
+            SetRefArray(anchors, "cctvLens", lenses);
         }
 
         // Trigger-only boxes on the Occluder layer for the observation linecasts (§2.8): the hull

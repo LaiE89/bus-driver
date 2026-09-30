@@ -10,6 +10,7 @@ using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
+using BusDriver.Gameplay.Scares;
 using BusDriver.Gameplay.Shift;
 using BusDriver.Gameplay.Views;
 using UnityEngine;
@@ -40,6 +41,10 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] ManifestSpawner manifest;
         [Tooltip("The night's monsters and the kill-sequence slot (§4.6)")]
         [SerializeField] MonsterSystem monsters;
+        [Tooltip("Plays scare steps (§4.6)")]
+        [SerializeField] ScarePlayer scarePlayer;
+        [Tooltip("The single gate for scares (§2.17)")]
+        [SerializeField] ScareDirector scares;
         [Tooltip("The development and test driver (§4.18)")]
         [SerializeField] AutoPilot autoPilot;
         [Tooltip("Development and test riders (T-M2-07), until ManifestSpawner (T-M3-03)")]
@@ -119,8 +124,11 @@ namespace BusDriver.Gameplay.Flow {
             shift.Views.Init(shift);
             // 6. ShiftLedger (built in BuildServices), EconomyRules
             shift.Economy.Init(shift);
-            // 7–9. Sanity, scares and death arrive with M4–M5; the legacy game over stands in for
-            // DeathDirector until T-M4-06
+            // 7. Sanity arrives with M5
+            // 8. ScarePlayer, ScareDirector
+            shift.ScarePlayer.Init(shift);
+            shift.Scares.Init(shift);
+            // 9. The legacy game over stands in for DeathDirector until T-M4-06
             if (shift.GameOver != null) {
                 shift.GameOver.Init(shift);
             }
@@ -173,6 +181,11 @@ namespace BusDriver.Gameplay.Flow {
                 Views = views,
                 Manifest = manifest,
                 Monsters = monsters,
+                ScarePlayer = scarePlayer,
+                Scares = scares,
+                ScareOverlay = new ScareOverlayState(),
+                CabinLights = bus.GetComponentInChildren<CabinLights>(true),
+                ScareAnchors = bus.GetComponentInChildren<ScareAnchors>(true),
                 Night = ResolveNight(setup),
                 Balance = ResolveBalance(),
                 Ledger = new ShiftLedger(setup.Run.walletCents),

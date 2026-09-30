@@ -116,6 +116,12 @@ namespace BusDriver.Core.Data {
         public float killTelegraphSeconds = 4f;
         public MonsterEscape escape = new MonsterEscape(EscapeKind.ObserveFor, 1.5f);
 
+        [Header("Scares (§2.10–§2.12b)")]
+        [Tooltip("Its monster-tier scare (the Starer's lens scare, …)")]
+        public ScareDefinition monsterScare;
+        [Tooltip("The kill scare its kill sequence plays before the death (§2.14)")]
+        public ScareDefinition killScare;
+
         [Header("Money (§2.7), cents")]
         public int bountyCents = 500;
 

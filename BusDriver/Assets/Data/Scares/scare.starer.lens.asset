@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2c356750f5442709b5eff5e35d3e4b, type: 3}
+  m_Name: scare.starer.lens
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.ScareDefinition
+  id: scare.starer.lens
+  tier: 2
+  steps:
+  - at: 0
+    kind: 8
+    duration: 0
+    soundId: 
+    overlay: {fileID: 0}
+    intensity: 0
+    anchor: 
+    param: 
+  - at: 0
+    kind: 9
+    duration: 1.4
+    soundId: 
+    overlay: {fileID: 0}
+    intensity: 0
+    anchor: CctvLens
+    param: 
+  - at: 0
+    kind: 1
+    duration: 0
+    soundId: mon.starer.sting
+    overlay: {fileID: 0}
+    intensity: 0
+    anchor: 
+    param: 
+  - at: 0
+    kind: 5
+    duration: 0.25
+    soundId: 
+    overlay: {fileID: 0}
+    intensity: 0.35
+    anchor: 
+    param: 
+  timelineOverride: {fileID: 0}
+  overrideSanityCost: 0
+  sanityCost: 0

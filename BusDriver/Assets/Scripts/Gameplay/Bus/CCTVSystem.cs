@@ -88,6 +88,16 @@ namespace BusDriver.Gameplay.Bus {
             Apply();
         }
 
+        // Straight to a view (−1 = home) without the switch sound: a scare cutting the feed (§2.17)
+        public void Show(int index) {
+            index = Mathf.Clamp(index, -1, cameras.Length - 1);
+            if (index == ActiveIndex) {
+                return;
+            }
+            ActiveIndex = index;
+            Apply();
+        }
+
         // For swapping in the on foot camera later
         public void SetHomeCamera(Camera newHomeCamera) {
             if (homeCamera != null) {

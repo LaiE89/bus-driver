@@ -8,6 +8,7 @@ using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
+using BusDriver.Gameplay.Scares;
 using BusDriver.Gameplay.Shift;
 using BusDriver.Gameplay.Views;
 using UnityEngine;
@@ -64,6 +65,14 @@ namespace BusDriver.Gameplay.Flow {
         public EconomyRules Economy;
         // The night's monsters and the kill-sequence slot (§4.6)
         public MonsterSystem Monsters;
+        // Scares (§2.17, §4.6): the director gates them, the player runs their steps, the overlay
+        // state carries the full-screen effects to the HUD
+        public ScarePlayer ScarePlayer;
+        public ScareDirector Scares;
+        public ScareOverlayState ScareOverlay;
+        // The bus's cabin lights and scare anchors (§4.8)
+        public CabinLights CabinLights;
+        public ScareAnchors ScareAnchors;
 
         // Legacy until DeathDirector (T-M4-06)
         public LegacyGameOver GameOver;

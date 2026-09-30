@@ -19,6 +19,8 @@ namespace BusDriver.Editor.Builders {
         // Canvas order (§4.13): CCTV under the HUD, screens over both, debug on top
         public const int CctvOrder = 5;
         public const int HudOrder = 10;
+        // Scare flashes and hands: over the HUD, under the fade, so a blackout covers them
+        public const int ScareOrder = 12;
         // Over the HUD, under the screens, so the pause menu stays readable in a fade
         public const int FadeOrder = 15;
         public const int ScreensOrder = 20;
@@ -87,6 +89,8 @@ namespace BusDriver.Editor.Builders {
             SetRef(overlay, "recText", rec);
             SetRef(overlay, "scanlines", scanlines);
 
+            BuildScareOverlay(root.transform);
+
             Canvas fadeCanvas = UIBuild.CreateCanvas("Fade Canvas", root.transform, FadeOrder);
             Object.DestroyImmediate(fadeCanvas.GetComponent<GraphicRaycaster>());
             ScreenFadeView fade = fadeCanvas.gameObject.AddComponent<ScreenFadeView>();
@@ -96,6 +100,36 @@ namespace BusDriver.Editor.Builders {
 
             SaveOrOverwritePrefab(root, HudPath);
             Object.DestroyImmediate(root);
+        }
+
+        // The scare overlay (T-M4-05): the flash, the CCTV static and the two hands, over the HUD
+        // and under the screen fade
+        static void BuildScareOverlay(Transform root) {
+            Canvas canvas = UIBuild.CreateCanvas("Scare Canvas", root, ScareOrder);
+            Object.DestroyImmediate(canvas.GetComponent<GraphicRaycaster>());
+            ScareOverlayView view = canvas.gameObject.AddComponent<ScareOverlayView>();
+            RawImage staticNoise = UIBuild.Panel("Static", canvas.transform).gameObject.AddComponent<RawImage>();
+            staticNoise.texture = ScareFxBuilder.StaticNoiseTexture();
+            staticNoise.raycastTarget = false;
+            staticNoise.enabled = false;
+            RawImage overlay = UIBuild.Panel("Overlay", canvas.transform).gameObject.AddComponent<RawImage>();
+            overlay.raycastTarget = false;
+            overlay.enabled = false;
+            RectTransform[] hands = new RectTransform[2];
+            for (int i = 0; i < 2; i++) {
+                Image hand = UIBuild.Fill(i == 0 ? "Hand Left" : "Hand Right", canvas.transform, new Color(0.015f, 0.012f, 0.012f, 1f), false);
+                hand.sprite = UIBuild.Builtin("UISprite");
+                hand.type = Image.Type.Sliced;
+                RectTransform rect = hand.rectTransform;
+                UIBuild.Place(rect, Center, Vector2.zero, new Vector2(1050f, 1500f));
+                rect.localRotation = Quaternion.Euler(0f, 0f, i == 0 ? -28f : 28f);
+                hand.gameObject.SetActive(false);
+                hands[i] = rect;
+            }
+            SetRef(view, "overlay", overlay);
+            SetRef(view, "staticNoise", staticNoise);
+            SetRef(view, "handLeft", hands[0]);
+            SetRef(view, "handRight", hands[1]);
         }
 
         // ============================================================== screens

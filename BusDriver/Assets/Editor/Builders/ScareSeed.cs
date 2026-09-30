@@ -1,0 +1,111 @@
+using System.Collections.Generic;
+using BusDriver.Core.Data;
+using BusDriver.Gameplay.Bus;
+using UnityEditor;
+
+namespace BusDriver.Editor.Builders {
+    // Seed data for Data/Scares (§2.10, §2.14, §2.17, §4.8, T-M4-05): the scares M4 needs. The
+    // Starer's lens and kill scares, the generic blackout the SanityZero presenter plays when no
+    // Whisperer is aboard, and the generic kill-sequence telegraph KillSequence plays directly
+    // (T-M4-07). The other monsters' scares and the hallucinations arrive with M5 and M6.
+    public static class ScareSeed {
+        public const string Folder = "Scares";
+        public const string StarerLens = "scare.starer.lens";
+        public const string StarerKill = "scare.starer.kill";
+        public const string BlackoutGeneric = "scare.blackout.generic";
+        public const string TelegraphGeneric = "scare.telegraph.generic";
+
+        public static string RelativePath(string scareId) {
+            return Folder + "/" + scareId + ".asset";
+        }
+
+        public static IEnumerable<Seed> Seeds() {
+            yield return Seed.Of<ScareDefinition>(RelativePath(StarerLens), FillStarerLens);
+            yield return Seed.Of<ScareDefinition>(RelativePath(StarerKill), FillStarerKill);
+            yield return Seed.Of<ScareDefinition>(RelativePath(BlackoutGeneric), FillBlackout);
+            yield return Seed.Of<ScareDefinition>(RelativePath(TelegraphGeneric), FillTelegraph);
+        }
+
+        static ScareStep Step(float at, ScareStepKind kind, float duration = 0f, string soundId = "", float intensity = 0f, string anchor = "", string param = "") {
+            return new ScareStep { at = at, kind = kind, duration = duration, soundId = soundId, intensity = intensity, anchor = anchor, param = param };
+        }
+
+        // §2.10: the next CCTV cycle cuts to the Starer's camera, its face filling the lens, with a sting
+        static void FillStarerLens(ScareDefinition scare) {
+            scare.id = StarerLens;
+            scare.tier = ScareTier.Monster;
+            scare.steps = new[] {
+                Step(0f, ScareStepKind.CutToCctv),
+                Step(0f, ScareStepKind.ShowScareHead, 1.4f, anchor: ScareAnchors.CctvLens),
+                Step(0f, ScareStepKind.PlaySound, soundId: SoundIds.MonStarerSting),
+                Step(0f, ScareStepKind.CctvStatic, 0.25f, intensity: 0.35f),
+            };
+        }
+
+        // §2.10: it forces the driver view, its face at DriverShoulder, a sting, then blackout
+        static void FillStarerKill(ScareDefinition scare) {
+            scare.id = StarerKill;
+            scare.tier = ScareTier.Kill;
+            scare.steps = new[] {
+                Step(0f, ScareStepKind.LockInput, 2.2f),
+                Step(0f, ScareStepKind.ForceHomeView),
+                Step(0f, ScareStepKind.ShowScareHead, 1.6f, anchor: ScareAnchors.DriverShoulder, param: "lookAt"),
+                Step(0f, ScareStepKind.PlaySound, soundId: SoundIds.MonStarerKill),
+                Step(0f, ScareStepKind.CameraShake, 0.6f, intensity: 0.5f),
+                Step(0f, ScareStepKind.FlickerCabinLights, 1.2f),
+                Step(1.2f, ScareStepKind.Blackout, 0.4f),
+                Step(1.6f, ScareStepKind.Wait, 0.6f),
+            };
+        }
+
+        // §2.14 SanityZero without a Whisperer aboard: the heartbeat stops, fade to black over 2 s
+        static void FillBlackout(ScareDefinition scare) {
+            scare.id = BlackoutGeneric;
+            scare.tier = ScareTier.Kill;
+            scare.steps = new[] {
+                Step(0f, ScareStepKind.PlaySound, soundId: SoundIds.DeathBlackout),
+                Step(0f, ScareStepKind.Blackout, 2f),
+            };
+        }
+
+        // §2.14 step 2: the cabin lights flicker and the rumble plays for the 4 s telegraph. Ambient,
+        // because it isn't a jump scare; KillSequence plays it through ScarePlayer, not the arbiter.
+        static void FillTelegraph(ScareDefinition scare) {
+            scare.id = TelegraphGeneric;
+            scare.tier = ScareTier.Ambient;
+            scare.steps = new[] {
+                Step(0f, ScareStepKind.FlickerCabinLights, 4f),
+                Step(0f, ScareStepKind.PlaySound, 4f, soundId: SoundIds.MonTelegraphRumble),
+            };
+        }
+
+        // Lists every seeded scare in the config and gives the Starer its scares where it has none;
+        // never replaces or removes a reference
+        public static void Adopt(string root, GameRootConfig config) {
+            List<ScareDefinition> scares = new List<ScareDefinition>(config.scares ?? new ScareDefinition[0]);
+            scares.RemoveAll(s => s == null);
+            foreach (string id in new[] { StarerLens, StarerKill, BlackoutGeneric, TelegraphGeneric }) {
+                ScareDefinition scare = AssetDatabase.LoadAssetAtPath<ScareDefinition>(root + "/" + RelativePath(id));
+                if (scare != null && !scares.Contains(scare)) {
+                    scares.Add(scare);
+                }
+            }
+            config.scares = scares.ToArray();
+            MonsterDefinition starer = MonsterSeed.Load(root, NightSeed.Starer);
+            if (starer != null) {
+                bool changed = false;
+                if (starer.monsterScare == null) {
+                    starer.monsterScare = AssetDatabase.LoadAssetAtPath<ScareDefinition>(root + "/" + RelativePath(StarerLens));
+                    changed = true;
+                }
+                if (starer.killScare == null) {
+                    starer.killScare = AssetDatabase.LoadAssetAtPath<ScareDefinition>(root + "/" + RelativePath(StarerKill));
+                    changed = true;
+                }
+                if (changed) {
+                    EditorUtility.SetDirty(starer);
+                }
+            }
+        }
+    }
+}

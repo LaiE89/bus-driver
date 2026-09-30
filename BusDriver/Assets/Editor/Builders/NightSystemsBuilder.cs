@@ -8,6 +8,7 @@ using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
+using BusDriver.Gameplay.Scares;
 using BusDriver.Gameplay.Shift;
 using BusDriver.Gameplay.Views;
 using BusDriver.UI.Screens;
@@ -50,6 +51,10 @@ namespace BusDriver.Editor.Builders {
             ViewFactory views = contextObject.AddComponent<ViewFactory>();
             ManifestSpawner manifest = contextObject.AddComponent<ManifestSpawner>();
             MonsterSystem monsters = contextObject.AddComponent<MonsterSystem>();
+            ScarePlayer scarePlayer = contextObject.AddComponent<ScarePlayer>();
+            ScareDirector scares = contextObject.AddComponent<ScareDirector>();
+            SetRef(scarePlayer, "scareHeadPrefab", ScareFxBuilder.ScareHead());
+            SetRef(scarePlayer, "defaultOverlay", ScareFxBuilder.FaceOverlayTexture());
             SetRef(manifest, "riderPrefab", LoadRider(PrefabBuilder.PassengerPath));
             SetRef(views, "greyboxView", LoadGreyboxView());
 
@@ -105,6 +110,8 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "views", views);
             SetRef(context, "manifest", manifest);
             SetRef(context, "monsters", monsters);
+            SetRef(context, "scarePlayer", scarePlayer);
+            SetRef(context, "scares", scares);
             SetRefArray(context, "bindables", Bindables(scene).ToArray());
 
             bus.SetActive(false);

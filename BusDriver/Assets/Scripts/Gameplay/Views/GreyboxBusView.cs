@@ -48,15 +48,25 @@ namespace BusDriver.Gameplay.Views {
             wheels[wheelIndex].SetLocalPositionAndRotation(localPos, localRot);
         }
 
+        // Full brightness is the material's own emission; anything less scales it (CabinLights)
         public override void SetInteriorLights(float intensity01) {
+            intensity01 = Mathf.Clamp01(intensity01);
             if (block == null) {
                 block = new MaterialPropertyBlock();
             }
-            block.SetColor("_EmissionColor", cabinLightEmission * Mathf.Clamp01(intensity01));
             for (int i = 0; i < cabinLights.Length; i++) {
-                if (cabinLights[i] != null) {
-                    cabinLights[i].SetPropertyBlock(block);
+                Renderer panel = cabinLights[i];
+                if (panel == null) {
+                    continue;
                 }
+                if (intensity01 >= 0.999f) {
+                    panel.SetPropertyBlock(null);
+                    continue;
+                }
+                Material material = panel.sharedMaterial;
+                Color emission = material != null && material.HasProperty("_EmissionColor") ? material.GetColor("_EmissionColor") : cabinLightEmission;
+                block.SetColor("_EmissionColor", emission * intensity01);
+                panel.SetPropertyBlock(block);
             }
         }
 

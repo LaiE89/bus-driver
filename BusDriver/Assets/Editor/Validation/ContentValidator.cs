@@ -23,6 +23,7 @@ namespace BusDriver.Editor.Validation {
             CheckLooks,
             CheckNights,
             CheckMonsters,
+            CheckScares,
         };
 
         public static List<string> Validate() {
@@ -279,6 +280,64 @@ namespace BusDriver.Editor.Validation {
                 Gameplay.Monsters.MonsterBrain brain = monster.logicPrefab != null ? monster.logicPrefab.GetComponent<Gameplay.Monsters.MonsterBrain>() : null;
                 if (brain == null || brain.Definition != monster || monster.logicPrefab.GetComponent<Gameplay.Passengers.Passenger>() == null) {
                     problems.Add($"{m}: logicPrefab must be its generated monster prefab (PrefabBuilder)");
+                }
+            }
+        }
+
+        // Scare ids valid and unique, every step's sound id defined, overlays present, anchors known
+        // (§4.15 step 11, T-M4-05); every monster's scares listed in the config
+        static void CheckScares(List<string> problems) {
+            GameRootConfig config = Config;
+            if (config == null) {
+                return;
+            }
+            HashSet<string> ids = new HashSet<string>();
+            HashSet<string> sounds = new HashSet<string>();
+            if (config.soundLibrary != null) {
+                foreach (SoundDefinition sound in config.soundLibrary.sounds) {
+                    if (sound != null) {
+                        sounds.Add(sound.id);
+                    }
+                }
+            }
+            foreach (ScareDefinition scare in config.scares ?? new ScareDefinition[0]) {
+                if (scare == null) {
+                    problems.Add("GameRootConfig.scares has an empty entry");
+                    continue;
+                }
+                string s = "scare '" + scare.id + "'";
+                if (!Ids.IsValid(scare.id)) {
+                    problems.Add($"{s}: the id isn't valid");
+                }else if (!ids.Add(scare.id)) {
+                    problems.Add($"{s} is listed twice");
+                }
+                if (scare.steps == null || scare.steps.Length == 0) {
+                    problems.Add($"{s} has no steps");
+                    continue;
+                }
+                foreach (ScareStep step in scare.steps) {
+                    if (step.kind == ScareStepKind.PlaySound && !sounds.Contains(step.soundId)) {
+                        problems.Add($"{s}: sound '{step.soundId}' has no SoundDefinition");
+                    }
+                    if (step.kind == ScareStepKind.ShowScareHead && !Gameplay.Bus.ScareAnchors.IsValidName(step.anchor)) {
+                        problems.Add($"{s}: unknown scare anchor '{step.anchor}'");
+                    }
+                    if (step.at < 0f || step.duration < 0f) {
+                        problems.Add($"{s}: a step starts or lasts a negative time");
+                    }
+                }
+            }
+            foreach (MonsterDefinition monster in config.monsters ?? new MonsterDefinition[0]) {
+                if (monster == null) {
+                    continue;
+                }
+                foreach (ScareDefinition scare in new[] { monster.monsterScare, monster.killScare }) {
+                    if (scare != null && System.Array.IndexOf(config.scares, scare) < 0) {
+                        problems.Add($"monster '{monster.id}': scare '{scare.id}' isn't in GameRootConfig.scares");
+                    }
+                }
+                if (monster.killScare != null && monster.killScare.tier != ScareTier.Kill) {
+                    problems.Add($"monster '{monster.id}': its kill scare must be Kill tier");
                 }
             }
         }

@@ -64,6 +64,9 @@ namespace BusDriver.Editor.Builders {
             foreach (Seed monster in MonsterSeed.Seeds()) {
                 yield return monster;
             }
+            foreach (Seed scare in ScareSeed.Seeds()) {
+                yield return scare;
+            }
         }
 
         [MenuItem("Tools/Bus Driver/Builders/Data Seeder (create missing)")]
@@ -150,6 +153,7 @@ namespace BusDriver.Editor.Builders {
             NightSeed.Adopt(root, config);
             BalanceSeed.Adopt(root, config);
             MonsterSeed.Adopt(root, config);
+            ScareSeed.Adopt(root, config);
             EditorUtility.SetDirty(config);
         }
 
