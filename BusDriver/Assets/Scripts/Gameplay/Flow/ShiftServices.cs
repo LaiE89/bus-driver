@@ -2,6 +2,7 @@ using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Debug;
+using BusDriver.Gameplay.Economy;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
@@ -19,6 +20,8 @@ namespace BusDriver.Gameplay.Flow {
         public NightSetup Setup;
         // This night's definition (§2.19); night 1's when the config lacks this night
         public NightDefinition Night;
+        // The balance numbers (§4.8); the seeded defaults when the config lacks the asset
+        public BalanceConfig Balance;
         public RngStreams Rng;
         // The F1 overlay's sections and cheats (§4.18); services register theirs in Init
         public DebugRegistry Debug;
@@ -52,6 +55,9 @@ namespace BusDriver.Gameplay.Flow {
         public ViewFactory Views;
         // Spawns the night's riders (§4.6)
         public ManifestSpawner Manifest;
+        // The night's money (§2.7, §4.6)
+        public ShiftLedger Ledger;
+        public EconomyRules Economy;
 
         // Legacy until DeathDirector (T-M4-06)
         public LegacyGameOver GameOver;

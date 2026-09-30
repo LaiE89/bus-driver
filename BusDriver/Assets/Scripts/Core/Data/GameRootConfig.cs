@@ -28,6 +28,9 @@ namespace BusDriver.Core.Data {
         [Tooltip("Data/UI/Theme.asset (a BusDriver.UI.Theme.UITheme; typed loosely because Core can't see UI, D61)")]
         public ScriptableObject uiTheme;
 
+        [Tooltip("The balance numbers (Data/Balance/Balance)")]
+        public BalanceConfig balance;
+
         [Tooltip("Every route (Data/Routes). Route 1 is the only one (§1.5)")]
         public RouteDefinition[] routes = new RouteDefinition[0];
 

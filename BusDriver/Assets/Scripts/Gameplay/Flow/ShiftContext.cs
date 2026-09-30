@@ -4,6 +4,7 @@ using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Debug;
+using BusDriver.Gameplay.Economy;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
@@ -109,9 +110,10 @@ namespace BusDriver.Gameplay.Flow {
             // 5. PassengerRegistry, ViewFactory
             shift.Riders.Init(shift);
             shift.Views.Init(shift);
-            // 6–13. The ledger, sanity, scares, death, monsters, hallucinations, items and
-            // journal/hints arrive with M3–M7; the legacy game over stands in for DeathDirector
-            // until T-M4-06
+            // 6. ShiftLedger (built in BuildServices), EconomyRules
+            shift.Economy.Init(shift);
+            // 7–13. Sanity, scares, death, monsters, hallucinations, items and journal/hints arrive
+            // with M4–M7; the legacy game over stands in for DeathDirector until T-M4-06
             if (shift.GameOver != null) {
                 shift.GameOver.Init(shift);
             }
@@ -160,8 +162,20 @@ namespace BusDriver.Gameplay.Flow {
                 Views = views,
                 Manifest = manifest,
                 Night = ResolveNight(setup),
+                Balance = ResolveBalance(),
+                Ledger = new ShiftLedger(setup.Run.walletCents),
+                Economy = new EconomyRules(),
             };
             return shift;
+        }
+
+        BalanceConfig ResolveBalance() {
+            BalanceConfig balance = Game != null && Game.Config != null ? Game.Config.balance : null;
+            if (balance == null) {
+                Log.Warn(LogCat.Content, "GameRootConfig has no BalanceConfig; using the seeded defaults");
+                balance = ScriptableObject.CreateInstance<BalanceConfig>();
+            }
+            return balance;
         }
 
         NightDefinition ResolveNight(NightSetup setup) {
@@ -180,7 +194,7 @@ namespace BusDriver.Gameplay.Flow {
             shift.Debug.Register("Run", text => {
                 text.Append("seed ").Append(shift.Setup.Run.seed)
                     .Append("  night ").Append(shift.Setup.NightIndex)
-                    .Append("  wallet ").Append(Money.Format(shift.Setup.Run.walletCents))
+                    .Append("  wallet ").Append(Money.Format(shift.Ledger.WalletNowCents))
                     .Append(shift.Setup.IsDebugRun ? "  (debug run)" : "").Append('\n');
                 text.Append("shift ").Append(shift.Director.State).Append('\n');
             });

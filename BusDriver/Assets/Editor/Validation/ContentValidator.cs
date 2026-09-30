@@ -59,6 +59,24 @@ namespace BusDriver.Editor.Validation {
             Require(problems, config.soundLibrary, "GameRootConfig.soundLibrary");
             Require(problems, config.audioConfig, "GameRootConfig.audioConfig");
             Require(problems, config.uiTheme, "GameRootConfig.uiTheme");
+            Require(problems, config.balance, "GameRootConfig.balance");
+            CheckBalance(problems, config.balance);
+        }
+
+        // Money is whole cents and never negative where §2.7 adds it (T-M3-05)
+        static void CheckBalance(List<string> problems, BalanceConfig balance) {
+            if (balance == null) {
+                return;
+            }
+            if (balance.fareCents <= 0) {
+                problems.Add("BalanceConfig.fareCents must be positive");
+            }
+            if (balance.tipPercent < 0 || balance.defaultBountyCents < 0) {
+                problems.Add("BalanceConfig tips and bounties can't be negative");
+            }
+            if (balance.hallucinationIntervals == null || balance.hallucinationIntervals.Length != 4) {
+                problems.Add("BalanceConfig.hallucinationIntervals needs one range per tier T1..T4");
+            }
         }
 
         static void CheckSoundLibrary(List<string> problems) {

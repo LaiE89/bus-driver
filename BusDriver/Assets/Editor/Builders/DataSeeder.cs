@@ -60,6 +60,7 @@ namespace BusDriver.Editor.Builders {
             foreach (Seed night in NightSeed.Seeds()) {
                 yield return night;
             }
+            yield return Seed.Of<BalanceConfig>(BalanceSeed.RelativePath, BalanceSeed.Fill);
         }
 
         [MenuItem("Tools/Bus Driver/Builders/Data Seeder (create missing)")]
@@ -144,6 +145,7 @@ namespace BusDriver.Editor.Builders {
             EnvironmentSeed.Adopt(root, config);
             LookSeed.Adopt(root, config);
             NightSeed.Adopt(root, config);
+            BalanceSeed.Adopt(root, config);
             EditorUtility.SetDirty(config);
         }
 

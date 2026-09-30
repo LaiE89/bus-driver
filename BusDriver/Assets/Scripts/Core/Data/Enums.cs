@@ -56,4 +56,6 @@ namespace BusDriver.Core.Data {
     public enum SeatZone : int { Any = 0, Front = 1, Mid = 2, Rear = 3 }
     // A rider's place in the night (T-M3-02). Lost = walked away from a missed stop (T-M3-04).
     public enum RiderStatus : int { Waiting = 0, Aboard = 1, Delivered = 2, Kicked = 3, Died = 4, Lost = 5 }
+    // A money event of the night (§2.7, T-M3-05). Lost = the refund when a rider is killed.
+    public enum LedgerKind : int { Fare = 0, Tip = 1, Refund = 2, Lost = 3, Bounty = 4 }
 }
