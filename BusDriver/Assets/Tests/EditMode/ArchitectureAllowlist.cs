@@ -9,10 +9,7 @@ namespace BusDriver.Tests.EditMode {
             "SceneController.cs|FindObjectByType",
             "SceneController.cs|UnityRandom",
             "Bus/BusCabin.cs|UnityRandom",
-            "Bus/BusEngineSound.cs|FindObjectByType",
-            "Sounds/SoundController.cs|FindObjectByType",
             "Passengers/WeepingAngel.cs|UnityRandom",
-            "Menus/MainMenu.cs|GameObjectFind",
             "Player/PlayerInteractor.cs|FindObjectByType",
         };
 
@@ -20,7 +17,6 @@ namespace BusDriver.Tests.EditMode {
         // as <Name>k__BackingField)
         public static readonly string[] Statics = {
             "BusDriver.Gameplay.Player.SceneController.<Instance>k__BackingField",
-            "BusDriver.UI.Menu.MainMenu.soundController",
         };
     }
 }

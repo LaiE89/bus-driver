@@ -24,7 +24,7 @@ namespace BusDriver.Editor.Builders {
                     new Step { Name = "MaterialLibraryBuilder", Run = MaterialLibraryBuilder.Build },
                     new Step { Name = "MeshBuilder", SkippedUntil = "T-M2-03 / T-M2-06" },
                     new Step { Name = "DataSeeder", Run = () => DataSeeder.SeedMissing() },
-                    new Step { Name = "PlaceholderAudioBuilder", SkippedUntil = "T-M1-11" },
+                    new Step { Name = "PlaceholderAudioBuilder", Run = PlaceholderAudioBuilder.Build },
                     new Step { Name = "IconBuilder", SkippedUntil = "M7 (item and journal icons)" },
                     new Step { Name = "PrefabBuilder", SkippedUntil = "T-M1-14" },
                     new Step { Name = "RouteBuilder", SkippedUntil = "T-M1-16" },

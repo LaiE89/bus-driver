@@ -29,6 +29,7 @@ STATUS = {
     "T-M1-10": "Blocked ([HUMAN] mixer groups, snapshots and exposed parameters; AudioMixerValidatorTests reports Inconclusive)",
     "T-M1-12": "Done (2026-09-30)",
     "T-M1-13": "Done (2026-09-30)",
+    "T-M1-11": "Done (2026-09-30; group routing to Master until T-M1-10)",
 }
 def M(mid, title, phase, goal, acceptance, note=""):
     MILESTONES.append(dict(id=mid, title=title, phase=phase, goal=goal, acceptance=acceptance, note=note, tickets=[]))

@@ -44,6 +44,9 @@ namespace BusDriver.Editor.Builders {
         // Every seed, by path under the data root. Later tickets append theirs here.
         public static IEnumerable<Seed> All() {
             yield return Seed.Of<UITheme>(UIThemeSeed.RelativePath, UIThemeSeed.Fill);
+            foreach (Seed sound in AudioSeed.SoundSeeds()) {
+                yield return sound;
+            }
             yield return Seed.Of<SoundLibrary>(AudioSeed.LibraryRelativePath, AudioSeed.FillLibrary);
             yield return Seed.Of<AudioConfig>(AudioSeed.ConfigRelativePath, AudioSeed.FillConfig);
         }

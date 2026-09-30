@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffe6d335e0a0841239664f6aef3b0c28, type: 3}
+  m_Name: mus.gameover_sting
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
+  id: mus.gameover_sting
+  clips:
+  - {fileID: 8300000, guid: eacac2290d7c3427082236506fc8b2b6, type: 3}
+  volume: 0.35
+  volumeJitter: 0
+  pitch: 1
+  pitchJitter: 0
+  group: 0
+  spatial: 0
+  minDistance: 1
+  maxDistance: 25
+  loop: 0
+  maxVoices: 4
+  priority: 128
+  cooldown: 0
+  caption: 
+  placeholder: 1

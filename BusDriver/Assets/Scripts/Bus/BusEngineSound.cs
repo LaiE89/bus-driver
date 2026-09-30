@@ -1,83 +1,66 @@
 using UnityEngine;
-using BusDriver.Core.Util;
+using BusDriver.Core.Data;
 using BusDriver.Gameplay.Audio;
-using BusDriver.Gameplay.Player;
+using BusDriver.Gameplay.Flow;
 
 namespace BusDriver.Gameplay.Bus {
-    // Drives the looping "Bus Engine" clip from bus speed, and plays "Brake" once
-    // when a handbrake stop reaches ~0 speed.
-    public class BusEngineSound : MonoBehaviour {
+    // Drives the engine loop (bus.engine_loop) from bus speed, and plays bus.handbrake once when a
+    // handbrake stop reaches ~0 speed (the PR #5 cue, Appendix A.3).
+    public class BusEngineSound : MonoBehaviour, IGameBindable {
         [SerializeField] BusController bus;
-        [SerializeField] string soundName = "Bus Engine";
         [SerializeField] float fullSpeedKmh = 50f;
         [SerializeField] float minPitch = 0.85f;
         [SerializeField] float maxPitch = 1.25f;
         [SerializeField] float pitchSmooth = 1.5f;
 
         [Header("Handbrake cue")]
-        [SerializeField] string brakeSound = "Brake";
         [Tooltip("Treat the bus as stopped at or below this speed")]
         [SerializeField] float stoppedKmh = 0.15f;
 
-        SoundController sounds;
-        AudioSource source;
-        float baseVolume = 1f;
+        IAudioService audio;
+        SoundHandle engine;
+        float pitch;
         bool brakePlayed;
         bool handbrakeUsedWhileMoving;
 
-        void Start() {
+        public bool IsEngineLoopPlaying { get { return audio != null && audio.IsPlaying(engine); } }
+        public float EnginePitch { get { return pitch; } }
+
+        public void Bind(GameServices game) {
+            audio = game.Audio;
+        }
+
+        void Awake() {
             if (bus == null) {
                 bus = GetComponent<BusController>();
             }
-            if (SceneController.Instance != null) {
-                sounds = SceneController.Instance.soundController;
-            }
-            if (sounds == null) {
-                sounds = FindAnyObjectByType<SoundController>();
-            }
-            if (sounds == null) {
-                Log.Warn(LogCat.Audio, "BusEngineSound: no SoundController found");
-                enabled = false;
-                return;
-            }
-            source = sounds.GetSound(soundName);
-            if (source == null) {
-                enabled = false;
-                return;
-            }
-            baseVolume = source.volume;
-            source.loop = true;
-            source.volume = 0f;
-            source.pitch = minPitch;
-            source.Stop();
+            pitch = minPitch;
         }
 
         void Update() {
-            if (source == null || bus == null) {
+            if (audio == null || bus == null) {
                 return;
             }
 
             float speed = bus.SpeedKmh;
             UpdateBrakeCue(speed);
 
-            bool running = !bus.IsParked && speed > 0.05f;
-            source.volume = running ? baseVolume : 0f;
-
             float speed01 = Mathf.Clamp01(speed / Mathf.Max(0.01f, fullSpeedKmh));
-            float targetPitch = Mathf.Lerp(minPitch, maxPitch, speed01);
-            source.pitch = Mathf.MoveTowards(source.pitch, targetPitch, Time.deltaTime * pitchSmooth);
+            pitch = Mathf.MoveTowards(pitch, Mathf.Lerp(minPitch, maxPitch, speed01), Time.deltaTime * pitchSmooth);
 
+            bool running = !bus.IsParked && speed > 0.05f;
             if (running) {
-                if (!source.isPlaying) {
-                    source.Play();
+                if (!audio.IsPlaying(engine)) {
+                    engine = audio.Play(SoundIds.BusEngineLoop);
                 }
-            }else if (source.isPlaying) {
-                source.Stop();
+                audio.SetPitch(engine, pitch);
+            }else {
+                StopEngine();
             }
         }
 
         void UpdateBrakeCue(float speedKmh) {
-            if (sounds == null || string.IsNullOrEmpty(brakeSound) || bus.IsFrozen) {
+            if (bus.IsFrozen) {
                 return;
             }
 
@@ -91,17 +74,21 @@ namespace BusDriver.Gameplay.Bus {
 
             // Speed is ~0: play once if the handbrake was used during this stop
             if (!brakePlayed && handbrakeUsedWhileMoving) {
-                sounds.PlayOneShot(brakeSound);
+                audio.Play(SoundIds.BusHandbrake);
                 brakePlayed = true;
                 handbrakeUsedWhileMoving = false;
             }
         }
 
-        void OnDisable() {
-            if (source != null && source.isPlaying) {
-                source.Stop();
-                source.volume = 0f;
+        void StopEngine() {
+            if (audio != null && !engine.IsNone) {
+                audio.Stop(engine);
             }
+            engine = SoundHandle.None;
+        }
+
+        void OnDisable() {
+            StopEngine();
         }
     }
 }

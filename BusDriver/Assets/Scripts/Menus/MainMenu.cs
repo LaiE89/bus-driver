@@ -2,7 +2,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine;
 using BusDriver.Core.Util;
-using BusDriver.Gameplay.Audio;
+using BusDriver.Core.Data;
 using BusDriver.Gameplay.Flow;
 using BusDriver.UI.Screens;
 
@@ -13,14 +13,8 @@ namespace BusDriver.UI.Menu {
         [SerializeField] public Slider slider;
         [SerializeField] public TextMeshProUGUI progressText;
 
-        public static SoundController soundController;
-
         GameServices game;
         bool loading;
-
-        private void Awake() {
-            soundController = GameObject.Find("Sound Controller").GetComponent<SoundController>();
-        }
 
         // From MenuContext.Initialize, before Start
         public void Bind(GameServices services) {
@@ -28,12 +22,11 @@ namespace BusDriver.UI.Menu {
         }
 
         private void Start() {
-            // soundController.Play("Menu Song");
             options.InitializeSettings();
         }
 
         public void PlayGame() {
-            soundController.Play("UI Click");
+            PlayUISound();
             if (game == null) {
                 Log.Error(LogCat.Flow, "MainMenu was never bound to the game services; the Menu scene needs its MenuContext");
                 return;
@@ -59,7 +52,9 @@ namespace BusDriver.UI.Menu {
         }
 
         public void PlayUISound() {
-            soundController.Play("UI Click");
+            if (game != null) {
+                game.Audio.Play(SoundIds.UiClick);
+            }
         }
     }
 }

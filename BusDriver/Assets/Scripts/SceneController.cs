@@ -3,7 +3,6 @@ using UnityEngine;
 using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using UnityEngine.SceneManagement;
-using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Passengers;
@@ -45,8 +44,6 @@ namespace BusDriver.Gameplay.Player {
         [SerializeField] GameObject driverAvatar;
 
         [Header("Services")]
-        public SoundController soundController;
-        [SerializeField] string ambienceSound = "Wind Ambience";
         public DialogueController dialogueController;
         public DialogueController objectivesController;
 
@@ -121,9 +118,6 @@ namespace BusDriver.Gameplay.Player {
         }
 
         void CacheServices() {
-            if (soundController == null) {
-                soundController = FindAnyObjectByType<SoundController>();
-            }
             if (dialogueController == null) {
                 GameObject go = GameObject.Find("Dialogue Controller");
                 if (go != null) {
@@ -140,9 +134,6 @@ namespace BusDriver.Gameplay.Player {
 
         void Start() {
             SetMode(PlayerMode.Driving);
-            if (soundController != null && !string.IsNullOrEmpty(ambienceSound)) {
-                soundController.Play(ambienceSound);
-            }
             if (populateStopsOnStart) {
                 PopulateBusStops();
             }

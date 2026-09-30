@@ -337,6 +337,12 @@ namespace BusDriver.Gameplay.Audio {
             }
         }
 
+        // Tests: the pooled source a handle is playing on, or null
+        internal AudioSource SourceOf(SoundHandle handle) {
+            Voice voice = Find(handle);
+            return voice != null ? voice.Source : null;
+        }
+
         // Tests
         internal int ActiveVoiceCount {
             get {

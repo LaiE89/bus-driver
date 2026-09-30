@@ -70,6 +70,15 @@ namespace BusDriver.Editor.Validation {
                 }else if (!seen.Add(sound.id)) {
                     problems.Add($"sound id '{sound.id}' is used twice");
                 }
+                if (sound.clips == null || sound.clips.Length == 0 || System.Array.IndexOf(sound.clips, null) >= 0) {
+                    problems.Add($"sound '{sound.id}' has no clip (or an empty slot)");
+                }
+            }
+            // Every id the code can name has a definition behind it (§4.12)
+            foreach (string id in SoundIds.All) {
+                if (!seen.Contains(id)) {
+                    problems.Add($"SoundIds.{id} has no SoundDefinition in the SoundLibrary");
+                }
             }
         }
 

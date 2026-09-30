@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
+using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Flow;
@@ -39,22 +40,15 @@ namespace BusDriver.UI.Screens {
         readonly List<Row> rows = new List<Row>();
         InputService input;
         SettingsService settings;
-        SoundController soundController;
+        IAudioService audio;
         TMP_Text statusText;
         bool built;
 
         public void Bind(GameServices game) {
             input = game.Input;
             settings = game.Settings;
+            audio = game.Audio;
             input.OnBindingsChanged += Refresh;
-        }
-
-        void Awake() {
-            if (SceneController.Instance != null) {
-                soundController = SceneController.Instance.soundController;
-            }else {
-                soundController = MainMenu.soundController;
-            }
         }
 
         void Start() {
@@ -240,8 +234,8 @@ namespace BusDriver.UI.Screens {
         }
 
         void PlayUISound() {
-            if (soundController != null) {
-                soundController.Play("UI Click");
+            if (audio != null) {
+                audio.Play(SoundIds.UiClick);
             }
         }
 

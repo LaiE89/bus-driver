@@ -24,7 +24,7 @@ namespace BusDriver.UI.Screens {
         [SerializeField] TMP_Dropdown targetFPSDropdown;
 
         Resolution[] resolutions = new Resolution[0];
-        SoundController soundController;
+        IAudioService audio;
         SettingsService settings;
         // Filling the controls must not write back into the settings
         bool refreshing;
@@ -32,14 +32,7 @@ namespace BusDriver.UI.Screens {
 
         public void Bind(GameServices game) {
             settings = game.Settings;
-        }
-
-        private void Awake() {
-            if (SceneController.Instance != null) {
-                soundController = SceneController.Instance.soundController;
-            }else {
-                soundController = MainMenu.soundController;
-            }
+            audio = game.Audio;
         }
 
         private void Start() {
@@ -164,8 +157,8 @@ namespace BusDriver.UI.Screens {
         }
 
         public void PlayUISound() {
-            if (soundController != null) {
-                soundController.Play("UI Click");
+            if (audio != null) {
+                audio.Play(SoundIds.UiClick);
             }
         }
 

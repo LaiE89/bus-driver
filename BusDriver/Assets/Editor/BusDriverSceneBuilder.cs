@@ -1110,13 +1110,8 @@ namespace BusDriver.Editor.Builders {
             }
             SetRef(hud, "mode", mode);
 
-            GameObject soundObject = PrefabUtility.InstantiatePrefab(
-                AssetDatabase.LoadAssetAtPath<GameObject>(
-                    "Assets/Prefabs/Level Essentials/Sound Controller.prefab")) as GameObject;
-            if (soundObject != null) {
-                soundObject.name = "Sound Controller";
-                SetRef(mode, "soundController", soundObject.GetComponent<SoundController>());
-            }
+            // The night's ambience loops (amb.wind), through AudioService (T-M1-11)
+            systems.AddComponent<SceneAmbience>();
         }
 
         static void ConfigureNpcPools(ObjectPooling pooling, GameObject passenger, GameObject monster) {

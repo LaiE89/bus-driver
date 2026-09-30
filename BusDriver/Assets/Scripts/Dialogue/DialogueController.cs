@@ -3,17 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using BusDriver.Gameplay.Player;
+using BusDriver.Core.Data;
+using BusDriver.Gameplay.Flow;
 
 namespace BusDriver.UI.Screens {
-    public class DialogueController : MonoBehaviour {
+    // Unused by the design; deleted in T-M1-19
+    public class DialogueController : MonoBehaviour, IGameBindable {
 
         public TextMeshProUGUI nameText;
         public TextMeshProUGUI dialogueText;
-        public string textSound;
+        public string textSound = SoundIds.UiTypeTick;
         public Animator animator;
         public bool isPlaying;
         private Queue<string> sentences;
+        GameServices game;
+
+        public void Bind(GameServices services) {
+            game = services;
+        }
 
         void Start() {
             sentences = new Queue<string>();
@@ -56,10 +63,8 @@ namespace BusDriver.UI.Screens {
                 if (dialogue.audioSource != null) {
                     dialogue.audioSource.PlayOneShot(dialogue.audioSource.clip);
                 }else {
-                    if (textSound != null) {
-                        if (SceneController.Instance != null && SceneController.Instance.soundController != null) {
-                            SceneController.Instance.soundController.PlayOneShot(textSound);
-                        }
+                    if (!string.IsNullOrEmpty(textSound) && game != null) {
+                        game.Audio.Play(textSound);
                     }
                 }
                 yield return new WaitForSeconds(0.01f);

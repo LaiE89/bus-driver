@@ -2,8 +2,8 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using BusDriver.Core.Data;
 using BusDriver.Gameplay.Flow;
-using BusDriver.Gameplay.Player;
 
 namespace BusDriver.Gameplay.Bus {
     // Fullscreen camera switching: exactly one camera renders at a time, so checking
@@ -60,8 +60,8 @@ namespace BusDriver.Gameplay.Bus {
             if (ActiveIndex >= cctvCameras.Length) {
                 ActiveIndex = -1;
             }
-            if (SceneController.Instance != null && SceneController.Instance.soundController != null) {
-                SceneController.Instance.soundController.Play("Camera");
+            if (game != null) {
+                game.Audio.Play(SoundIds.CctvSwitch);
             }
             Apply();
         }

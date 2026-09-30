@@ -6,7 +6,9 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using BusDriver.Core.Data;
 using BusDriver.Editor.Builders;
+using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
@@ -62,6 +64,7 @@ namespace BusDriver.Editor.Smoke {
         static Quaternion markRotation;
         static Vector3 markTensor;
         static float peakSpeed;
+        static float idlePitch;
         static readonly List<string> failures = new List<string>();
         const int SeatingSeed = 20260929;
 
@@ -180,6 +183,10 @@ namespace BusDriver.Editor.Smoke {
                     break;
 
                 case 1: // full throttle
+                    if (!stepDone) {
+                        stepDone = true;
+                        idlePitch = bus.GetComponent<BusEngineSound>().EnginePitch;
+                    }
                     bus.SetInput(0f, 1f, false);
                     if (timeTo50 < 0f && bus.SpeedKmh >= 50f) {
                         timeTo50 = t - 3f;
@@ -199,12 +206,18 @@ namespace BusDriver.Editor.Smoke {
                         Check(bus.SpeedKmh > 35f, "bus is too slow under full throttle");
                         Check(bus.SpeedKmh < 90f, "bus exceeded its speed cap");
                         Check(bus.CurrentGear == BusController.Gear.Drive, "gear should be Drive");
-                        // The engine and wind loops were re-encoded to OGG (T-M0-01); both must still play
-                        foreach (string loopName in new[] { "Bus Engine", "Wind Ambience" }) {
-                            AudioSource loopSource = mode.soundController != null ? mode.soundController.GetSound(loopName) : null;
-                            bool playing = loopSource != null && loopSource.clip != null && loopSource.isPlaying;
-                            Log($"audio loop '{loopName}': clip {(loopSource != null && loopSource.clip != null ? loopSource.clip.name : "none")}, playing {playing}");
-                            Check(playing, $"'{loopName}' loop is not playing");
+                        // The engine and wind loops play through AudioService (T-M1-11), from the OGGs
+                        // of T-M0-01, and the engine pitch follows speed
+                        BusEngineSound engine = bus.GetComponent<BusEngineSound>();
+                        SceneAmbience ambience = UnityEngine.Object.FindAnyObjectByType<SceneAmbience>();
+                        Log($"engine pitch {engine.EnginePitch:F2} at {bus.SpeedKmh:F1} km/h (was {idlePitch:F2} at rest), loop playing {engine.IsEngineLoopPlaying}");
+                        Check(engine.IsEngineLoopPlaying, "engine loop is not playing");
+                        Check(engine.EnginePitch > idlePitch + 0.2f, "engine pitch does not follow speed");
+                        Check(ambience != null && ambience.IsPlaying(SoundIds.AmbWind), "amb.wind is not playing");
+                        foreach (string clipName in new[] { "amb_driving_lp_01", "Wind Ambience" }) {
+                            bool playing = SourcePlaying(clipName);
+                            Log($"audio source with clip '{clipName}' playing {playing}");
+                            Check(playing, $"no AudioSource is playing '{clipName}'");
                         }
                         startHeading = bus.transform.eulerAngles.y;
                         Capture("2_driver_view_at_speed", BusCamera("DriverCamera"));
@@ -530,6 +543,15 @@ namespace BusDriver.Editor.Smoke {
                 }
             }
             return null;
+        }
+
+        static bool SourcePlaying(string clipName) {
+            foreach (AudioSource source in UnityEngine.Object.FindObjectsByType<AudioSource>()) {
+                if (source.isPlaying && source.clip != null && source.clip.name == clipName) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         static int EnabledCameras() {

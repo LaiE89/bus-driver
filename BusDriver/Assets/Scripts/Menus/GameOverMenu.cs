@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using BusDriver.Core.Data;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
 
@@ -70,8 +71,8 @@ namespace BusDriver.UI.Screens {
         }
 
         void PlayUISound() {
-            if (SceneController.Instance != null && SceneController.Instance.soundController != null) {
-                SceneController.Instance.soundController.Play("UI Click");
+            if (game != null) {
+                game.Audio.Play(SoundIds.UiClick);
             }
         }
     }
