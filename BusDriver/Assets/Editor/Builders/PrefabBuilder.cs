@@ -749,6 +749,19 @@ namespace BusDriver.Editor.Builders {
             GameObject root = new GameObject("FallCamera");
             Camera cam = CreateCamera("Camera", root.transform, Vector3.zero, Vector3.zero, 60f);
             cam.enabled = false;
+            // The landing on the valley floor shakes it (T-M4-09)
+            cam.gameObject.AddComponent<CameraShake>();
+            // A pale spot along the view, or the dark bus is lost against the dark valley. Off
+            // until the fall; FallDeathPresenter switches it on with the camera.
+            Light spot = Group("Fall Light", root.transform).AddComponent<Light>();
+            spot.type = LightType.Spot;
+            spot.range = 140f;
+            spot.spotAngle = 28f;
+            spot.innerSpotAngle = 12f;
+            spot.intensity = 6000f;
+            spot.color = new Color(0.75f, 0.82f, 1f);
+            spot.shadows = LightShadows.None;
+            spot.enabled = false;
             SaveOrOverwritePrefab(root, FallCameraPath);
             Object.DestroyImmediate(root);
         }

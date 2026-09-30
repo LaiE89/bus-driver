@@ -161,8 +161,9 @@ namespace BusDriver.Gameplay.Route {
             }
         }
 
+        // Over the cliff is the fall death's, whether or not the hull touched a FallZone first
         void HandleKillPlane() {
-            if (respawning || enteredFallZone) {
+            if (respawning || enteredFallZone || InZone(RouteZoneKind.Cliff)) {
                 return;
             }
             Log.Error(LogCat.Route, $"containment breach at d={DistanceAlong:0.0} (lateral {Lateral:0.0}); the bus fell through the world and is respawned");

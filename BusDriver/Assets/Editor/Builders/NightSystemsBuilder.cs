@@ -56,7 +56,8 @@ namespace BusDriver.Editor.Builders {
             DeathDirector death = contextObject.AddComponent<DeathDirector>();
             MonsterKillPresenter killPresenter = contextObject.AddComponent<MonsterKillPresenter>();
             BlackoutPresenter blackoutPresenter = contextObject.AddComponent<BlackoutPresenter>();
-            SetRefArray(death, "presenters", new Object[] { killPresenter, blackoutPresenter });
+            FallDeathPresenter fallPresenter = contextObject.AddComponent<FallDeathPresenter>();
+            SetRefArray(death, "presenters", new Object[] { killPresenter, blackoutPresenter, fallPresenter });
             SetRef(scarePlayer, "scareHeadPrefab", ScareFxBuilder.ScareHead());
             SetRef(scarePlayer, "defaultOverlay", ScareFxBuilder.FaceOverlayTexture());
             SetRef(manifest, "riderPrefab", LoadRider(PrefabBuilder.PassengerPath));
@@ -64,7 +65,8 @@ namespace BusDriver.Editor.Builders {
 
             GameObject bus = Instantiate(PrefabBuilder.BusPath, "Bus");
             GameObject rig = Instantiate(PrefabBuilder.OnFootRigPath, "OnFootRig");
-            Instantiate(PrefabBuilder.FallCameraPath, "FallCamera");
+            GameObject fallCamera = Instantiate(PrefabBuilder.FallCameraPath, "FallCamera");
+            SetRef(fallPresenter, "fallCamera", fallCamera.GetComponentInChildren<Camera>(true));
             Instantiate(UIPrefabBuilder.HudPath, "HUD");
             Instantiate(UIPrefabBuilder.DashPath, "Dash");
             Instantiate(UIPrefabBuilder.ScreensPath, "Screens");

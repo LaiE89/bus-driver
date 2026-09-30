@@ -96,6 +96,12 @@ namespace BusDriver.Editor.Builders {
             Image black = UIBuild.Fill("Black", fadeCanvas.transform, Color.black, false);
             black.enabled = false;
             SetRef(fade, "image", black);
+            // The fall's "YOU WENT OVER THE EDGE" over the black (T-M4-09)
+            TMP_Text fadeCaption = UIBuild.Label("Caption", fadeCanvas.transform, "", ThemeRole.Title, TextAlignmentOptions.Center,
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1600f, 160f));
+            UIBuild.Theme(fadeCaption, ThemeRole.Title).SetPaletteColor(ThemeColor.Danger);
+            fadeCaption.enabled = false;
+            SetRef(fade, "caption", fadeCaption);
 
             SaveOrOverwritePrefab(root, HudPath);
             Object.DestroyImmediate(root);

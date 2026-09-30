@@ -131,8 +131,13 @@ namespace BusDriver.Gameplay.Flow {
             // 8. ScarePlayer, ScareDirector
             shift.ScarePlayer.Init(shift);
             shift.Scares.Init(shift);
-            // 9. DeathDirector and its presenters
+            // 9. DeathDirector and its presenters, and the cliff's fall zones that call it
             shift.Death.Init(shift);
+            for (int i = 0; i < Route.FallZones.Count; i++) {
+                if (Route.FallZones[i] != null) {
+                    Route.FallZones[i].Init(shift);
+                }
+            }
             // 10. MonsterSystem
             shift.Monsters.Init(shift);
             // 11–13. Hallucinations, items and journal/hints arrive with M5–M7

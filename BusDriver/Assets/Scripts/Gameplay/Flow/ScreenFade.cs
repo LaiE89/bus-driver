@@ -7,6 +7,8 @@ namespace BusDriver.Gameplay.Flow {
     // references UI (§4.2). Fades run on scaled time: pausing holds them.
     public sealed class ScreenFade {
         public float Alpha { get; private set; }
+        // A line shown over the black (the fall's "YOU WENT OVER THE EDGE"); empty for none
+        public string Caption { get; set; } = "";
 
         public void Set(float alpha) {
             Alpha = Mathf.Clamp01(alpha);

@@ -35,6 +35,9 @@ namespace BusDriver.Editor.Builders {
         // The depot yard pad on the left, 0 → depotPadEnd (§3.1 row 1)
         const float DepotPadWidth = 2.9f;
         const float LampInset = 0.7f;
+        // The fall camera: this far out from the cliff edge and up from the road (T-M4-09)
+        const float FallCamOut = 60f;
+        const float FallCamUp = 12f;
         const float SignOffset = 0.5f;
 
         struct Built {
@@ -547,12 +550,15 @@ namespace BusDriver.Editor.Builders {
             b.Zones.Add(volume);
             b.FallZones.Add(fall);
 
-            float at = cliff.end - (cliff.end - cliff.start) * 0.25f;
+            // The fall camera's fixed point (§2.14) hangs out over the valley, level with the middle
+            // of the bend: the edge is convex, so from anywhere closer a bus that has just gone
+            // over, near either end, would drop behind the lip. From here every point of the
+            // 200 m face is in view.
+            float at = (cliff.start + cliff.end) * 0.5f;
             RoutePose pose = b.Path.Evaluate(at);
-            RoutePose target = b.Path.Evaluate(cliff.start + (cliff.end - cliff.start) * 0.35f);
             Transform anchor = Group(FallCamAnchorName, parent).transform;
-            anchor.position = pose.Offset(-(RoadMeshBuilder.ShoulderEdge(b.Route, at, RouteSide.Left) + 1.5f), 3f);
-            Vector3 look = target.Offset(-(edge + 4f), -6f) - anchor.position;
+            anchor.position = pose.Offset(-(RoadMeshBuilder.ShoulderEdge(b.Route, at, RouteSide.Left) + FallCamOut), FallCamUp);
+            Vector3 look = pose.Offset(-(edge + 2f), -8f) - anchor.position;
             anchor.rotation = Quaternion.LookRotation(look.normalized, Vector3.up);
             b.FallCamAnchor = anchor;
         }
