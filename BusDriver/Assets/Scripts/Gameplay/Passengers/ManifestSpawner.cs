@@ -61,6 +61,9 @@ namespace BusDriver.Gameplay.Passengers {
                 Log.Warn(LogCat.Content, $"rider look '{spec.lookId}' isn't in GameRootConfig.looks; using the greybox defaults");
             }
             shift.Views.Recreate(passenger, look);
+            if (spec.decoy != DecoyKind.None) {
+                passenger.gameObject.AddComponent<DecoyDriver>().Init(spec.decoy, shift.Rng.Get(RngStreams.Decoy), shift.Game.Audio);
+            }
             shift.Riders.Register(spec, passenger);
             return passenger;
         }
