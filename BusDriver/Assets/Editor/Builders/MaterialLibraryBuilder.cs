@@ -59,6 +59,11 @@ namespace BusDriver.Editor.Builders {
             New("SignWhite", new Color(0.82f, 0.82f, 0.8f), new Color(0.82f, 0.82f, 0.8f) * 0.2f),
             New("BarrierRed", new Color(0.65f, 0.08f, 0.06f), new Color(0.65f, 0.08f, 0.06f) * 0.2f),
             New("Window", new Color(0.9f, 0.75f, 0.45f), new Color(1f, 0.78f, 0.45f) * 1.2f),
+            // The greybox passenger's tells and accessories (T-M3-01); body and head are tinted per look
+            New("Eye", new Color(0.95f, 0.95f, 0.92f)),
+            New("Hood", new Color(0.04f, 0.04f, 0.05f)),
+            New("PhoneGlow", new Color(0.6f, 0.8f, 1f), new Color(0.55f, 0.75f, 1f) * 1.5f),
+            New("Accessory", new Color(0.22f, 0.24f, 0.3f)),
         };
 
         static Spec Instanced(Spec spec) {

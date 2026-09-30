@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e108dd44abf4f4c9c8cee57b8e0e206e, type: 3}
+  m_Name: look04
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.PassengerLookDefinition
+  id: look04
+  greybox:
+    bodyColor: {r: 0.18, g: 0.35, b: 0.2, a: 1}
+    headColor: {r: 0.42, g: 0.3, b: 0.22, a: 1}
+    heightScale: 1.02
+    accessory: 3
+  artView: {fileID: 0}

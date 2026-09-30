@@ -7,6 +7,7 @@ using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.Shift;
+using BusDriver.Gameplay.Views;
 using BusDriver.UI.Screens;
 using BusDriver.UI.Theme;
 using TMPro;
@@ -42,6 +43,8 @@ namespace BusDriver.Editor.Builders {
             RouteTracker tracker = contextObject.AddComponent<RouteTracker>();
             RouteProgress progress = contextObject.AddComponent<RouteProgress>();
             ShiftClockDriver clock = contextObject.AddComponent<ShiftClockDriver>();
+            ViewFactory views = contextObject.AddComponent<ViewFactory>();
+            SetRef(views, "greyboxView", LoadGreyboxView());
 
             GameObject bus = Instantiate(PrefabBuilder.BusPath, "Bus");
             GameObject rig = Instantiate(PrefabBuilder.OnFootRigPath, "OnFootRig");
@@ -66,7 +69,7 @@ namespace BusDriver.Editor.Builders {
             PlayerInteractor interactor = systems.AddComponent<PlayerInteractor>();
             DebugRiders debugRiders = systems.AddComponent<DebugRiders>();
             AutoPilot autoPilot = systems.AddComponent<AutoPilot>();
-            SetRef(debugRiders, "riderPrefab", LoadRider(PrefabBuilder.LegacyPassengerPath));
+            SetRef(debugRiders, "riderPrefab", LoadRider(PrefabBuilder.PassengerPath));
             SetRef(debugRiders, "angelPrefab", LoadRider(PrefabBuilder.LegacyWeepingAngelPath));
             SetRef(mode, "busInput", bus.GetComponent<BusInput>());
             SetRef(mode, "driverLook", look);
@@ -92,6 +95,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "progress", progress);
             SetRef(context, "clock", clock);
             SetRef(context, "autoPilot", autoPilot);
+            SetRef(context, "views", views);
             SetRefArray(context, "bindables", Bindables(scene).ToArray());
 
             bus.SetActive(false);
@@ -115,6 +119,15 @@ namespace BusDriver.Editor.Builders {
                 throw new System.InvalidOperationException("no rider prefab at " + prefabPath + "; PrefabBuilder runs before NightSystemsBuilder");
             }
             return rider;
+        }
+
+        static GreyboxPassengerView LoadGreyboxView() {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabBuilder.GreyboxPassengerViewPath);
+            GreyboxPassengerView view = prefab != null ? prefab.GetComponent<GreyboxPassengerView>() : null;
+            if (view == null) {
+                throw new System.InvalidOperationException("no greybox passenger view at " + PrefabBuilder.GreyboxPassengerViewPath + "; PrefabBuilder runs before NightSystemsBuilder");
+            }
+            return view;
         }
 
         // Every component the scene root binds, in hierarchy order (D65)

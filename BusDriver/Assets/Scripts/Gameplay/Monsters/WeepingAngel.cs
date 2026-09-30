@@ -58,8 +58,8 @@ namespace BusDriver.Gameplay.Monsters {
             if (IsSeenBy(watcher)) {
                 return true;
             }
-            if (head != null && head != transform) {
-                Vector3 viewport = watcher.WorldToViewportPoint(head.position);
+            if (Head != null && Head != transform) {
+                Vector3 viewport = watcher.WorldToViewportPoint(Head.position);
                 if (viewport.z > 0f && viewport.x > 0f && viewport.x < 1f && viewport.y > 0f && viewport.y < 1f) {
                     return true;
                 }

@@ -33,6 +33,42 @@ namespace BusDriver.Tests.EditMode.Builders {
             }
         }
 
+        // The generated passenger views and every look's art view (T-M3-01)
+        static IEnumerable<GameObject> PassengerViews() {
+            foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { PrefabBuilder.ViewsFolder })) {
+                yield return AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
+            }
+            GameRootConfig config = AssetDatabase.LoadAssetAtPath<GameRootConfig>(GameRootConfig.AssetPath);
+            foreach (PassengerLookDefinition look in config.looks) {
+                if (look != null && look.artView != null) {
+                    yield return look.artView;
+                }
+            }
+        }
+
+        [Test]
+        public void PassengerViews_HoldNoCollidersOrRigidbodies() {
+            List<string> problems = new List<string>();
+            int count = 0;
+            foreach (GameObject view in PassengerViews()) {
+                AssertNoPhysics(view, view.name, problems);
+                count++;
+            }
+            Assert.GreaterOrEqual(count, 1, "no passenger view found; run Build All");
+            Assert.IsEmpty(problems, string.Join("\n", problems));
+        }
+
+        // The rider prefabs are logic only: the view is created at spawn (§4.14)
+        [Test]
+        public void RiderPrefabs_HoldNoRenderers() {
+            foreach (string path in new[] { PrefabBuilder.PassengerPath, PrefabBuilder.LegacyWeepingAngelPath }) {
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                Assert.IsNotNull(prefab, path + " is missing; run Build All");
+                Assert.IsEmpty(prefab.GetComponentsInChildren<Renderer>(true), path + " holds renderers");
+                Assert.IsNotNull(prefab.transform.Find("Anchor_Head"), path + " has no Anchor_Head");
+            }
+        }
+
         static void AssertNoPhysics(GameObject view, string what, List<string> problems) {
             foreach (Collider collider in view.GetComponentsInChildren<Collider>(true)) {
                 problems.Add($"{what}: collider on {collider.name}");

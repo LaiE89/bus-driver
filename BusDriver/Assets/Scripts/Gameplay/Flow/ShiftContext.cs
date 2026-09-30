@@ -6,6 +6,7 @@ using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.Shift;
+using BusDriver.Gameplay.Views;
 using UnityEngine;
 
 namespace BusDriver.Gameplay.Flow {
@@ -24,6 +25,8 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] RouteTracker tracker;
         [SerializeField] RouteProgress progress;
         [SerializeField] ShiftClockDriver clock;
+        [Tooltip("Creates passenger views from looks (§4.14)")]
+        [SerializeField] ViewFactory views;
         [Tooltip("The development and test driver (§4.18)")]
         [SerializeField] AutoPilot autoPilot;
         [Tooltip("Development and test riders (T-M2-07), until ManifestSpawner (T-M3-03)")]
@@ -92,9 +95,12 @@ namespace BusDriver.Gameplay.Flow {
             if (shift.AutoPilot != null) {
                 shift.AutoPilot.Init(shift);
             }
-            // 4–13. PlayerAttention, PassengerRegistry/ViewFactory, the ledger, sanity, scares,
-            // death, monsters, hallucinations, items, journal/hints arrive with M3–M7; the legacy
-            // game over stands in for DeathDirector until T-M4-06
+            // 4. PlayerAttention (T-M4-01)
+            // 5. PassengerRegistry, ViewFactory
+            shift.Views.Init(shift);
+            // 6–13. The ledger, sanity, scares, death, monsters, hallucinations, items and
+            // journal/hints arrive with M3–M7; the legacy game over stands in for DeathDirector
+            // until T-M4-06
             if (shift.GameOver != null) {
                 shift.GameOver.Init(shift);
             }
@@ -138,6 +144,7 @@ namespace BusDriver.Gameplay.Flow {
                 Progress = progress,
                 Clock = clock,
                 AutoPilot = autoPilot,
+                Views = views,
             };
             return shift;
         }

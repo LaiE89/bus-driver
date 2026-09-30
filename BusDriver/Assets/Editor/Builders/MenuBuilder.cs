@@ -3,6 +3,7 @@ using BusDriver.Core.Data;
 using BusDriver.Core.Rules;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Audio;
+using BusDriver.Gameplay.Views;
 using BusDriver.Gameplay.World;
 using BusDriver.UI.Menu;
 using BusDriver.UI.Screens;
@@ -166,17 +167,27 @@ namespace BusDriver.Editor.Builders {
             BuildFigure(stop.transform, stop.GetComponent<BusStop>());
         }
 
-        // One waiting passenger, view only: a plain capsule and sphere until GreyboxPassengerView
-        // (T-M3-01), standing where the stop's first rider waits, facing the road
+        // The look the menu's waiting figure wears: the tall one in the long dark coat
+        public const string FigureLookId = "look06";
+
+        // One waiting passenger, view only (§2.22): the generated GreyboxPassengerView in a look,
+        // with no logic, standing where the stop's first rider waits and facing the road
         static void BuildFigure(Transform stop, BusStop busStop) {
             Vector3 wait = busStop != null ? busStop.WaitLocalPosition(0) : new Vector3(5.2f, 0f, -1.2f);
-            GameObject figure = Group(FigureName, stop);
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabBuilder.GreyboxPassengerViewPath);
+            if (prefab == null) {
+                throw new System.InvalidOperationException("no greybox passenger view; PrefabBuilder runs before MenuBuilder");
+            }
+            GameObject figure = (GameObject)PrefabUtility.InstantiatePrefab(prefab, stop);
+            figure.name = FigureName;
             figure.transform.localPosition = wait;
             figure.transform.localRotation = Quaternion.Euler(0f, -90f, 0f);
-            Material skin = MaterialLibraryBuilder.Get("Passenger");
-            Material coat = MaterialLibraryBuilder.Get("PassengerOdd");
-            Prim(PrimitiveType.Capsule, "Body", figure.transform, new Vector3(0f, 0.8f, 0f), new Vector3(0.5f, 0.8f, 0.35f), coat);
-            Prim(PrimitiveType.Sphere, "Head", figure.transform, new Vector3(0f, 1.62f, 0f), new Vector3(0.24f, 0.28f, 0.26f), skin);
+            GreyboxPassengerView view = figure.GetComponent<GreyboxPassengerView>();
+            GameRootConfig config = AssetDatabase.LoadAssetAtPath<GameRootConfig>(GameRootConfig.AssetPath);
+            view.Configure(config != null ? config.Look(FigureLookId) : null);
+            view.SetPose(PassengerPose.Standing);
+            ViewFactory.AttachFlicker(view, 1);
+            EditorUtility.SetDirty(view);
         }
 
         static Button MenuButton(string name, Transform parent, string text, float y) {

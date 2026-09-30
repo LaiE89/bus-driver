@@ -14,16 +14,18 @@ using static BusDriver.Editor.Builders.BuilderUtil;
 namespace BusDriver.Editor.Builders {
     // BuildAll step 7 (§4.15): the logic prefabs and their greybox views. For now: Bus, OnFootRig
     // and FallCamera (T-M1-14), the HUD and Screens (UIPrefabBuilder, T-M1-16), the environment
-    // kinds (EnvironmentPrefabBuilder, T-M2-06) and the MVP's two
-    // pooled riders (T-M1-16, until the manifest and the view split replace them in M2–M3). The 12 m bus geometry, camera placements and seat layout are the
-    // MVP's, unchanged (Appendix A.2). The logic root owns every collider, camera, light and
-    // anchor; the View child owns only renderers (§4.14).
+    // kinds (EnvironmentPrefabBuilder, T-M2-06), the Passenger logic prefab and its greybox view
+    // (T-M3-01) and the legacy WeepingAngel (until T-M6-05). The 12 m bus geometry, camera
+    // placements and seat layout are the MVP's, unchanged (Appendix A.2). The logic root owns
+    // every collider, camera, light and anchor; the view owns only renderers (§4.14).
     public static class PrefabBuilder {
         public const string Folder = GeneratedRoot + "/Prefabs";
         public const string BusPath = Folder + "/Bus.prefab";
         public const string OnFootRigPath = Folder + "/OnFootRig.prefab";
         public const string FallCameraPath = Folder + "/FallCamera.prefab";
-        public const string LegacyPassengerPath = Folder + "/Passenger.prefab";
+        public const string PassengerPath = Folder + "/Passenger.prefab";
+        public const string ViewsFolder = Folder + "/Views";
+        public const string GreyboxPassengerViewPath = ViewsFolder + "/View_GreyboxPassenger.prefab";
         public const string LegacyWeepingAngelPath = Folder + "/WeepingAngel.prefab";
         public const string TuningPath = "Assets/Settings/BusTuning.asset";
 
@@ -82,8 +84,10 @@ namespace BusDriver.Editor.Builders {
             BuildBus();
             BuildOnFootRig();
             BuildFallCamera();
-            BuildLegacyRider<Passenger>(LegacyPassengerPath, "Passenger");
-            BuildLegacyRider<WeepingAngel>(LegacyWeepingAngelPath, "WeepingAngel");
+            EnsureFolder(ViewsFolder);
+            BuildGreyboxPassengerView();
+            BuildRider<Passenger>(PassengerPath, "Passenger");
+            BuildRider<WeepingAngel>(LegacyWeepingAngelPath, "WeepingAngel");
             UIPrefabBuilder.Build();
             EnvironmentPrefabBuilder.Build();
             AssetDatabase.SaveAssets();
@@ -580,11 +584,12 @@ namespace BusDriver.Editor.Builders {
             SetLayerRecursively(parent.gameObject, Layers.PlayerAvatar);
         }
 
-        // ======================================================= legacy riders
+        // ============================================================== riders
 
-        // The MVP rider, root at the feet; Passenger.SetPose moves the body and head between
-        // standing and seated. The angel looks like everyone else on purpose.
-        static void BuildLegacyRider<T>(string path, string name) where T : Passenger {
+        // A rider's logic root (§4.14), root at the feet: Anchor_Head and the interact collider on
+        // the Passenger layer. No renderers: ViewFactory creates the view from the rider's look at
+        // spawn. The legacy angel is built the same way and looks like everyone else on purpose.
+        static void BuildRider<T>(string path, string name) where T : Passenger {
             GameObject root = new GameObject(name);
             T passenger = root.AddComponent<T>();
             // Only there for the player's interaction ray, and only enabled while the bus is walkable
@@ -594,14 +599,83 @@ namespace BusDriver.Editor.Builders {
             reach.radius = 0.32f;
             reach.height = 1.4f;
             reach.enabled = false;
-            GameObject body = Prim(PrimitiveType.Capsule, "Body", root.transform, new Vector3(0f, 0.75f, 0f), new Vector3(0.42f, 0.75f, 0.42f), M("Passenger"));
-            GameObject head = Prim(PrimitiveType.Sphere, "Head", root.transform, new Vector3(0f, 1.62f, 0f), Vector3.one * 0.26f, M("Passenger"));
+            Transform head = Node(root.transform, "Anchor_Head", new Vector3(0f, Passenger.StandingHeadHeight, 0f));
+            SetRef(passenger, "anchorHead", head);
+            SetRef(passenger, "interactCollider", reach);
+            SetLayerRecursively(root, Layers.Passenger);
+            SaveOrOverwritePrefab(root, path);
+            Object.DestroyImmediate(root);
+        }
+
+        // The greybox passenger view (§4.14): the MVP capsule and sphere with a face bar, plus a
+        // primitive for every tell and accessory, hidden until used. ViewFactory colours it per look.
+        static void BuildGreyboxPassengerView() {
+            GameObject root = new GameObject("View_GreyboxPassenger");
+            GreyboxPassengerView view = root.AddComponent<GreyboxPassengerView>();
+            Transform rig = Group("Rig", root.transform).transform;
+            Transform bodyPivot = Group("BodyPivot", rig).transform;
+            GameObject body = Prim(PrimitiveType.Capsule, "Body", bodyPivot, new Vector3(0f, 0.75f, 0f), new Vector3(0.42f, 0.75f, 0.42f), M("Passenger"));
+            GameObject coat = Prim(PrimitiveType.Capsule, "Acc_LongCoat", body.transform, new Vector3(0f, -0.12f, 0f), new Vector3(1.14f, 0.95f, 1.14f), M("Accessory"));
+            GameObject backpack = Box("Acc_Backpack", body.transform, new Vector3(0f, 0.15f, -0.62f), new Vector3(0.8f, 0.42f, 0.45f), M("Accessory"));
+
+            Transform headPivot = Node(bodyPivot, "HeadPivot", new Vector3(0f, Passenger.StandingHeadHeight, 0f));
+            GameObject head = Prim(PrimitiveType.Sphere, "HeadVisual", headPivot, Vector3.zero, Vector3.one * 0.26f, M("Passenger"));
             // Without a face nobody could tell which way a sphere is looking
             Box("Face", head.transform, new Vector3(0f, 0.08f, 0.46f), new Vector3(0.6f, 0.2f, 0.15f), M("Face"));
-            SetRef(passenger, "head", head.transform);
-            SetRef(passenger, "body", body.transform);
-            SetRef(passenger, "interactCollider", reach);
-            SaveOrOverwritePrefab(root, path);
+            Transform face = Node(headPivot, "Anchor_Face", new Vector3(0f, 0f, 0.23f));
+            Transform eyes = Group("Eyes", headPivot).transform;
+            eyes.localPosition = new Vector3(0f, 0.035f, 0.115f);
+            foreach (float x in new[] { -0.05f, 0.05f }) {
+                Prim(PrimitiveType.Sphere, x < 0f ? "EyeL" : "EyeR", eyes, new Vector3(x, 0f, 0f), Vector3.one * 0.06f, M("Eye"));
+            }
+            eyes.gameObject.SetActive(false);
+            GameObject mouth = Box("Mouth", headPivot, new Vector3(0f, -0.055f, 0.122f), new Vector3(0.07f, 0.018f, 0.012f), M("Face"));
+            GameObject hood = Group("Hood", headPivot);
+            hood.transform.localPosition = new Vector3(0f, -0.03f, -0.01f);
+            hood.AddComponent<MeshFilter>().sharedMesh = MeshBuilder.Get(MeshBuilder.HoodMeshName);
+            hood.AddComponent<MeshRenderer>().sharedMaterial = M("Hood");
+            hood.SetActive(false);
+            GameObject phone = Prim(PrimitiveType.Quad, "Phone", headPivot, new Vector3(0.02f, -0.12f, 0.28f), new Vector3(0.07f, 0.13f, 1f), M("PhoneGlow"));
+            // Its lit face toward the camera in front of the rider, tilted up at the eyes
+            phone.transform.localRotation = Quaternion.Euler(-30f, 180f, 0f);
+            phone.SetActive(false);
+
+            GameObject cap = Group("Acc_Cap", headPivot);
+            Prim(PrimitiveType.Cylinder, "Crown", cap.transform, new Vector3(0f, 0.1f, 0f), new Vector3(0.27f, 0.05f, 0.27f), M("Accessory"));
+            Box("Brim", cap.transform, new Vector3(0f, 0.085f, 0.13f), new Vector3(0.22f, 0.015f, 0.12f), M("Accessory"));
+            GameObject scarf = Prim(PrimitiveType.Cylinder, "Acc_Scarf", headPivot, new Vector3(0f, -0.17f, 0f), new Vector3(0.26f, 0.05f, 0.26f), M("Accessory"));
+            GameObject glasses = Box("Acc_Glasses", headPivot, new Vector3(0f, 0.035f, 0.125f), new Vector3(0.2f, 0.035f, 0.02f), M("Accessory"));
+
+            Transform shoulders = Node(bodyPivot, "Shoulders", new Vector3(0f, 1.38f, 0f));
+            Transform[] arms = new Transform[2];
+            Renderer[] armRenderers = new Renderer[2];
+            for (int i = 0; i < 2; i++) {
+                float x = i == 0 ? -0.22f : 0.22f;
+                arms[i] = Node(shoulders, i == 0 ? "ArmL" : "ArmR", new Vector3(x, 0f, 0f));
+                armRenderers[i] = Box("Arm", arms[i], new Vector3(0f, -0.225f, 0f), new Vector3(0.09f, 0.45f, 0.09f), M("Passenger")).GetComponent<Renderer>();
+                arms[i].gameObject.SetActive(false);
+            }
+
+            GameObject[] accessories = { cap, scarf, backpack, glasses, coat };
+            foreach (GameObject accessory in accessories) {
+                accessory.SetActive(false);
+            }
+            SetRef(view, "rig", rig);
+            SetRef(view, "bodyPivot", bodyPivot);
+            SetRef(view, "body", body.transform);
+            SetRef(view, "headPivot", headPivot);
+            SetRef(view, "face", face);
+            SetRef(view, "eyes", eyes);
+            SetRef(view, "mouth", mouth.transform);
+            SetRef(view, "hood", hood);
+            SetRef(view, "phone", phone.GetComponent<Renderer>());
+            SetRef(view, "shoulders", shoulders);
+            SetRef(view, "armLeft", arms[0]);
+            SetRef(view, "armRight", arms[1]);
+            SetRefArray(view, "bodyRenderers", new Object[] { body.GetComponent<Renderer>(), armRenderers[0], armRenderers[1] });
+            SetRefArray(view, "headRenderers", new Object[] { head.GetComponent<Renderer>() });
+            SetRefArray(view, "accessories", accessories);
+            SaveOrOverwritePrefab(root, GreyboxPassengerViewPath);
             Object.DestroyImmediate(root);
         }
 

@@ -49,4 +49,7 @@ namespace BusDriver.Core.Data {
     public enum ZoneSpan : int { Across = 0, LeftEdge = 1, RightEdge = 2 }
     public enum SignKind : int { BridgeAhead = 0, NoGuardrailAhead = 1, SharpCurveRight = 2, Chevron = 3, TunnelAhead = 4, StopSign = 5 }
     public enum BlockerVariant : int { A = 0, B = 1 }
+
+    // A look's greybox accessory (§4.8 PassengerLookDefinition; T-M3-01)
+    public enum LookAccessory : int { None = 0, Cap = 1, Scarf = 2, Backpack = 3, Glasses = 4, LongCoat = 5 }
 }

@@ -21,3 +21,16 @@ MonoBehaviour:
   routes:
   - {fileID: 11400000, guid: 8f8cbec31f24846e1bc582eeab448f64, type: 2}
   environment: {fileID: 11400000, guid: 046364deec4c549a28224cd18ee8ec9a, type: 2}
+  looks:
+  - {fileID: 11400000, guid: ba6f3a62d24564822b5b97313a0b5b04, type: 2}
+  - {fileID: 11400000, guid: 46288ed69509440be990720b077fdd99, type: 2}
+  - {fileID: 11400000, guid: 430367a36d8784203838941f2eb0f481, type: 2}
+  - {fileID: 11400000, guid: 22bce9d8d145c45e48e6796e640513c0, type: 2}
+  - {fileID: 11400000, guid: 871a869a959134c188367aad60eaa073, type: 2}
+  - {fileID: 11400000, guid: eba83300f53e542c09e5135e81e41ae2, type: 2}
+  - {fileID: 11400000, guid: 545c2bbce6f734d96a07a15382257646, type: 2}
+  - {fileID: 11400000, guid: 19541744258014dc8a91f1bc7df12e9e, type: 2}
+  - {fileID: 11400000, guid: abb012808e20f4a769b09b38dccdc02e, type: 2}
+  - {fileID: 11400000, guid: 8553a9da666fa4bddae09fd53038c178, type: 2}
+  - {fileID: 11400000, guid: ae3c54f3afc7845d1826ff3e26b222ae, type: 2}
+  - {fileID: 11400000, guid: aba9ab1a69da347ae8c2823f09aeed5f, type: 2}

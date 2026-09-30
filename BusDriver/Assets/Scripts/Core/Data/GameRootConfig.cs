@@ -34,10 +34,22 @@ namespace BusDriver.Core.Data {
         [Tooltip("Environment kind → view (Data/Views/Environment)")]
         public EnvironmentViewSet environment;
 
+        [Tooltip("Every passenger look (Data/Looks), in id order")]
+        public PassengerLookDefinition[] looks = new PassengerLookDefinition[0];
+
         public RouteDefinition Route(string routeId) {
             for (int i = 0; i < routes.Length; i++) {
                 if (routes[i] != null && routes[i].id == routeId) {
                     return routes[i];
+                }
+            }
+            return null;
+        }
+
+        public PassengerLookDefinition Look(string lookId) {
+            for (int i = 0; i < looks.Length; i++) {
+                if (looks[i] != null && looks[i].id == lookId) {
+                    return looks[i];
                 }
             }
             return null;

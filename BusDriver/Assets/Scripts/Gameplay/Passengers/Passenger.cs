@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using BusDriver.Core.Data;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
+using BusDriver.Gameplay.Views;
 using BusDriver.Gameplay.World;
 
 namespace BusDriver.Gameplay.Passengers {
@@ -13,9 +15,15 @@ namespace BusDriver.Gameplay.Passengers {
     // so anything a monster might want to do differently is a virtual hook here.
     // Movement is plain waypoint walking in bus-local space: the bus moves, so no NavMesh,
     // and passengers have no physics.
+    // Logic only (§4.14): the root owns Anchor_Head (observation) and the interact collider; the
+    // visuals are a PassengerViewBase child that ViewFactory creates at spawn.
     public class Passenger : MonoBehaviour, IInteractable {
-        [SerializeField] protected Transform head;
-        [SerializeField] protected Transform body;
+        // Anchor_Head's local height, standing and seated (the MVP numbers, §4.14)
+        public const float StandingHeadHeight = 1.62f;
+        public const float SeatedHeadHeight = 0.94f;
+
+        [Tooltip("Anchor_Head: what observers look at (§2.8)")]
+        [SerializeField] Transform anchorHead;
         [SerializeField] Collider interactCollider;
         [SerializeField] float walkSpeed = 1.3f;
         [SerializeField] float turnSpeed = 360f;
@@ -29,9 +37,15 @@ namespace BusDriver.Gameplay.Passengers {
         public bool IsAboard { get; private set; }
         public bool WasKicked { get; private set; }
         public string DisplayName { get { return displayName; } }
+        // The logic head, for observation linecasts and "is it on camera"
+        public Transform Head { get { return anchorHead; } }
+        public PassengerViewBase View { get { return view; } }
+        public string LookId { get; private set; } = "";
         // The night this rider belongs to; null for one placed by hand (tests)
         protected ShiftServices Shift { get; private set; }
 
+        PassengerViewBase view;
+        bool seatedPose;
         BusStop homeStop;
         Vector3 waitPosition;
         Quaternion waitRotation;
@@ -39,7 +53,7 @@ namespace BusDriver.Gameplay.Passengers {
 
         protected virtual void Awake() {
             State = PassengerState.Waiting;
-            SetPose(false);
+            SetSeatedPose(false);
             RefreshInteractable();
         }
 
@@ -75,10 +89,10 @@ namespace BusDriver.Gameplay.Passengers {
 
         // Rough visibility test with no occlusion, enough for "am I on camera right now"
         protected bool IsSeenBy(Camera cam) {
-            if (cam == null || !cam.enabled || head == null) {
+            if (cam == null || !cam.enabled || anchorHead == null) {
                 return false;
             }
-            Vector3 viewport = cam.WorldToViewportPoint(head.position);
+            Vector3 viewport = cam.WorldToViewportPoint(anchorHead.position);
             return viewport.z > 0f && viewport.x > 0f && viewport.x < 1f && viewport.y > 0f && viewport.y < 1f;
         }
 
@@ -87,6 +101,18 @@ namespace BusDriver.Gameplay.Passengers {
         // From the spawner, before the rider does anything (§4.5)
         public virtual void Bind(ShiftServices shift) {
             Shift = shift;
+        }
+
+        // ViewFactory: the rider's visuals, replacing any previous view (the Mimic changes looks)
+        public void AttachView(PassengerViewBase newView, string lookId) {
+            if (view != null && view != newView) {
+                Destroy(view.gameObject);
+            }
+            view = newView;
+            LookId = lookId ?? "";
+            if (view != null) {
+                view.SetPose(seatedPose ? PassengerPose.Seated : PassengerPose.Standing);
+            }
         }
 
         // Walk from a stop onto the bus. False when there is no free seat.
@@ -121,7 +147,7 @@ namespace BusDriver.Gameplay.Passengers {
             transform.SetParent(cabin.PassengerRoot, true);
             transform.localPosition = cabin.SeatLocal(seat);
             transform.localRotation = Quaternion.identity;
-            SetPose(true);
+            SetSeatedPose(true);
             State = PassengerState.Seated;
             RefreshInteractable();
             OnBoarded();
@@ -186,7 +212,7 @@ namespace BusDriver.Gameplay.Passengers {
 
             yield return WalkLocal(Cabin.SeatAisleLocal(Seat));
             yield return Slide(Cabin.SeatLocal(Seat), Quaternion.identity);
-            SetPose(true);
+            SetSeatedPose(true);
             State = PassengerState.Seated;
             RefreshInteractable();
             OnSeated();
@@ -222,7 +248,7 @@ namespace BusDriver.Gameplay.Passengers {
             // The bus stays put from now until this passenger is off
             doors.Hold(this);
 
-            SetPose(false);
+            SetSeatedPose(false);
             yield return Slide(aisle, transform.localRotation);
             yield return WalkLocal(Cabin.AisleAtDoorLocal);
             while (!doors.TryEnter(this)) {
@@ -248,23 +274,33 @@ namespace BusDriver.Gameplay.Passengers {
         }
 
         IEnumerator WalkWorld(Func<Vector3> target, Func<bool> cancel) {
+            SetLocomotion(walkSpeed);
             while (cancel == null || !cancel()) {
                 Vector3 goal = target();
                 if ((goal - transform.position).sqrMagnitude < 0.0004f) {
-                    yield break;
+                    break;
                 }
                 Face(goal - transform.position, false);
                 transform.position = Vector3.MoveTowards(transform.position, goal, walkSpeed * Time.deltaTime);
                 yield return null;
             }
+            SetLocomotion(0f);
         }
 
         // Bus-local, so it stays right even if the bus drives off mid-walk
         IEnumerator WalkLocal(Vector3 goal) {
+            SetLocomotion(walkSpeed);
             while ((goal - transform.localPosition).sqrMagnitude >= 0.0004f) {
                 Face(goal - transform.localPosition, true);
                 transform.localPosition = Vector3.MoveTowards(transform.localPosition, goal, walkSpeed * Time.deltaTime);
                 yield return null;
+            }
+            SetLocomotion(0f);
+        }
+
+        void SetLocomotion(float metresPerSecond) {
+            if (view != null) {
+                view.SetLocomotion(metresPerSecond);
             }
         }
 
@@ -295,15 +331,15 @@ namespace BusDriver.Gameplay.Passengers {
             }
         }
 
-        // Greybox poses. Seated, the root sits on the cushion, so the body is the short
-        // capsule the CCTV cameras were framed around.
-        protected virtual void SetPose(bool seated) {
-            if (body != null) {
-                body.localScale = seated ? new Vector3(0.42f, 0.42f, 0.42f) : new Vector3(0.42f, 0.75f, 0.42f);
-                body.localPosition = new Vector3(0f, seated ? 0.42f : 0.75f, 0f);
+        // Seated, the root sits on the cushion; the logic head moves with the pose and the view
+        // draws it (§4.14)
+        protected void SetSeatedPose(bool seated) {
+            seatedPose = seated;
+            if (anchorHead != null) {
+                anchorHead.localPosition = new Vector3(0f, seated ? SeatedHeadHeight : StandingHeadHeight, 0f);
             }
-            if (head != null) {
-                head.localPosition = new Vector3(0f, seated ? 0.94f : 1.62f, 0f);
+            if (view != null) {
+                view.SetPose(seated ? PassengerPose.Seated : PassengerPose.Standing);
             }
         }
 
@@ -313,7 +349,7 @@ namespace BusDriver.Gameplay.Passengers {
                 Seat.Release(this);
                 Seat = null;
             }
-            SetPose(false);
+            SetSeatedPose(false);
             RefreshInteractable();
         }
 

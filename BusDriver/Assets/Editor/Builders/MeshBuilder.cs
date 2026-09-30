@@ -37,6 +37,7 @@ namespace BusDriver.Editor.Builders {
             }
             BuilderUtil.SaveMesh(RockMesh(), PathOf("RockChunk"));
             BuilderUtil.SaveMesh(ChevronMesh(), PathOf("Chevron"));
+            BuilderUtil.SaveMesh(HoodMesh(), PathOf(HoodMeshName));
             AssetDatabase.SaveAssets();
         }
 
@@ -166,6 +167,26 @@ namespace BusDriver.Editor.Builders {
         }
 
         // A flat ">" pointing +X, 0.6 m × 0.75 m, facing −Z (toward approaching traffic)
+        public const string HoodMeshName = "HoodCone";
+
+        // The HoodUp decoy's dark cone over a passenger's head (§4.14): pivot at its base centre,
+        // 0.36 m across and 0.42 m tall, closed underneath
+        static Mesh HoodMesh() {
+            Faceted mesh = new Faceted(1);
+            const int sides = 12;
+            const float radius = 0.18f;
+            const float height = 0.42f;
+            Vector3 tip = new Vector3(0f, height, 0f);
+            float step = Mathf.PI * 2f / sides;
+            for (int i = 0; i < sides; i++) {
+                Vector3 a = Ring(i * step, radius, 0f);
+                Vector3 b = Ring((i + 1) * step, radius, 0f);
+                mesh.Triangle(0, a, b, tip);
+                mesh.Triangle(0, a, Vector3.zero, b);
+            }
+            return mesh.ToMesh(HoodMeshName);
+        }
+
         static Mesh ChevronMesh() {
             Faceted mesh = new Faceted(1);
             Vector3 topLeft = new Vector3(-0.3f, 0.375f, 0f);

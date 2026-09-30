@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Editor.Builders;
+using BusDriver.Gameplay.Views;
 using BusDriver.Gameplay.World;
 using UnityEditor;
 using UnityEngine;
@@ -19,6 +20,7 @@ namespace BusDriver.Editor.Validation {
             CheckRoutes,
             CheckLighting,
             CheckEnvironment,
+            CheckLooks,
         };
 
         public static List<string> Validate() {
@@ -162,6 +164,52 @@ namespace BusDriver.Editor.Validation {
                 if (piece == null || piece.Kind != kind || piece.ViewSlot == null) {
                     problems.Add($"environment kind '{kind}' has no logic prefab with an EnvironmentPiece and a view slot");
                 }
+            }
+        }
+
+        // At least 12 looks (D34), ids valid and unique, every look in the config, art views real
+        // views, and the greybox view the factory falls back to (T-M3-01, §4.14)
+        static void CheckLooks(List<string> problems) {
+            GameRootConfig config = Config;
+            if (config == null) {
+                return;
+            }
+            HashSet<string> seen = new HashSet<string>();
+            PassengerLookDefinition[] looks = config.looks ?? new PassengerLookDefinition[0];
+            for (int i = 0; i < looks.Length; i++) {
+                PassengerLookDefinition look = looks[i];
+                if (look == null) {
+                    problems.Add($"GameRootConfig.looks entry {i} is empty");
+                    continue;
+                }
+                if (!Ids.IsSnakeCase(look.id)) {
+                    problems.Add($"look '{look.name}' has an invalid id '{look.id}'");
+                }else if (!seen.Add(look.id)) {
+                    problems.Add($"look id '{look.id}' is used twice");
+                }
+                if (look.greybox == null || look.greybox.heightScale < 0.95f || look.greybox.heightScale > 1.05f) {
+                    problems.Add($"look '{look.id}' has no greybox parameters or a height scale outside 0.95–1.05");
+                }
+                if (look.artView != null && look.artView.GetComponent<PassengerViewBase>() == null) {
+                    problems.Add($"look '{look.id}' has an art view without a PassengerViewBase at its root");
+                }
+                GameObject art = look.artView;
+                if (art != null && (art.GetComponentInChildren<Collider>(true) != null || art.GetComponentInChildren<Rigidbody>(true) != null)) {
+                    problems.Add($"the art view of look '{look.id}' holds a collider or rigidbody");
+                }
+            }
+            if (seen.Count < LookSeed.Count) {
+                problems.Add($"GameRootConfig.looks has {seen.Count} looks; at least {LookSeed.Count} are needed (D34)");
+            }
+            foreach (string guid in AssetDatabase.FindAssets("t:PassengerLookDefinition", new[] { DataRootPath(LookSeed.Folder) })) {
+                PassengerLookDefinition look = AssetDatabase.LoadAssetAtPath<PassengerLookDefinition>(AssetDatabase.GUIDToAssetPath(guid));
+                if (look != null && System.Array.IndexOf(looks, look) < 0) {
+                    problems.Add($"look '{look.id}' isn't listed in GameRootConfig.looks");
+                }
+            }
+            GameObject greybox = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabBuilder.GreyboxPassengerViewPath);
+            if (greybox == null || greybox.GetComponent<GreyboxPassengerView>() == null) {
+                problems.Add("missing the greybox passenger view " + PrefabBuilder.GreyboxPassengerViewPath);
             }
         }
 

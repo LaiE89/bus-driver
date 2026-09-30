@@ -4,6 +4,7 @@ using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.Shift;
+using BusDriver.Gameplay.Views;
 using UnityEngine;
 
 namespace BusDriver.Gameplay.Flow {
@@ -40,6 +41,9 @@ namespace BusDriver.Gameplay.Flow {
         public Camera OnFootCamera;
         // On the driver camera: the rumble strip, scares
         public CameraShake Shake;
+
+        // Passenger views from looks (§4.14)
+        public ViewFactory Views;
 
         // Legacy until DeathDirector (T-M4-06)
         public LegacyGameOver GameOver;

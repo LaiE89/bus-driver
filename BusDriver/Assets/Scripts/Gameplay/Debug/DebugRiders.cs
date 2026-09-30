@@ -1,3 +1,4 @@
+using BusDriver.Core.Data;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.World;
@@ -13,6 +14,7 @@ namespace BusDriver.Gameplay.Debug {
         [SerializeField] Passenger angelPrefab;
 
         ShiftServices shift;
+        int spawned;
 
         // ShiftContext, where ManifestSpawner will be in the Init order (§4.5 step 14)
         public void Init(ShiftServices services) {
@@ -37,6 +39,11 @@ namespace BusDriver.Gameplay.Debug {
             Passenger passenger = Instantiate(prefab, position, rotation, at);
             passenger.name = prefab.name;
             passenger.Bind(shift);
+            // Each debug rider in the next look, round the list
+            PassengerLookDefinition[] looks = shift.Game.Config.looks;
+            PassengerLookDefinition look = looks.Length > 0 ? looks[spawned % looks.Length] : null;
+            spawned++;
+            shift.Views.Recreate(passenger, look);
             stop.AddWaiting(passenger);
             return passenger;
         }
