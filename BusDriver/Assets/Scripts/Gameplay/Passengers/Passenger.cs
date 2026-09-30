@@ -28,6 +28,8 @@ namespace BusDriver.Gameplay.Passengers {
         [SerializeField] float walkSpeed = 1.3f;
         [SerializeField] float turnSpeed = 360f;
         [SerializeField] float exitWalkDistance = 2.5f;
+        [Tooltip("How far a rider walks off when the bus misses their stop (§2.4), in metres")]
+        [SerializeField] float walkAwayDistance = 8f;
         [SerializeField] float sitTime = 0.4f;
         [SerializeField] string displayName = "Passenger";
 
@@ -179,6 +181,26 @@ namespace BusDriver.Gameplay.Passengers {
             }
             StartCoroutine(LeaveRoutine(false));
             return true;
+        }
+
+        // The bus missed this rider's stop (§2.4): they give up, walk away from the road and are gone.
+        // Only a rider still waiting can.
+        public bool WalkAway(Vector3 worldDirection) {
+            if (State != PassengerState.Waiting) {
+                return false;
+            }
+            State = PassengerState.Leaving;
+            RefreshInteractable();
+            worldDirection.y = 0f;
+            Vector3 away = transform.position + worldDirection.normalized * walkAwayDistance;
+            StartCoroutine(WalkAwayRoutine(away));
+            return true;
+        }
+
+        IEnumerator WalkAwayRoutine(Vector3 away) {
+            yield return WalkWorld(() => away, null);
+            State = PassengerState.Gone;
+            Destroy(gameObject);
         }
 
         // Doors are closing. Ignored once aboard.

@@ -46,6 +46,16 @@ namespace BusDriver.Gameplay.World {
             }
         }
 
+        // Everyone still waiting here, taken off the queue (a missed stop, §2.4)
+        public void TakeAllWaiting(List<Passenger> into) {
+            for (int i = 0; i < waiting.Count; i++) {
+                if (waiting[i] != null) {
+                    into.Add(waiting[i]);
+                }
+            }
+            waiting.Clear();
+        }
+
         public void BeginBoarding(BusCabin cabin) {
             if (boarding == null) {
                 boarding = StartCoroutine(BoardingRoutine(cabin));
