@@ -1,5 +1,6 @@
 using UnityEngine;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Flow;
 using BusDriver.UI.Screens;
 
 namespace BusDriver.Gameplay.Player {
@@ -7,7 +8,7 @@ namespace BusDriver.Gameplay.Player {
     // bus: the bus is frozen while anyone is on foot, and this way the view stays level
     // even when the bus is parked with two wheels up a kerb.
     [RequireComponent(typeof(CharacterController))]
-    public class OnFootController : MonoBehaviour {
+    public class OnFootController : MonoBehaviour, IGameBindable {
         [SerializeField] Transform head;
         [SerializeField] Transform avatarRoot;
         // The bus hull is one solid box around the whole interior
@@ -26,9 +27,23 @@ namespace BusDriver.Gameplay.Player {
         public Vector2 ExternalMove { get; set; }
 
         CharacterController controller;
+        SettingsService settings;
         float yaw;
         float pitch;
         float fallSpeed;
+
+        // From the scene root (LegacyNightRoot, later ShiftContext)
+        public void Bind(GameServices game) {
+            settings = game.Settings;
+        }
+
+        internal float Sensitivity {
+            get { return settings != null ? settings.Current.mouseSensitivity : fallbackSens; }
+        }
+
+        internal float PitchSign {
+            get { return settings != null && settings.Current.invertY ? -1f : 1f; }
+        }
 
         void Awake() {
             controller = GetComponent<CharacterController>();
@@ -77,9 +92,9 @@ namespace BusDriver.Gameplay.Player {
             }
             Vector2 move = ExternalMove;
             if (!ExternalControl) {
-                float sens = OptionsMenu.sens > 0f ? OptionsMenu.sens : fallbackSens;
+                float sens = Sensitivity;
                 yaw += Input.GetAxis("Mouse X") * sens * sensScale;
-                pitch = Mathf.Clamp(pitch + Input.GetAxis("Mouse Y") * sens * sensScale, -pitchLimit, pitchLimit);
+                pitch = Mathf.Clamp(pitch + Input.GetAxis("Mouse Y") * PitchSign * sens * sensScale, -pitchLimit, pitchLimit);
                 move = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
             }
             transform.rotation = Quaternion.Euler(0f, yaw, 0f);

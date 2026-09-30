@@ -21,6 +21,7 @@ STATUS = {
     "T-M1-02": "Done (2026-09-29)",
     "T-M1-03": "Done (2026-09-29)",
     "T-M1-04": "Done (2026-09-30)",
+    "T-M1-05": "Done (2026-09-30)",
 }
 def M(mid, title, phase, goal, acceptance, note=""):
     MILESTONES.append(dict(id=mid, title=title, phase=phase, goal=goal, acceptance=acceptance, note=note, tickets=[]))
@@ -201,7 +202,8 @@ T("T-M1-07", "Migrate gameplay and menus off legacy input", "M", "code", ["T-M1-
    "HUD prompts use `GetBindingDisplayString`.",
    "Keep the `ExternalControl` seams.",
    "Set `activeInputHandler` to Input System only. Every EventSystem uses `InputSystemUIInputModule`.",
-   "Convert mouse-look scale as in §4.10."],
+   "Convert mouse-look scale as in §4.10.",
+   "Delete `LegacyKeyBindings` and the temporary `SettingsData.legacyKeyBindings` field (D56); rebinds now live in `bindingOverridesJson`."],
   ["No `UnityEngine.Input.` or `Event.current` remains in runtime code (checked by `ArchitectureRulesTests`).",
    "Smoke-test drive numbers are within 5 % of the M0 baseline in `Logs/smoke.log`: 0–50 km/h time, stop time, turn angle.",
    "Rebinding CycleCamera to C works, persists, and shows in the HUD prompt. Rebinding Interact to a mouse button works; binding it to mouse movement is impossible.",
@@ -294,7 +296,7 @@ T("T-M1-14", "Generated Bus, OnFootRig and FallCamera prefabs with greybox views
    "The smoke test passes."])
 T("T-M1-15", "ShiftContext, ShiftServices, SceneController split", "L", "code", ["T-M1-14", "T-M1-07", "T-M1-08", "T-M1-05"], "none", "§4.5, §4.6",
   ["Add `ShiftContext : ISceneRoot` with `Initialize`, `AttachRoute` and `Begin`, and the fixed Init order. Services that don't exist yet are skipped.",
-   "Add `ShiftServices` and `IShiftBindable`.",
+   "Add `ShiftServices` and `IShiftBindable`. `IShiftBindable` and the explicit Init order replace the interim `IGameBindable`/`SceneBinding` discovery (D56).",
    "Split `SceneController` (PR #5 grew it from `PlayerModeController`, D46):",
    "- pause and cursor are already gone (T-M1-08), and settings loading (T-M1-05)",
    "- NPC spawning (`PopulateBusStops`, `SpawnNpcAtStop`, `DespawnNpc`, the pool and the weights) moves to a `LegacyRiderSpawner` on the route root, which lives until T-M2-07",

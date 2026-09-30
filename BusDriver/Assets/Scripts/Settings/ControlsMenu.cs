@@ -3,11 +3,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using BusDriver.Gameplay.Audio;
+using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
 using BusDriver.UI.Menu;
 
 namespace BusDriver.UI.Screens {
-    public class ControlsMenu : MonoBehaviour {
+    public class ControlsMenu : MonoBehaviour, IGameBindable {
         public const KeyCode defaultSwitchCameraKey = KeyCode.Space;
         public static KeyCode switchCameraKey = defaultSwitchCameraKey;
 
@@ -18,6 +19,7 @@ namespace BusDriver.UI.Screens {
         [SerializeField] TMP_Text interactText;
 
         SoundController soundController;
+        SettingsService settings;
         Event keyEvent;
         bool waitingForKey;
         KeyCode newKey;
@@ -40,6 +42,17 @@ namespace BusDriver.UI.Screens {
                 EnsureDoorsRowVisible();
                 LayoutBindRows();
                 ResolveTextRefs();
+            }
+        }
+
+        // Rebinds are written to settings.json at once (D56)
+        public void Bind(GameServices game) {
+            settings = game.Settings;
+        }
+
+        void SaveBindings() {
+            if (settings != null) {
+                settings.Save();
             }
         }
 
@@ -131,6 +144,7 @@ namespace BusDriver.UI.Screens {
             }
             pendingBind = null;
             FixingText();
+            SaveBindings();
         }
 
         public void ResetKeybinds() {
@@ -140,6 +154,7 @@ namespace BusDriver.UI.Screens {
             switchCameraKey = defaultSwitchCameraKey;
             GameKeys.ResetDefaults();
             FixingText();
+            SaveBindings();
         }
 
         public void FixingText() {

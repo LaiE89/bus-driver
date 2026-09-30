@@ -1779,7 +1779,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4658086617065544391}
-        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsMenu, BusDriver.Runtime
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsScreen, BusDriver.Runtime
         m_MethodName: SetBrightness
         m_Mode: 0
         m_Arguments:
@@ -2231,7 +2231,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4658086617065544391}
-        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsMenu, BusDriver.Runtime
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsScreen, BusDriver.Runtime
         m_MethodName: AdjustSensitivity
         m_Mode: 0
         m_Arguments:
@@ -2461,7 +2461,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4658086617065544391}
-        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsMenu, BusDriver.Runtime
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsScreen, BusDriver.Runtime
         m_MethodName: SetFullscreen
         m_Mode: 0
         m_Arguments:
@@ -2618,7 +2618,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4658086617065544391}
-        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsMenu, BusDriver.Runtime
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsScreen, BusDriver.Runtime
         m_MethodName: ChangeQuality
         m_Mode: 0
         m_Arguments:
@@ -2973,7 +2973,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4658086617065544391}
-        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsMenu, BusDriver.Runtime
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsScreen, BusDriver.Runtime
         m_MethodName: SaveSettings
         m_Mode: 1
         m_Arguments:
@@ -3483,7 +3483,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4658086617065544391}
-        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsMenu, BusDriver.Runtime
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsScreen, BusDriver.Runtime
         m_MethodName: SetVolume
         m_Mode: 0
         m_Arguments:
@@ -5213,7 +5213,7 @@ MonoBehaviour:
           m_BoolArgument: 1
         m_CallState: 2
       - m_Target: {fileID: 4658086617065544391}
-        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsMenu, BusDriver.Runtime
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsScreen, BusDriver.Runtime
         m_MethodName: PlayUISound
         m_Mode: 1
         m_Arguments:
@@ -6602,7 +6602,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4658086617065544391}
-        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsMenu, BusDriver.Runtime
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsScreen, BusDriver.Runtime
         m_MethodName: SetResolution
         m_Mode: 0
         m_Arguments:
@@ -6757,7 +6757,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4658086617065544391}
-        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsMenu, BusDriver.Runtime
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsScreen, BusDriver.Runtime
         m_MethodName: SetTargetFPS
         m_Mode: 0
         m_Arguments:
@@ -6915,7 +6915,7 @@ MonoBehaviour:
           m_BoolArgument: 1
         m_CallState: 2
       - m_Target: {fileID: 4658086617065544391}
-        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsMenu, BusDriver.Runtime
+        m_TargetAssemblyTypeName: BusDriver.UI.Screens.OptionsScreen, BusDriver.Runtime
         m_MethodName: PlayUISound
         m_Mode: 1
         m_Arguments:

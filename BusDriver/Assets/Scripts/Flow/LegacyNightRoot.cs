@@ -8,8 +8,10 @@ namespace BusDriver.Gameplay.Flow {
         public GameServices Game { get; private set; }
         public NightSetup Setup { get; private set; }
 
+        // Hands the services to the look controllers, the options screen and the rest (D56)
         public void Initialize(GameServices game) {
             Game = game;
+            SceneBinding.BindAll(gameObject.scene, game);
         }
 
         public void Begin(NightSetup setup) {

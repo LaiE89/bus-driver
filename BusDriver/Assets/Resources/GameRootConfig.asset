@@ -13,3 +13,4 @@ MonoBehaviour:
   m_Name: GameRootConfig
   m_EditorClassIdentifier:
   buildLabel:
+  mixer: {fileID: 24100000, guid: f47922c61f176ea40b87b83231abdcde, type: 2}

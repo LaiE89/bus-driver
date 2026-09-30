@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using UnityEngine;
 using BusDriver.Core.Util;
 using UnityEngine.SceneManagement;
@@ -95,7 +94,6 @@ namespace BusDriver.Gameplay.Player {
 
             ingameMenus.pausedGame = false;
             Time.timeScale = 1;
-            ApplySavedSettingsIfNeeded();
             CacheServices();
             if (npcPool == null) {
                 npcPool = GetComponent<ObjectPooling>();
@@ -432,37 +430,6 @@ namespace BusDriver.Gameplay.Player {
             }
             ingameMenus.pausedGame = false;
             Time.timeScale = 1;
-        }
-
-        // Settings normally load through the options menu in the Menu scene. When this
-        // scene is played directly that never ran, so read the save file here.
-        void ApplySavedSettingsIfNeeded() {
-            float brightness = OptionsMenu.brightness;
-            if (OptionsMenu.sens <= 0f && File.Exists(Application.persistentDataPath + "/settings.dat")) {
-                OptionsData settings = OptionsSaveSystem.LoadSettings();
-                if (settings != null) {
-                    OptionsMenu.sens = settings.sens;
-                    brightness = settings.brightness;
-                    if (settings.switchCameraKey != KeyCode.None) {
-                        ControlsMenu.switchCameraKey = settings.switchCameraKey;
-                    }
-                    if (settings.handbrakeKey != KeyCode.None) {
-                        GameKeys.handbrake = settings.handbrakeKey;
-                    }
-                    if (settings.doorsKey != KeyCode.None) {
-                        GameKeys.doors = settings.doorsKey;
-                    }
-                    if (settings.leaveSeatKey != KeyCode.None) {
-                        GameKeys.leaveSeat = settings.leaveSeatKey;
-                    }
-                    if (settings.interactKey != KeyCode.None) {
-                        GameKeys.interact = settings.interactKey;
-                    }
-                }
-            }
-            if (brightness > 0f) {
-                RenderSettings.ambientLight = new Color(brightness, brightness, brightness, 1.0f);
-            }
         }
     }
 }

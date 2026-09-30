@@ -7,8 +7,8 @@ using BusDriver.Gameplay.Flow;
 using BusDriver.UI.Screens;
 
 namespace BusDriver.UI.Menu {
-    public class MainMenu : MonoBehaviour {
-        [SerializeField] public OptionsMenu options;
+    public class MainMenu : MonoBehaviour, IGameBindable {
+        [SerializeField] public OptionsScreen options;
         [SerializeField] public GameObject loadingScreen;
         [SerializeField] public Slider slider;
         [SerializeField] public TextMeshProUGUI progressText;

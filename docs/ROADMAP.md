@@ -231,6 +231,7 @@ Decisions are never edited once made. To change one, add a new row that supersed
 | D53 (agent) | **Content ids may be dotted.** Sound, scare and hallucination ids are namespaced (`scare.starer.lens`, `mon.whisper_feed_loop`), so `Ids.IsValid` accepts lower_snake_case segments joined by dots; `Ids.IsSnakeCase` is the strict single-segment check for stop, route, look, monster and item ids (§4.1.11) | 2026-09-29 | agent (T-M1-01) |
 | D54 (agent) | **Save-model details §4.9 leaves open.** Three enums join §4.8: `ArrivalRating` (saved by name, e.g. `Early`, `OnTime`), `ScareIntensity` and `WindowMode` (the values of `UnityEngine.FullScreenMode`, since save models hold no Unity types). `qualityLevel` is an index (Low 0, Medium 1, High 2). A zero `resolutionWidth/Height` or `refreshRate` means the display's current mode. `targetFpsIndex` defaults to 3 (unlimited), the existing options menu's default. All §4.8 enums live in `Core/Data/Enums.cs` | 2026-09-29 | agent (T-M1-03) |
 | D55 (agent) | **Run-flow skeleton choices (T-M1-04).** (1) Until the first-launch warning screen exists (T-M8-02), Boot never enters FirstLaunch; it goes straight to Menu. (2) `SceneLoader` wires every scene in `SceneManager.sceneLoaded` (after Awake, before Start), including scenes legacy code still loads directly (the MVP pause and Game Over menus), and `RunFlow` decides its state from the wired root: a night root at boot, or outside its own load, starts or continues a run (an editor debug run when there is none). (3) Tests replace the running root with `GameRoot.RebootForTests(saveRoot)` so they never write to the real persistentDataPath. (4) Flow code lives in `Scripts/Flow/` until T-M1-21 moves it to `Scripts/Gameplay/Flow/`. (5) `BuildLabel` is gone: the label lives in `GameRootConfig.buildLabel`, written by `BuildScripts` for the build and restored afterwards, and reaches the menu through `GameServices.Build` | 2026-09-30 | agent (T-M1-04) |
+| D56 (agent) | **Settings wiring before ShiftContext (T-M1-05).** (1) Legacy scene roots (`MenuContext`, `LegacyNightRoot`) hand the services to every `IGameBindable` under their scene (`SceneBinding.BindAll`, inactive objects included): `MainMenu`, `OptionsScreen`, `ControlsMenu`, `DriverLook`, `OnFootController`. `IShiftBindable` and the fixed Init order replace this in T-M1-15. (2) The MVP's KeyCode rebinds persist in a temporary `SettingsData.legacyKeyBindings` map through `LegacyKeyBindings` until T-M1-07 deletes both; rebinds are saved at once. (3) Settings are saved on Apply, when the options screen closes, and after every rebind. (4) `GameRootConfig.mixer` holds MainMixer, and master volume drives its one exposed `volume` parameter until T-M1-10. (5) Brightness is re-applied on every scene load, since each scene carries its own RenderSettings (until T-M2-05). (6) Restore defaults keeps `warningAcknowledged`. (7) Resolution and display mode are only applied in players, never in the Editor or batch mode | 2026-09-30 | agent (T-M1-05) |
 
 ---
 
@@ -1947,6 +1948,7 @@ Every ticket that needs something outside the codebase, in dependency order. Pla
   - Keep the `ExternalControl` seams.
   - Set `activeInputHandler` to Input System only. Every EventSystem uses `InputSystemUIInputModule`.
   - Convert mouse-look scale as in §4.10.
+  - Delete `LegacyKeyBindings` and the temporary `SettingsData.legacyKeyBindings` field (D56); rebinds now live in `bindingOverridesJson`.
 - **Acceptance:**
   - [ ] No `UnityEngine.Input.` or `Event.current` remains in runtime code (checked by `ArchitectureRulesTests`).
   - [ ] Smoke-test drive numbers are within 5 % of the M0 baseline in `Logs/smoke.log`: 0–50 km/h time, stop time, turn angle.
@@ -2101,7 +2103,7 @@ Every ticket that needs something outside the codebase, in dependency order. Pla
 - **Spec:** §4.5, §4.6
 - **Do:**
   - Add `ShiftContext : ISceneRoot` with `Initialize`, `AttachRoute` and `Begin`, and the fixed Init order. Services that don't exist yet are skipped.
-  - Add `ShiftServices` and `IShiftBindable`.
+  - Add `ShiftServices` and `IShiftBindable`. `IShiftBindable` and the explicit Init order replace the interim `IGameBindable`/`SceneBinding` discovery (D56).
   - Split `SceneController` (PR #5 grew it from `PlayerModeController`, D46):
     - pause and cursor are already gone (T-M1-08), and settings loading (T-M1-05)
     - NPC spawning (`PopulateBusStops`, `SpawnNpcAtStop`, `DespawnNpc`, the pool and the weights) moves to a `LegacyRiderSpawner` on the route root, which lives until T-M2-07
@@ -3825,7 +3827,7 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 | `T-M1-02` | Save store: envelopes, atomic writes, migrations | M | Done (2026-09-29) |
 | `T-M1-03` | Save models and v1 fixtures | S | Done (2026-09-29) |
 | `T-M1-04` | GameRoot, GameServices, SceneLoader, RunFlow skeleton | L | Done (2026-09-30) |
-| `T-M1-05` | SettingsService; options screen bound to it | M | Todo |
+| `T-M1-05` | SettingsService; options screen bound to it | M | Done (2026-09-30) |
 | `T-M1-06` | Input actions asset, InputService, contexts | M | Todo |
 | `T-M1-07` | Migrate gameplay and menus off legacy input | M | Todo |
 | `T-M1-08` | PauseService and CursorService | M | Todo |

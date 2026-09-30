@@ -30,13 +30,6 @@ namespace BusDriver.Tests.EditMode {
         public static readonly string[] Statics = {
             "BusDriver.Gameplay.Player.SceneController.<Instance>k__BackingField",
             "BusDriver.UI.Screens.ControlsMenu.switchCameraKey",
-            "BusDriver.UI.Screens.OptionsMenu.sens",
-            "BusDriver.UI.Screens.OptionsMenu.qualityIndex",
-            "BusDriver.UI.Screens.OptionsMenu.volume",
-            "BusDriver.UI.Screens.OptionsMenu.resolutionIndex",
-            "BusDriver.UI.Screens.OptionsMenu.isFullscreen",
-            "BusDriver.UI.Screens.OptionsMenu.brightness",
-            "BusDriver.UI.Screens.OptionsMenu.targetFPSIndex",
             "BusDriver.Gameplay.Player.GameKeys.interact",
             "BusDriver.Gameplay.Player.GameKeys.doors",
             "BusDriver.Gameplay.Player.GameKeys.leaveSeat",

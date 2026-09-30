@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace BusDriver.Core.Data {
     // The one Resources asset (§4.2, §4.8): everything GameRoot needs to build the services.
@@ -11,5 +12,8 @@ namespace BusDriver.Core.Data {
         [Tooltip("\"<bundleVersion> (<git short hash>)\", written by BuildScripts just before a player build. "
             + "Empty in the editor, where the label falls back to \"<version> (dev)\".")]
         public string buildLabel = "";
+
+        [Tooltip("Assets/SFX/MainMixer.mixer (moves to Assets/Audio/ in T-M1-09)")]
+        public AudioMixer mixer;
     }
 }

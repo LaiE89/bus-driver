@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using BusDriver.Core.Data;
 
 namespace BusDriver.Core.Save {
@@ -43,5 +44,10 @@ namespace BusDriver.Core.Save {
 
         // First launch (D37)
         public bool warningAcknowledged;
+
+        // TEMPORARY (D56): the MVP's KeyCode rebinds by action ("cycleCamera" → "Space") until
+        // bindingOverridesJson takes over in T-M1-07, which deletes this field. Old files that
+        // still carry it load fine, because unknown members are ignored.
+        public Dictionary<string, string> legacyKeyBindings = new Dictionary<string, string>();
     }
 }

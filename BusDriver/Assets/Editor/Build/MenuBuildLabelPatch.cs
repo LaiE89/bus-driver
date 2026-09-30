@@ -80,12 +80,8 @@ namespace BusDriver.Editor.Build {
             if (context == null) {
                 context = host.AddComponent<MenuContext>();
             }
-            MainMenu mainMenu = Object.FindAnyObjectByType<MainMenu>(FindObjectsInactive.Include);
-            if (mainMenu == null) {
-                Debug.LogError("[BUILD] Menu.unity has no MainMenu");
-            }
+            // MainMenu and the options screen are found by MenuContext itself (IGameBindable)
             SerializedObject so = new SerializedObject(context);
-            so.FindProperty("mainMenu").objectReferenceValue = mainMenu;
             so.FindProperty("buildLabel").objectReferenceValue = labelView;
             so.ApplyModifiedPropertiesWithoutUndo();
         }

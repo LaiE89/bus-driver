@@ -47,11 +47,15 @@ namespace BusDriver.Gameplay.Flow {
                 Build = build,
             };
             services.Saves = new SaveService(saveRoot, SaveMigrations.CreateDefault(), build.Label);
+            services.Settings = new SettingsService(services.Saves, config.mixer);
             services.Meta = new MetaService(services.Saves);
             services.Scenes = new SceneLoader(this);
             services.Flow = new RunFlow(services);
             services.Scenes.Attach(services);
+            // Each scene brings its own RenderSettings, so the brightness goes on again
+            services.Scenes.OnSceneReady += (scene, root) => services.Settings.ApplyScene();
             Services = services;
+            services.Settings.Apply();
             if (SelfTestRunner.Requested(Environment.GetCommandLineArgs())) {
                 gameObject.AddComponent<SelfTestRunner>().Begin(build.Label);
             }
@@ -61,6 +65,8 @@ namespace BusDriver.Gameplay.Flow {
             // The first scene is normally wired from sceneLoaded; this catches it if Unity raised
             // that before Bootstrap subscribed
             Services.Scenes.WireLoadedScenes();
+            // The mixer ignored the volume set during Bootstrap
+            Services.Settings.ApplyAudio();
         }
 
         void OnDestroy() {

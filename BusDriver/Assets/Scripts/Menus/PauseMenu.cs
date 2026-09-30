@@ -95,7 +95,7 @@ namespace BusDriver.UI.Screens {
             }
             if (optionsRoot != null) {
                 optionsRoot.SetActive(true);
-                OptionsMenu options = optionsRoot.GetComponentInChildren<OptionsMenu>(true);
+                OptionsScreen options = optionsRoot.GetComponentInChildren<OptionsScreen>(true);
                 if (options != null) {
                     options.InitializeSettings();
                 }

@@ -133,10 +133,19 @@ namespace BusDriver.Editor.Smoke {
                 mode = UnityEngine.Object.FindAnyObjectByType<SceneController>();
                 cabin = bus.GetComponent<BusCabin>();
                 doors = bus.GetComponent<BusDoors>();
-                monster = UnityEngine.Object.FindAnyObjectByType<WeepingAngel>();
+                // Stops also spawn extra angels at random (weight 1 in 11), so the test monster is
+                // the one waiting at the busiest stop that has one, not just any angel in the scene
+                WeepingAngel[] angels = UnityEngine.Object.FindObjectsByType<WeepingAngel>();
                 foreach (BusStop candidate in UnityEngine.Object.FindObjectsByType<BusStop>()) {
-                    if (stop == null || candidate.WaitingCount > stop.WaitingCount) {
+                    WeepingAngel waitingAngel = null;
+                    foreach (WeepingAngel angel in angels) {
+                        if (angel.transform.parent == candidate.transform) {
+                            waitingAngel = angel;
+                        }
+                    }
+                    if (waitingAngel != null && (stop == null || candidate.WaitingCount > stop.WaitingCount)) {
                         stop = candidate;
+                        monster = waitingAngel;
                     }
                 }
                 cabin.OnPassengerBoarded += p => boardedEvents++;
