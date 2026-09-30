@@ -23,7 +23,6 @@ namespace BusDriver.Editor.Builders {
         const float KerbHeight = 0.15f;
         const float ArcStepDegrees = 5f;
         const float SpawnDistance = 12f;
-        static readonly Color FogColor = new Color(0.02f, 0.025f, 0.04f);
 
         struct RoadSample {
             public Vector3 pos;
@@ -42,6 +41,7 @@ namespace BusDriver.Editor.Builders {
         static List<RoadSample> samples;
         static List<RoadArc> arcs;
         static List<BusStop> busStops;
+        static LightingPresetApplier lighting;
         static Vector3 turtlePos;
         static float turtleHeading;
         static float turtleDistance;
@@ -305,28 +305,10 @@ namespace BusDriver.Editor.Builders {
 
         // ---------------------------------------------------------------- lighting
 
-        // This scene is the active one during a night (§4.3), so its RenderSettings are the night's
+        // This scene is the active one during a night (§4.3), so its RenderSettings are the night's:
+        // the shared NightLightingPreset, through a LightingPresetApplier (T-M2-05)
         static void BuildLighting() {
-            ApplyNightRenderSettings();
-            Light moon = new GameObject("Moon").AddComponent<Light>();
-            moon.type = LightType.Directional;
-            moon.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
-            moon.intensity = 0.08f;
-            moon.color = new Color(0.6f, 0.7f, 1f);
-            moon.shadows = LightShadows.Soft;
-        }
-
-        // Flat ambient is also what makes the brightness setting do anything. Shared with the
-        // other generated scenes until NightLightingPreset (T-M2-05).
-        public static void ApplyNightRenderSettings() {
-            RenderSettings.skybox = null;
-            RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.1f, 0.1f, 0.12f);
-            RenderSettings.reflectionIntensity = 0f;
-            RenderSettings.fog = true;
-            RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogColor = FogColor;
-            RenderSettings.fogDensity = 0.012f;
+            lighting = LightingBuild.CreateApplier(null);
         }
 
         // --------------------------------------------------------------- route root
@@ -351,7 +333,7 @@ namespace BusDriver.Editor.Builders {
             SetRefArray(route, "stops", busStops.ToArray());
             SetRef(route, "busSpawn", spawnPoint);
             SetRef(route, "riders", riders);
-            SetRefArray(route, "bindables", new Object[] { ambience });
+            SetRefArray(route, "bindables", new Object[] { lighting, ambience });
         }
 
         static void ConfigureNpcPools(ObjectPooling pooling) {

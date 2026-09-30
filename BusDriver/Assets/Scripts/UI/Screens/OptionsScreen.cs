@@ -167,7 +167,7 @@ namespace BusDriver.UI.Screens {
                 return;
             }
             settings.Current.brightness = Mathf.Clamp01(newBrightness);
-            settings.ApplyScene();
+            settings.ApplyBrightness();
             dirty = true;
         }
 

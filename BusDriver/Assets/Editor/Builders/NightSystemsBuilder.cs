@@ -30,7 +30,7 @@ namespace BusDriver.Editor.Builders {
             }
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             // Dark until the route scene, whose lighting is the night's, becomes active
-            RouteBuilder.ApplyNightRenderSettings();
+            LightingBuild.BakeRenderSettings();
 
             GameObject contextObject = new GameObject("Shift Context");
             ShiftContext context = contextObject.AddComponent<ShiftContext>();

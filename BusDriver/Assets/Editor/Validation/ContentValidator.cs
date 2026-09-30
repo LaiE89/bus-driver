@@ -15,6 +15,7 @@ namespace BusDriver.Editor.Validation {
             CheckGameRootConfig,
             CheckSoundLibrary,
             CheckRoutes,
+            CheckLighting,
         };
 
         public static List<string> Validate() {
@@ -107,6 +108,24 @@ namespace BusDriver.Editor.Validation {
                 }
                 CheckRoute(route, problems);
             }
+        }
+
+        // The one night preset every generated scene uses (T-M2-05)
+        static void CheckLighting(List<string> problems) {
+            string path = DataRootPath("Lighting/Night.asset");
+            NightLightingPreset preset = AssetDatabase.LoadAssetAtPath<NightLightingPreset>(path);
+            if (preset == null) {
+                problems.Add("missing " + path);
+                return;
+            }
+            Require(problems, preset.postProfile, "NightLightingPreset.postProfile");
+            if (preset.referenceBrightness <= 0f) {
+                problems.Add("NightLightingPreset.referenceBrightness must be positive");
+            }
+        }
+
+        static string DataRootPath(string relative) {
+            return "Assets/Data/" + relative;
         }
 
         // Half the kerb-clear length: a stop needs a straight for ±12 m (§3.2)

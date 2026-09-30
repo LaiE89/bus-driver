@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 
 namespace BusDriver.Editor.Builders {
     // One design-data asset the seeder can create: where it lives under the data root, and how to
@@ -50,6 +51,8 @@ namespace BusDriver.Editor.Builders {
             yield return Seed.Of<SoundLibrary>(AudioSeed.LibraryRelativePath, AudioSeed.FillLibrary);
             yield return Seed.Of<AudioConfig>(AudioSeed.ConfigRelativePath, AudioSeed.FillConfig);
             yield return Seed.Of<RouteDefinition>(RouteSeed.RelativePath, RouteSeed.Fill);
+            yield return Seed.Of<VolumeProfile>(LightingSeed.PostRelativePath, LightingSeed.FillPost);
+            yield return Seed.Of<NightLightingPreset>(LightingSeed.PresetRelativePath, LightingSeed.FillPreset);
         }
 
         [MenuItem("Tools/Bus Driver/Builders/Data Seeder (create missing)")]
@@ -130,6 +133,7 @@ namespace BusDriver.Editor.Builders {
                 config.uiTheme = AssetDatabase.LoadAssetAtPath<UITheme>(root + "/" + UIThemeSeed.RelativePath);
             }
             AdoptRoute(config, AssetDatabase.LoadAssetAtPath<RouteDefinition>(root + "/" + RouteSeed.RelativePath));
+            LightingSeed.Adopt(root);
             EditorUtility.SetDirty(config);
         }
 

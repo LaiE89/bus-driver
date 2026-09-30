@@ -19,6 +19,8 @@ namespace BusDriver.Gameplay.Flow {
 
         // After Apply, so listeners see the applied values
         public event Action OnChanged;
+        // The brightness to show; the active scene's LightingPresetApplier listens (T-M2-05)
+        public event Action<float> OnBrightnessChanged;
 
         public SettingsService(ISaveStore saves, AudioMixer mixer) {
             this.saves = saves;
@@ -30,7 +32,7 @@ namespace BusDriver.Gameplay.Flow {
         public void Apply() {
             ApplyDisplay();
             ApplyQualityAndFrameRate();
-            ApplyScene();
+            ApplyBrightness();
             ApplyAudio();
             if (OnChanged != null) {
                 OnChanged();
@@ -49,11 +51,12 @@ namespace BusDriver.Gameplay.Flow {
             Apply();
         }
 
-        // RenderSettings belong to the active scene, so every scene load needs the brightness
-        // again (LightingPresetApplier takes this over in T-M2-05)
-        public void ApplyScene() {
-            float b = Current.brightness;
-            RenderSettings.ambientLight = new Color(b, b, b, 1f);
+        // Brightness is ambient light (§2.23), which each scene's LightingPresetApplier owns: it
+        // applies on Bind and again on every change raised here
+        public void ApplyBrightness() {
+            if (OnBrightnessChanged != null) {
+                OnBrightnessChanged(Current.brightness);
+            }
         }
 
         // Mixers ignore SetFloat before their first update, so GameRoot calls this again in Start

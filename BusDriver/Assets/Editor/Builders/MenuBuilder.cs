@@ -27,7 +27,7 @@ namespace BusDriver.Editor.Builders {
                 return;
             }
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            RouteBuilder.ApplyNightRenderSettings();
+            LightingBuild.CreateApplier(null);
 
             GameObject contextObject = new GameObject("Menu Context");
             MenuContext context = contextObject.AddComponent<MenuContext>();

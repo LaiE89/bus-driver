@@ -1,6 +1,7 @@
 using System.Collections;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
+using BusDriver.Gameplay.World;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -53,8 +54,11 @@ namespace BusDriver.Tests.PlayMode.Flow {
             OnFootController onFoot = Object.FindAnyObjectByType<OnFootController>(FindObjectsInactive.Include);
             Assert.IsNotNull(onFoot);
             Assert.AreEqual(150f, onFoot.Sensitivity);
+            // Ambient is the night preset's, scaled by the brightness (T-M2-05, D75)
+            LightingPresetApplier lighting = Object.FindAnyObjectByType<LightingPresetApplier>();
+            Assert.IsNotNull(lighting);
             Color ambient = RenderSettings.ambientLight;
-            Assert.AreEqual(game.Settings.Current.brightness, ambient.r, 1e-4, "the night scene didn't get the brightness");
+            Assert.AreEqual(lighting.Preset.AmbientFor(game.Settings.Current.brightness).r, ambient.r, 1e-4, "the night scene didn't get the brightness");
         }
     }
 }

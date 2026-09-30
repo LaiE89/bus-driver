@@ -65,8 +65,6 @@ namespace BusDriver.Gameplay.Flow {
             services.Scenes = new SceneLoader(this);
             services.Flow = new RunFlow(services);
             services.Scenes.Attach(services);
-            // Each scene brings its own RenderSettings, so the brightness goes on again
-            services.Scenes.OnSceneReady += (scene, root) => services.Settings.ApplyScene();
             Services = services;
             services.Settings.Apply();
             if (SelfTestRunner.Requested(Environment.GetCommandLineArgs())) {
