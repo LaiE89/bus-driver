@@ -37,6 +37,20 @@ namespace BusDriver.Tests.EditMode.Builders {
             StringAssert.Contains("if (!DevBuild.Enabled)", overlay);
         }
 
+        // T-M4-10: the monster and death cheats don't compile into a release build at all
+        [Test]
+        public void DevCheats_OnlyCompileWithTheDevDefine() {
+            string cheats = Source("DevCheats.cs").Trim();
+            StringAssert.StartsWith("#if UNITY_EDITOR || " + BuildScripts.DevDefine, cheats);
+            StringAssert.EndsWith("#endif", cheats);
+            string context = Source("ShiftContext.cs");
+            int call = context.IndexOf("DevCheats.Register", StringComparison.Ordinal);
+            Assert.Greater(call, 0, "ShiftContext registers the cheats");
+            int gate = context.LastIndexOf("#if UNITY_EDITOR || " + BuildScripts.DevDefine, call, StringComparison.Ordinal);
+            int end = context.LastIndexOf("#endif", call, StringComparison.Ordinal);
+            Assert.Greater(gate, end, "the call sits inside the dev gate");
+        }
+
         static string Source(string fileName) {
             string[] found = Directory.GetFiles("Assets/Scripts", fileName, SearchOption.AllDirectories);
             Assert.AreEqual(1, found.Length, "expected exactly one " + fileName);

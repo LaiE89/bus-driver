@@ -149,6 +149,12 @@ namespace BusDriver.Gameplay.Shift {
             }
         }
 
+        // The F1 "Win the night" cheat (T-M4-10): the Summary, as if the doors had just opened at
+        // the end stop (riders still aboard aren't delivered)
+        internal void WinNightForDebug() {
+            HandleTerminus();
+        }
+
         // §2.1: the doors are fully open at the night's end stop, so the night is won
         void HandleTerminus() {
             if (State != ShiftState.Driving) {

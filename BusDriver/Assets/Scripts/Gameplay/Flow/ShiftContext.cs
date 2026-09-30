@@ -149,6 +149,10 @@ namespace BusDriver.Gameplay.Flow {
             // 15. Every IShiftBindable (all UI)
             BindShift(bindables, shift);
             BindShift(Route.Bindables, shift);
+#if UNITY_EDITOR || BUSDRIVER_DEV
+            // The monster and death cheats (T-M4-10); a release build doesn't compile them
+            DevCheats.Register(shift);
+#endif
             Log.Info(LogCat.Flow, $"night {setup.NightIndex} begins{(setup.IsDebugRun ? " (debug run)" : "")}");
             // 16. The intro card, then Driving
             shift.Director.Begin();
