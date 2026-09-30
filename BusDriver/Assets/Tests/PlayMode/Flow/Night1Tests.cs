@@ -95,7 +95,9 @@ namespace BusDriver.Tests.PlayMode.Flow {
         }
 
         // D43: night 1 aims at about 5 minutes. This reports its length at timeScale 1, with every
-        // rider (the Starer too, still a plain rider until M4), and never fails on it.
+        // rider, and never fails on it. AutoPilot never looks at the Starer, which D43 has reach
+        // Lethal around the church, so its kill is spared (as god mode would) rather than ending
+        // the drive early.
         [UnityTest, Timeout(1200000)]
         public IEnumerator Night1_DurationReport() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
@@ -104,11 +106,13 @@ namespace BusDriver.Tests.PlayMode.Flow {
             ShiftContext night = Object.FindAnyObjectByType<ShiftContext>();
             ShiftDirector director = night.Shift.Director;
             yield return FlowTestUtil.WaitFor(() => director.State == ShiftState.Driving, 30f, "the Driving state");
+            SparingPreventer spared = new SparingPreventer();
+            night.Shift.Death.AddPreventer(spared);
             Time.timeScale = 1f;
             yield return DriveNight1(night);
 
             float seconds = director.NightSeconds;
-            Debug.Log($"[NIGHT1] duration={seconds:0.0}s (intro to summary, timeScale 1, AutoPilot serving every stop)");
+            Debug.Log($"[NIGHT1] duration={seconds:0.0}s (intro to summary, timeScale 1, AutoPilot serving every stop; Starer kills spared: {spared.Count})");
             StringBuilder overlay = new StringBuilder();
             foreach (IDebugSection section in night.Shift.Debug.Sections) {
                 if (section.Title == "Run") {

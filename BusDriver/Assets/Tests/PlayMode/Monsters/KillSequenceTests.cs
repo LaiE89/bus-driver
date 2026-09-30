@@ -2,7 +2,6 @@ using System.Collections;
 using BusDriver.Core.Data;
 using BusDriver.Core.Rules;
 using BusDriver.Gameplay.Bus;
-using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
@@ -29,17 +28,6 @@ namespace BusDriver.Tests.PlayMode.Monsters {
         public void TearDown() {
             Time.timeScale = 1f;
             FlowTestUtil.DeleteSaveRoot(saveRoot);
-        }
-
-        // Stops a monster kill without expelling the monster (what god mode does)
-        sealed class Spare : IDeathPreventer {
-            public int Count;
-            public bool ExpelsMonster { get { return false; } }
-
-            public bool TryPrevent(DeathReport report) {
-                Count++;
-                return true;
-            }
         }
 
         internal static IEnumerator StartNight(string saveRoot, ShiftServices[] result) {
@@ -91,7 +79,7 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             ShiftServices[] started = new ShiftServices[1];
             yield return StartNight(saveRoot, started);
             ShiftServices shift = started[0];
-            Spare spare = new Spare();
+            SparingPreventer spare = new SparingPreventer();
             shift.Death.AddPreventer(spare);
             shift.Cctv.ShowHome();
 

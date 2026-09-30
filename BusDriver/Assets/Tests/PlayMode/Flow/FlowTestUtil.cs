@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Shift;
 using NUnit.Framework;
@@ -60,6 +61,18 @@ namespace BusDriver.Tests.PlayMode.Flow {
         public static ShiftDirector Director() {
             ShiftContext night = UnityEngine.Object.FindAnyObjectByType<ShiftContext>();
             return night != null ? night.Director : null;
+        }
+    }
+
+    // Stops every death except Abandoned without expelling the monster, the way god mode does:
+    // a kill sequence that runs out is spared (T-M4-07), so a long drive can ignore a monster
+    sealed class SparingPreventer : IDeathPreventer {
+        public int Count;
+        public bool ExpelsMonster { get { return false; } }
+
+        public bool TryPrevent(DeathReport report) {
+            Count++;
+            return true;
         }
     }
 }

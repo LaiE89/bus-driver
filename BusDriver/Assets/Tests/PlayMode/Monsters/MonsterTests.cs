@@ -108,10 +108,11 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             Assert.AreEqual(expected, result[0], expected * Tolerance, $"unwatched: +1.5/s over {result[1]:0.00} s");
             Assert.Greater(brain.CurrentRate, 0f);
 
-            // Watched on CAM 2: −5/s, from a value high enough to measure
-            brain.Meter.Core.SetValue(50f);
+            // Watched on CAM 2: −5/s, from a value high enough to measure. On camera first: at 50,
+            // unwatched for a second, the Starer would advance out of CAM 2's frame (T-M4-08).
             ShowCamera(shift.Cctv, 1);
             yield return FlowTestUtil.WaitFor(() => brain.IsObserved, 5f, "CAM 2 to see the Starer");
+            brain.Meter.Core.SetValue(50f);
             Assert.AreEqual(ObserverKinds.Cctv, brain.ObservedBy);
             yield return Measure(brain, 3f, result);
             expected = -5f * result[1];
