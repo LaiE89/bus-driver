@@ -222,12 +222,8 @@ namespace BusDriver.Editor.Builders {
         }
 
         static void EnsureEventSystem() {
-            if (Object.FindAnyObjectByType<EventSystem>() != null) {
-                return;
-            }
-            GameObject eventSystem = new GameObject("EventSystem");
-            eventSystem.AddComponent<EventSystem>();
-            eventSystem.AddComponent<StandaloneInputModule>();
+            EventSystem existing = Object.FindAnyObjectByType<EventSystem>();
+            UIInputModuleSetup.Configure(existing != null ? existing.gameObject : new GameObject("EventSystem"));
         }
 
         static void ClearChildrenExceptDim(Transform panel) {

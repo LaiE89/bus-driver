@@ -3,11 +3,13 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using BusDriver.Editor.Builders;
 using BusDriver.UI.Menu;
+using UnityEngine.EventSystems;
 
 namespace BusDriver.Editor.Build {
-    // Patches the legacy, hand-authored Menu scene: the bottom-right build label (T-M0-07) and the
-    // MenuContext scene root (T-M1-04). Idempotent. Goes away with Menu.unity when MenuBuilder
+    // Patches the legacy, hand-authored Menu scene: the bottom-right build label (T-M0-07), the
+    // MenuContext scene root (T-M1-04) and the Input System UI module (T-M1-07). Idempotent. Goes away with Menu.unity when MenuBuilder
     // generates the menu (T-M1-16).
     // Batch mode:  -executeMethod BusDriver.Editor.Build.MenuBuildLabelPatch.Apply -quit
     public static class MenuBuildLabelPatch {
@@ -30,6 +32,7 @@ namespace BusDriver.Editor.Build {
             }
             BuildLabelView labelView = AddBuildLabel(canvas);
             AddMenuContext(scene, labelView);
+            UseInputSystemUI(scene);
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             Debug.Log("[BUILD] build label and MenuContext patched into " + MenuScenePath);
@@ -63,6 +66,14 @@ namespace BusDriver.Editor.Build {
                 view = label.AddComponent<BuildLabelView>();
             }
             return view;
+        }
+
+        static void UseInputSystemUI(Scene scene) {
+            foreach (GameObject root in scene.GetRootGameObjects()) {
+                foreach (EventSystem eventSystem in root.GetComponentsInChildren<EventSystem>(true)) {
+                    UIInputModuleSetup.Configure(eventSystem.gameObject);
+                }
+            }
         }
 
         static void AddMenuContext(Scene scene, BuildLabelView labelView) {

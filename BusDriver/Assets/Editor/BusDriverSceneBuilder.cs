@@ -1155,7 +1155,7 @@ namespace BusDriver.Editor.Builders {
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        // Named "Canvas" with a "HUD" child so ingameMenus can adopt it later
+        // Named "Canvas" with a "HUD" child; the overlay baker adds PauseScreen and Game Over to it
         static DrivingHUD BuildHUD() {
             GameObject canvasObject = new GameObject("Canvas", typeof(RectTransform));
             canvasObject.layer = UILayer;
@@ -1248,11 +1248,8 @@ namespace BusDriver.Editor.Builders {
             SetRef(gameOverMenu, "retryButton", retryButton);
             SetRef(gameOverMenu, "mainMenuButton", gameOverMainMenuButton);
 
-            if (Object.FindAnyObjectByType<EventSystem>() == null) {
-                GameObject eventSystem = new GameObject("EventSystem");
-                eventSystem.AddComponent<EventSystem>();
-                eventSystem.AddComponent<StandaloneInputModule>();
-            }
+            EventSystem existingEventSystem = Object.FindAnyObjectByType<EventSystem>();
+            UIInputModuleSetup.Configure(existingEventSystem != null ? existingEventSystem.gameObject : new GameObject("EventSystem"));
             if (canvasObject.GetComponent<GraphicRaycaster>() == null) {
                 canvasObject.AddComponent<GraphicRaycaster>();
             }

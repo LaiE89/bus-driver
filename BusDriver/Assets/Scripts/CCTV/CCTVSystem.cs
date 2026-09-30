@@ -4,7 +4,6 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
-using BusDriver.UI.Screens;
 
 namespace BusDriver.Gameplay.Bus {
     // Fullscreen camera switching: exactly one camera renders at a time, so checking
@@ -47,8 +46,7 @@ namespace BusDriver.Gameplay.Bus {
             if (game != null && game.Pause.IsPaused) {
                 return;
             }
-            // Read the static every frame so a rebind applies immediately
-            if (UnityEngine.Input.GetKeyDown(ControlsMenu.switchCameraKey)) {
+            if (game != null && game.Input.Actions.CycleCamera.WasPressedThisFrame()) {
                 Cycle();
             }
         }

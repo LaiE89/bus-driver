@@ -128,7 +128,7 @@ namespace BusDriver.UI.Screens {
             SetActive(optionsRoot, false);
             if (controlsRoot != null) {
                 controlsRoot.SetActive(true);
-                ControlsMenu controls = controlsRoot.GetComponentInChildren<ControlsMenu>(true);
+                ControlsScreen controls = controlsRoot.GetComponentInChildren<ControlsScreen>(true);
                 if (controls != null) {
                     controls.FixingText();
                 }

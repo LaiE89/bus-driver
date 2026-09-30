@@ -30,6 +30,9 @@ namespace BusDriver.Gameplay.Input {
     public sealed class InputService {
         public const string KeyboardMouseGroup = "Keyboard&Mouse";
         public const string GamepadGroup = "Gamepad";
+        // Mouse delta is in pixels; the legacy "Mouse X/Y" axes were pixels × 0.1, and the look
+        // sensitivity was tuned on those (§4.10: yaw += delta.x × 0.1 × sensitivity × 0.02)
+        public const float MouseAxisScale = 0.1f;
 
         // Mouse axes and position can never be bound (D48); mouse buttons can
         static readonly string[] UnbindablePaths = { "<Mouse>/delta", "<Mouse>/position", "<Mouse>/scroll", "<Pointer>/delta", "<Pointer>/position" };

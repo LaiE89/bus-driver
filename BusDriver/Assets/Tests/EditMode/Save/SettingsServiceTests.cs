@@ -47,16 +47,6 @@ namespace BusDriver.Tests.EditMode.Save {
             Assert.AreEqual(0f, settings.Current.brightness);
         }
 
-        [Test]
-        public void SavingRecordsTheLegacyKeyBindings() {
-            SettingsService settings = new SettingsService(store, null);
-            settings.Save();
-            SettingsService reloaded = new SettingsService(store, null);
-            Assert.AreEqual("Space", reloaded.Current.legacyKeyBindings["cycleCamera"]);
-            Assert.AreEqual("Q", reloaded.Current.legacyKeyBindings["doors"]);
-            Assert.AreEqual("Mouse1", reloaded.Current.legacyKeyBindings["interact"]);
-        }
-
         [TestCase(0, 30, 0)]
         [TestCase(1, 60, 0)]
         [TestCase(2, 120, 0)]

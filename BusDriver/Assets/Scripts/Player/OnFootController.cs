@@ -1,6 +1,7 @@
 using UnityEngine;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Flow;
+using BusDriver.Gameplay.Input;
 
 namespace BusDriver.Gameplay.Player {
     // Walking around inside the parked bus. The rig lives at the scene root, not under the
@@ -28,6 +29,7 @@ namespace BusDriver.Gameplay.Player {
         CharacterController controller;
         SettingsService settings;
         PauseService pause;
+        InputService input;
         float yaw;
         float pitch;
         float fallSpeed;
@@ -36,6 +38,7 @@ namespace BusDriver.Gameplay.Player {
         public void Bind(GameServices game) {
             settings = game.Settings;
             pause = game.Pause;
+            input = game.Input;
         }
 
         internal float Sensitivity {
@@ -92,11 +95,14 @@ namespace BusDriver.Gameplay.Player {
                 return;
             }
             Vector2 move = ExternalMove;
-            if (!ExternalControl) {
+            if (!ExternalControl && input != null) {
+                Vector2 look = input.Actions.OnFootLook.ReadValue<Vector2>() * InputService.MouseAxisScale;
                 float sens = Sensitivity;
-                yaw += UnityEngine.Input.GetAxis("Mouse X") * sens * sensScale;
-                pitch = Mathf.Clamp(pitch + UnityEngine.Input.GetAxis("Mouse Y") * PitchSign * sens * sensScale, -pitchLimit, pitchLimit);
-                move = new Vector2(UnityEngine.Input.GetAxisRaw("Horizontal"), UnityEngine.Input.GetAxisRaw("Vertical"));
+                yaw += look.x * sens * sensScale;
+                pitch = Mathf.Clamp(pitch + look.y * PitchSign * sens * sensScale, -pitchLimit, pitchLimit);
+                move = input.Actions.Move.ReadValue<Vector2>();
+            }else if (!ExternalControl) {
+                move = Vector2.zero;
             }
             transform.rotation = Quaternion.Euler(0f, yaw, 0f);
             if (head != null) {

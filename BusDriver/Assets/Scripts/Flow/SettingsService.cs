@@ -2,7 +2,6 @@ using System;
 using BusDriver.Core.Data;
 using BusDriver.Core.Save;
 using BusDriver.Core.Util;
-using BusDriver.Gameplay.Player;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -33,14 +32,12 @@ namespace BusDriver.Gameplay.Flow {
             ApplyQualityAndFrameRate();
             ApplyScene();
             ApplyAudio();
-            LegacyKeyBindings.Restore(Current.legacyKeyBindings);
             if (OnChanged != null) {
                 OnChanged();
             }
         }
 
         public void Save() {
-            LegacyKeyBindings.Capture(Current.legacyKeyBindings);
             saves.Save(SaveSlot.Settings, Current);
             Log.Info(LogCat.Save, "settings saved");
         }
@@ -49,7 +46,6 @@ namespace BusDriver.Gameplay.Flow {
         public void RestoreDefaults() {
             bool acknowledged = Current.warningAcknowledged;
             Current = new SettingsData { warningAcknowledged = acknowledged };
-            LegacyKeyBindings.ResetDefaults();
             Apply();
         }
 
@@ -122,9 +118,6 @@ namespace BusDriver.Gameplay.Flow {
             data.brightness = Mathf.Clamp(data.brightness, 0f, 1f);
             if (data.bindingOverridesJson == null) {
                 data.bindingOverridesJson = "";
-            }
-            if (data.legacyKeyBindings == null) {
-                data.legacyKeyBindings = new System.Collections.Generic.Dictionary<string, string>();
             }
         }
     }

@@ -353,9 +353,12 @@ namespace BusDriver.Gameplay.Player {
             if (IsGameOver || (game != null && game.Pause.IsPaused) || Mode != PlayerMode.Driving) {
                 return;
             }
-            if (UnityEngine.Input.GetKeyDown(GameKeys.leaveSeat)) {
+            if (game == null) {
+                return;
+            }
+            if (game.Input.Actions.LeaveSeat.WasPressedThisFrame()) {
                 TryLeaveSeat();
-            }else if (UnityEngine.Input.GetKeyDown(GameKeys.doors) && CanUseDoors) {
+            }else if (game.Input.Actions.Doors.WasPressedThisFrame() && CanUseDoors) {
                 doors.TryToggle();
             }
         }

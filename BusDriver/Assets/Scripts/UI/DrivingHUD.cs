@@ -3,9 +3,9 @@ using UnityEngine.UI;
 using TMPro;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
+using BusDriver.Gameplay.Input;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.World;
-using BusDriver.UI.Screens;
 
 namespace BusDriver.UI.Hud {
     public class DrivingHUD : MonoBehaviour, IGameBindable {
@@ -42,16 +42,23 @@ namespace BusDriver.UI.Hud {
 
         float clock;
         GameServices game;
+        // Prompt keys come from the bindings (controller-ready rule 3, §4.10), cached until a rebind
+        string interactKey = "";
+        string leaveSeatKey = "";
+        string doorsKey = "";
 
         // From the scene root, before OnEnable of anything activated later and before Start
         public void Bind(GameServices services) {
             game = services;
             game.Pause.OnPauseChanged += HandlePauseChanged;
+            game.Input.OnBindingsChanged += RefreshControlsHint;
+            RefreshControlsHint();
         }
 
         void OnDestroy() {
             if (game != null) {
                 game.Pause.OnPauseChanged -= HandlePauseChanged;
+                game.Input.OnBindingsChanged -= RefreshControlsHint;
             }
         }
 
@@ -87,12 +94,25 @@ namespace BusDriver.UI.Hud {
         }
 
         public void RefreshControlsHint() {
+            if (game == null) {
+                return;
+            }
+            interactKey = Key("Interact");
+            leaveSeatKey = Key("LeaveSeat");
+            doorsKey = Key("Doors");
             if (controlsText == null) {
                 return;
             }
             controlsText.text =
-                $"W/S DRIVE   A/D STEER   {GameKeys.Label(GameKeys.handbrake)} HANDBRAKE   {GameKeys.Label(ControlsMenu.switchCameraKey)} CAMERAS   {GameKeys.Label(GameKeys.doors)} DOORS   {GameKeys.Label(GameKeys.leaveSeat)} LEAVE SEAT";
+                $"{Key("Throttle")} DRIVE   {Key("Steer")} STEER   {Key("Handbrake")} HANDBRAKE   {Key("CycleCamera")} CAMERAS   {doorsKey} DOORS   {leaveSeatKey} LEAVE SEAT";
         }
+
+        string Key(string actionId) {
+            return game.Input.GetDisplayString(actionId).ToUpperInvariant();
+        }
+
+        // Tests
+        internal string ControlsHint { get { return controlsText != null ? controlsText.text : ""; } }
 
         void HandleViewChanged(int index) {
             bool viewingCCTV = index >= 0;
@@ -129,19 +149,19 @@ namespace BusDriver.UI.Hud {
             }
             if (mode.Mode == PlayerMode.OnFoot) {
                 string prompt = interactor != null ? interactor.CurrentPrompt : "";
-                return prompt == "" ? "" : $"{GameKeys.Label(GameKeys.interact)}   {prompt}";
+                return prompt == "" ? "" : $"{interactKey}   {prompt}";
             }
             string text = "";
             if (mode.CanLeaveSeat) {
-                text = $"{GameKeys.Label(GameKeys.leaveSeat)}   Leave seat";
+                text = $"{leaveSeatKey}   Leave seat";
             }
             if (mode.CanUseDoors) {
                 string doorLine;
                 if (doors.IsOpenWanted) {
-                    doorLine = $"{GameKeys.Label(GameKeys.doors)}   Close doors";
+                    doorLine = $"{doorsKey}   Close doors";
                 }else {
                     BusStop stop = cabin != null ? cabin.CurrentStop : null;
-                    doorLine = $"{GameKeys.Label(GameKeys.doors)}   Open doors"
+                    doorLine = $"{doorsKey}   Open doors"
                         + (stop != null && stop.WaitingCount > 0 ? $"   ({stop.WaitingCount} waiting)" : "");
                 }
                 text = text == "" ? doorLine : text + "\n" + doorLine;

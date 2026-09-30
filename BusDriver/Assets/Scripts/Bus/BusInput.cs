@@ -1,14 +1,14 @@
 using UnityEngine;
 using BusDriver.Gameplay.Flow;
-using BusDriver.Gameplay.Player;
-using BusDriver.UI.Screens;
+using BusDriver.Gameplay.Input;
 
 namespace BusDriver.Gameplay.Bus {
+    // Driving actions → BusController. Throttle and steer stay analogue end to end (controller-ready
+    // rule 5, §4.10); BusController does its own steering smoothing.
     public class BusInput : MonoBehaviour, IGameBindable {
         [SerializeField] BusController bus;
-        [SerializeField] KeyCode resetKey = KeyCode.R;
 
-        // Something else (the smoke test) calls bus.SetInput. Parking on disable still applies.
+        // Something else (the smoke test, AutoPilot) calls bus.SetInput. Parking on disable still applies.
         public bool ExternalControl { get; set; }
 
         GameServices game;
@@ -21,16 +21,16 @@ namespace BusDriver.Gameplay.Bus {
             bus.Park(false);
         }
 
+        // The Driving map is only live in the Driving context, so a paused game or a screen reads
+        // as no input
         void Update() {
-            if ((game != null && game.Pause.IsPaused) || ExternalControl) {
+            if (ExternalControl || game == null) {
                 return;
             }
-            // Raw axes, BusController does its own steering smoothing
-            float steer = UnityEngine.Input.GetAxisRaw("Horizontal");
-            float accel = UnityEngine.Input.GetAxisRaw("Vertical");
-            bus.SetInput(steer, accel, UnityEngine.Input.GetKey(GameKeys.handbrake));
+            BusDriverActions actions = game.Input.Actions;
+            bus.SetInput(actions.Steer.ReadValue<float>(), actions.Throttle.ReadValue<float>(), actions.Handbrake.IsPressed());
 
-            if (UnityEngine.Input.GetKeyDown(resetKey)) {
+            if (actions.ResetBus.WasPressedThisFrame()) {
                 bus.ResetUpright();
             }
         }

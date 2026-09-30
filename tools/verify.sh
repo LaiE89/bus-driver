@@ -117,7 +117,6 @@ run_playmode() {
 # refuse while they have uncommitted changes (VERIFY_ALLOW_DIRTY=1 overrides)
 LEGACY_GENERATED=(
     "BusDriver/Assets/Scenes/BusRoute.unity"
-    "BusDriver/Assets/Prefabs/Level Essentials/In Canvas/Controls Menu.prefab"
     "BusDriver/Assets/Prefabs/NPCs"
 )
 
@@ -151,8 +150,7 @@ run_content() {
     local method
     for method in \
         BusDriver.Editor.Builders.BusDriverSceneBuilder.BuildScene \
-        BusDriver.Editor.Builders.OverlayMenusSceneBaker.BakeIntoBusRoute \
-        BusDriver.Editor.Builders.ControlsMenuPrefabBuilder.Upgrade; do
+        BusDriver.Editor.Builders.OverlayMenusSceneBaker.BakeIntoBusRoute; do
         local name="${method##*.}"
         step "content: $method"
         unity -executeMethod "$method" -quit -logFile "$LOGS/content-$name.log" || { check_log "$LOGS/content-$name.log"; fail "$method exited non-zero"; }
