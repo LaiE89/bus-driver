@@ -3817,7 +3817,7 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 | `T-M0-09` | itch push script and first restricted upload | S | Blocked (needs T-M0-08) |
 | `T-M0-10` | `tools/verify.sh` and `tools/unity.sh` | S | Done (2026-09-29) |
 | `T-M1-01` | Core utilities: ids, RNG streams, money and clock formatting | S | Done (2026-09-29) |
-| `T-M1-02` | Save store: envelopes, atomic writes, migrations | M | Todo |
+| `T-M1-02` | Save store: envelopes, atomic writes, migrations | M | Done (2026-09-29) |
 | `T-M1-03` | Save models and v1 fixtures | S | Todo |
 | `T-M1-04` | GameRoot, GameServices, SceneLoader, RunFlow skeleton | L | Todo |
 | `T-M1-05` | SettingsService; options screen bound to it | M | Todo |
