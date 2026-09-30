@@ -65,7 +65,7 @@ namespace BusDriver.Gameplay.Player {
             }
 
             SetCurrent(FindTarget(onFootCamera, onFootReach));
-            if (Current != null && Input.GetKeyDown(GameKeys.interact)) {
+            if (Current != null && UnityEngine.Input.GetKeyDown(GameKeys.interact)) {
                 Current.Interact();
             }
         }

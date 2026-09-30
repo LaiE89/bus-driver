@@ -15,5 +15,9 @@ namespace BusDriver.Core.Data {
 
         [Tooltip("Assets/SFX/MainMixer.mixer (moves to Assets/Audio/ in T-M1-09)")]
         public AudioMixer mixer;
+
+        [Tooltip("Assets/Input/BusDriver.inputactions, also the project-wide actions. Typed loosely because "
+            + "Core doesn't reference the Input System (§4.2); InputService casts it (D57).")]
+        public ScriptableObject inputActions;
     }
 }

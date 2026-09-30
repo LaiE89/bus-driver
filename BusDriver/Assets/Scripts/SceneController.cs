@@ -346,7 +346,7 @@ namespace BusDriver.Gameplay.Player {
             if (IsGameOver) {
                 return;
             }
-            if (Input.GetKeyDown(pauseKey)) {
+            if (UnityEngine.Input.GetKeyDown(pauseKey)) {
                 if (pauseMenu != null && pauseMenu.OptionsOpen) {
                     pauseMenu.HandleEscapeFromSubmenu();
                 }else {
@@ -356,9 +356,9 @@ namespace BusDriver.Gameplay.Player {
             if (ingameMenus.pausedGame || Mode != PlayerMode.Driving) {
                 return;
             }
-            if (Input.GetKeyDown(GameKeys.leaveSeat)) {
+            if (UnityEngine.Input.GetKeyDown(GameKeys.leaveSeat)) {
                 TryLeaveSeat();
-            }else if (Input.GetKeyDown(GameKeys.doors) && CanUseDoors) {
+            }else if (UnityEngine.Input.GetKeyDown(GameKeys.doors) && CanUseDoors) {
                 doors.TryToggle();
             }
         }

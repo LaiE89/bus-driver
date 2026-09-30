@@ -19,11 +19,11 @@ namespace BusDriver.Gameplay.Bus {
                 return;
             }
             // Raw axes, BusController does its own steering smoothing
-            float steer = Input.GetAxisRaw("Horizontal");
-            float accel = Input.GetAxisRaw("Vertical");
-            bus.SetInput(steer, accel, Input.GetKey(GameKeys.handbrake));
+            float steer = UnityEngine.Input.GetAxisRaw("Horizontal");
+            float accel = UnityEngine.Input.GetAxisRaw("Vertical");
+            bus.SetInput(steer, accel, UnityEngine.Input.GetKey(GameKeys.handbrake));
 
-            if (Input.GetKeyDown(resetKey)) {
+            if (UnityEngine.Input.GetKeyDown(resetKey)) {
                 bus.ResetUpright();
             }
         }

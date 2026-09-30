@@ -38,9 +38,9 @@ namespace BusDriver.Gameplay.Player {
                 return;
             }
             float sens = Sensitivity;
-            yaw = Mathf.Clamp(yaw + Input.GetAxis("Mouse X") * sens * sensScale, -yawLimit, yawLimit);
+            yaw = Mathf.Clamp(yaw + UnityEngine.Input.GetAxis("Mouse X") * sens * sensScale, -yawLimit, yawLimit);
             // Positive pitch looks up
-            pitch = Mathf.Clamp(pitch + Input.GetAxis("Mouse Y") * PitchSign * sens * sensScale, pitchMin, pitchMax);
+            pitch = Mathf.Clamp(pitch + UnityEngine.Input.GetAxis("Mouse Y") * PitchSign * sens * sensScale, pitchMin, pitchMax);
             transform.localRotation = Quaternion.Euler(-pitch, yaw, 0f);
         }
     }

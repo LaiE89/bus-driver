@@ -42,7 +42,7 @@ namespace BusDriver.Gameplay.Bus {
                 return;
             }
             // Read the static every frame so a rebind applies immediately
-            if (Input.GetKeyDown(ControlsMenu.switchCameraKey)) {
+            if (UnityEngine.Input.GetKeyDown(ControlsMenu.switchCameraKey)) {
                 Cycle();
             }
         }

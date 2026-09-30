@@ -2,7 +2,9 @@ using System;
 using BusDriver.Core.Data;
 using BusDriver.Core.Save;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Input;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 namespace BusDriver.Gameplay.Flow {
@@ -49,6 +51,7 @@ namespace BusDriver.Gameplay.Flow {
             services.Saves = new SaveService(saveRoot, SaveMigrations.CreateDefault(), build.Label);
             services.Settings = new SettingsService(services.Saves, config.mixer);
             services.Meta = new MetaService(services.Saves);
+            services.Input = new InputService(ResolveActions(config), services.Settings);
             services.Scenes = new SceneLoader(this);
             services.Flow = new RunFlow(services);
             services.Scenes.Attach(services);
@@ -59,6 +62,21 @@ namespace BusDriver.Gameplay.Flow {
             if (SelfTestRunner.Requested(Environment.GetCommandLineArgs())) {
                 gameObject.AddComponent<SelfTestRunner>().Begin(build.Label);
             }
+        }
+
+        // The config's asset is also the project-wide one; the fallback only covers a config that
+        // lost its reference
+        static InputActionAsset ResolveActions(GameRootConfig config) {
+            InputActionAsset asset = config.inputActions as InputActionAsset;
+            if (asset == null) {
+                Log.Error(LogCat.Input, "GameRootConfig.inputActions is not set; using the project-wide actions");
+                asset = InputSystem.actions;
+            }
+            return asset;
+        }
+
+        void Update() {
+            Services.Input.Tick();
         }
 
         void Start() {

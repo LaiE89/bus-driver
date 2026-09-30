@@ -12,4 +12,4 @@ EditorBuildSettings:
     path: Assets/Scenes/BusRoute.unity
     guid: b0828d06f40574bed88bcaa7e5167526
   m_configObjects:
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 5c1e9b7a2d4f4e8a9b3c6d0e1f2a7b84, type: 3}

@@ -93,9 +93,9 @@ namespace BusDriver.Gameplay.Player {
             Vector2 move = ExternalMove;
             if (!ExternalControl) {
                 float sens = Sensitivity;
-                yaw += Input.GetAxis("Mouse X") * sens * sensScale;
-                pitch = Mathf.Clamp(pitch + Input.GetAxis("Mouse Y") * PitchSign * sens * sensScale, -pitchLimit, pitchLimit);
-                move = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+                yaw += UnityEngine.Input.GetAxis("Mouse X") * sens * sensScale;
+                pitch = Mathf.Clamp(pitch + UnityEngine.Input.GetAxis("Mouse Y") * PitchSign * sens * sensScale, -pitchLimit, pitchLimit);
+                move = new Vector2(UnityEngine.Input.GetAxisRaw("Horizontal"), UnityEngine.Input.GetAxisRaw("Vertical"));
             }
             transform.rotation = Quaternion.Euler(0f, yaw, 0f);
             if (head != null) {
