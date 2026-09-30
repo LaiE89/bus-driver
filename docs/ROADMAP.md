@@ -3801,7 +3801,7 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 | Ticket | Title | Size | Status |
 |---|---|---|---|
 | `T-M0-11` | Reconcile PR #5 with the roadmap (crash death, seated kick, avatar layer) | S | Done (2026-09-29) |
-| `T-M0-01` | Repo size rules and the file-size guard (no Git LFS) | S | Todo |
+| `T-M0-01` | Repo size rules and the file-size guard (no Git LFS) | S | Done (2026-09-29) |
 | `T-M0-02` | Git attributes, ignore rules and the contributing guide | S | Todo |
 | `T-M0-03` | Domain reload back on; remove dead assets | S | Todo |
 | `T-M0-04` | Assembly definitions and namespaces (transitional layout) | M | Todo |

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Repo size rules (ROADMAP D41, §4.21). Enable once per clone:  git config core.hooksPath tools/hooks
+# Refuses a commit that stages a file over 50 MB anywhere, or a source-format art file under BusDriver/
+# (sources live in the shared drive; the repo holds game-ready exports only).
+# RepoRulesTests enforces the same rules at verify time, for clones without the hook.
+set -u
+LIMIT=$((50 * 1024 * 1024))
+fail=0
+while IFS= read -r -d '' path; do
+    size=$(git cat-file -s ":$path" 2>/dev/null || echo 0)
+    if [ "$size" -gt "$LIMIT" ]; then
+        echo "pre-commit: $path is $((size / 1024 / 1024)) MB; the limit is 50 MB (D41)." >&2
+        fail=1
+    fi
+    case "$path" in
+        BusDriver/*)
+            lower=$(printf '%s' "$path" | tr '[:upper:]' '[:lower:]')
+            case "$lower" in
+                *.psd|*.blend|*.blend1|*.spp|*.kra|*.max|*.ma|*.mb|*.ztl)
+                    echo "pre-commit: $path is a source file; keep sources in the shared drive and commit exports (D41)." >&2
+                    fail=1
+                    ;;
+            esac
+            ;;
+    esac
+done < <(git diff --cached --name-only -z --diff-filter=ACMR)
+if [ "$fail" -ne 0 ]; then
+    echo "pre-commit: commit refused. See docs/CONTRIBUTING.md (repo size rules)." >&2
+    exit 1
+fi
+exit 0

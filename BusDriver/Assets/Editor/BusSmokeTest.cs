@@ -179,6 +179,13 @@ public static class BusSmokeTest {
                     Check(bus.SpeedKmh > 35f, "bus is too slow under full throttle");
                     Check(bus.SpeedKmh < 90f, "bus exceeded its speed cap");
                     Check(bus.CurrentGear == BusController.Gear.Drive, "gear should be Drive");
+                    // The engine and wind loops were re-encoded to OGG (T-M0-01); both must still play
+                    foreach (string loopName in new[] { "Bus Engine", "Wind Ambience" }) {
+                        AudioSource loopSource = mode.soundController != null ? mode.soundController.GetSound(loopName) : null;
+                        bool playing = loopSource != null && loopSource.clip != null && loopSource.isPlaying;
+                        Log($"audio loop '{loopName}': clip {(loopSource != null && loopSource.clip != null ? loopSource.clip.name : "none")}, playing {playing}");
+                        Check(playing, $"'{loopName}' loop is not playing");
+                    }
                     startHeading = bus.transform.eulerAngles.y;
                     Capture("2_driver_view_at_speed", BusCamera("DriverCamera"));
                     Next();
