@@ -1,0 +1,205 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
+using UnityEngine;
+using BusDriver.Core.Util;
+using Debug = UnityEngine.Debug;
+
+namespace BusDriver.Editor.Build {
+    // Standalone builds (§4.20). Output goes to <repo>/Builds/<platform>/<version>/, and the label
+    // "<bundleVersion> (<git short hash>)" is written to Resources/build_label.txt first.
+    // Batch mode:  -executeMethod BusDriver.Editor.Build.BuildScripts.BuildCurrent [-dev]
+    public static class BuildScripts {
+        public const string LabelAssetPath = "Assets/Resources/" + BuildLabel.ResourceName + ".txt";
+        public const string DevDefine = "BUSDRIVER_DEV";
+        public const string ProductFileName = "BusDriver";
+
+        public static string RepoRoot {
+            get { return Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..")); }
+        }
+
+        public static string OutputDirectory(string platform) {
+            return Path.Combine(RepoRoot, "Builds", platform, PlayerSettings.bundleVersion);
+        }
+
+        public static string MacAppPath {
+            get { return Path.Combine(OutputDirectory("mac"), ProductFileName + ".app"); }
+        }
+
+        public static string WindowsExePath {
+            get { return Path.Combine(OutputDirectory("windows"), ProductFileName + ".exe"); }
+        }
+
+        [MenuItem("Tools/Bus Driver/Build/macOS (development)")]
+        static void MenuMacDev() {
+            BuildMac(true);
+        }
+
+        [MenuItem("Tools/Bus Driver/Build/macOS (release)")]
+        static void MenuMacRelease() {
+            BuildMac(false);
+        }
+
+        [MenuItem("Tools/Bus Driver/Build/Windows (development)")]
+        static void MenuWindowsDev() {
+            BuildWindows(true);
+        }
+
+        [MenuItem("Tools/Bus Driver/Build/Windows (release)")]
+        static void MenuWindowsRelease() {
+            BuildWindows(false);
+        }
+
+        public static bool BuildWindows(bool dev) {
+            return Build(BuildTarget.StandaloneWindows64, WindowsExePath, dev);
+        }
+
+        public static bool BuildMac(bool dev) {
+            return Build(BuildTarget.StandaloneOSX, MacAppPath, dev);
+        }
+
+        // For -executeMethod: builds for the editor's own OS and exits with 0/1 in batch mode
+        public static void BuildCurrent() {
+            bool dev = Array.IndexOf(Environment.GetCommandLineArgs(), "-dev") >= 0;
+            bool ok = Application.platform == RuntimePlatform.OSXEditor ? BuildMac(dev) : BuildWindows(dev);
+            ExitIfBatch(ok);
+        }
+
+        public static void BuildWindowsBatch() {
+            ExitIfBatch(BuildWindows(Array.IndexOf(Environment.GetCommandLineArgs(), "-dev") >= 0));
+        }
+
+        public static void BuildMacBatch() {
+            ExitIfBatch(BuildMac(Array.IndexOf(Environment.GetCommandLineArgs(), "-dev") >= 0));
+        }
+
+        static void ExitIfBatch(bool ok) {
+            if (Application.isBatchMode) {
+                EditorApplication.Exit(ok ? 0 : 1);
+            }
+        }
+
+        static bool Build(BuildTarget target, string outputPath, bool dev) {
+            if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, target)) {
+                // Windows from a Mac needs the Unity Hub module installed by a person (T-M0-08)
+                Debug.LogError($"[BUILD] FAIL {target}: the build support module is not installed. "
+                    + "Add it in Unity Hub (Windows/Mac Build Support (Mono), T-M0-08).");
+                return false;
+            }
+            List<string> scenes = new List<string>();
+            foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes) {
+                if (scene.enabled) {
+                    scenes.Add(scene.path);
+                }
+            }
+            if (scenes.Count == 0) {
+                Debug.LogError("[BUILD] FAIL: the build settings list no scenes");
+                return false;
+            }
+            string label = WriteLabel();
+
+            NamedBuildTarget named = NamedBuildTarget.Standalone;
+            PlayerSettings.SetScriptingBackend(named, ScriptingImplementation.Mono2x);
+            PlayerSettings.SetManagedStrippingLevel(named, ManagedStrippingLevel.Low);
+            if (target == BuildTarget.StandaloneOSX) {
+                UnityEditor.OSXStandalone.UserBuildSettings.architecture = MacArchitecture();
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+            BuildPlayerOptions options = new BuildPlayerOptions {
+                scenes = scenes.ToArray(),
+                locationPathName = outputPath,
+                target = target,
+                targetGroup = BuildTargetGroup.Standalone,
+                options = dev ? BuildOptions.Development : BuildOptions.None,
+                extraScriptingDefines = dev ? new[] { DevDefine } : new string[0],
+            };
+            BuildReport report;
+            try {
+                report = BuildPipeline.BuildPlayer(options);
+            }finally {
+                RemoveLabel();
+            }
+            BuildSummary summary = report.summary;
+            bool ok = summary.result == BuildResult.Succeeded;
+            string line = $"{target} {(dev ? "development" : "release")} '{label}' -> {outputPath}: {summary.result}, "
+                + $"{summary.totalErrors} errors, {summary.totalSize / (1024 * 1024)} MB, {summary.totalTime.TotalSeconds:F0} s";
+            if (ok) {
+                Debug.Log("[BUILD] OK " + line);
+            }else {
+                Debug.LogError("[BUILD] FAIL " + line);
+            }
+            return ok;
+        }
+
+        static string WriteLabel() {
+            string label = $"{PlayerSettings.bundleVersion} ({GitShortHash()})";
+            string fullPath = Path.Combine(Application.dataPath, "..", LabelAssetPath);
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+            File.WriteAllText(fullPath, label);
+            AssetDatabase.ImportAsset(LabelAssetPath, ImportAssetOptions.ForceUpdate);
+            return label;
+        }
+
+        // Universal (Intel + Apple silicon) per §4.20. Burst merges its two slices with the editor's
+        // llvm-lipo, which 6000.6.0f1 installs without the execute bit; until a person runs
+        // chmod +x on it, fall back to Apple silicon only (D52).
+        static OSArchitecture MacArchitecture() {
+            string lipo = Path.Combine(EditorApplication.applicationContentsPath, "Resources/Burst/Client/bcl/hostmac/llvm-lipo");
+            if (!File.Exists(lipo) || IsExecutable(lipo)) {
+                return OSArchitecture.x64ARM64;
+            }
+            Debug.LogWarning("[BUILD] llvm-lipo is not executable, so the macOS build is Apple silicon only (D52). "
+                + "For a Universal build run: chmod +x \"" + lipo + "\"");
+            return OSArchitecture.ARM64;
+        }
+
+        static bool IsExecutable(string path) {
+            try {
+                using (Process test = Process.Start(new ProcessStartInfo("/bin/test", "-x \"" + path + "\"") {
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                })) {
+                    test.WaitForExit(5000);
+                    return test.ExitCode == 0;
+                }
+            }catch (Exception) {
+                return true;
+            }
+        }
+
+        // The label only has to exist inside the player; the editor falls back to "<version> (dev)".
+        // Removing it keeps Resources/ out of the working tree until GameRootConfig lives there.
+        static void RemoveLabel() {
+            AssetDatabase.DeleteAsset(LabelAssetPath);
+            string folder = Path.GetDirectoryName(LabelAssetPath).Replace('\\', '/');
+            if (AssetDatabase.IsValidFolder(folder) && AssetDatabase.FindAssets("", new[] { folder }).Length == 0) {
+                AssetDatabase.DeleteAsset(folder);
+            }
+        }
+
+        static string GitShortHash() {
+            try {
+                ProcessStartInfo info = new ProcessStartInfo("git", "rev-parse --short HEAD") {
+                    WorkingDirectory = RepoRoot,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                };
+                using (Process git = Process.Start(info)) {
+                    string hash = git.StandardOutput.ReadToEnd().Trim();
+                    git.WaitForExit(5000);
+                    return git.ExitCode == 0 && hash.Length > 0 ? hash : "nogit";
+                }
+            }catch (Exception e) {
+                Debug.LogWarning("[BUILD] git hash unavailable: " + e.Message);
+                return "nogit";
+            }
+        }
+    }
+}

@@ -2,7 +2,8 @@
 # Unity folders and files
 ###
 [Aa]ssets/AssetStoreTools*
-[Bb]uild/
+/[Bb]uild/
+/BusDriver/[Bb]uild/
 [Ll]ibrary/
 [Ll]ocal[Cc]ache/
 [Oo]bj/
@@ -49,9 +50,14 @@ Thumbs.db
 ###
 # Bus Driver (ROADMAP §4.21)
 ###
-Builds/
+/Builds/
 BusDriver/Logs/
 BusDriver/UserSettings/
 *.tmp
 # itch.io target for tools/push-itch.sh (T-M0-08)
 tools/itch.env
+# Written by BuildScripts for the duration of a player build (T-M0-07)
+BusDriver/Assets/Resources/build_label.txt
+BusDriver/Assets/Resources/build_label.txt.meta
+# Left behind by PlayMode test runs (Test Framework performance run info)
+BusDriver/Assets/Resources/PerformanceTestRun*

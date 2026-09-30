@@ -69,7 +69,7 @@ namespace BusDriver.Core.Util {
         }
 
         public static string SessionHeader() {
-            return $"session: {Application.productName} {Application.version} | Unity {Application.unityVersion} | "
+            return $"session: {Application.productName} {BuildLabel.Current} | Unity {Application.unityVersion} | "
                 + $"{SystemInfo.operatingSystem} | {Application.platform}{(UnityEngine.Debug.isDebugBuild ? " (development)" : "")}";
         }
     }
