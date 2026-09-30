@@ -91,8 +91,10 @@ namespace BusDriver.Tests.PlayMode.Flow {
             Assert.AreEqual(0, errors, "no errors");
         }
 
-        // D43's demo: AutoPilot drives night 1, stops once (at campground, where the Starer boards)
-        // to throw it out on foot, and reaches the Summary. The duration is logged, not asserted.
+        // D43's demo: AutoPilot drives night 1, stops once (at gas_station, where the Starer boards,
+        // D106) to throw it out on foot, and reaches the Summary. The duration is logged, not
+        // asserted. It is kicked while it's still in its grace period: after that, 10 s unwatched is
+        // Lethal, and walking down the aisle toward it keeps it in the on-foot camera's view.
         [UnityTest, Timeout(900000)]
         public IEnumerator Night1_DemoRun_WithKick() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
@@ -102,18 +104,17 @@ namespace BusDriver.Tests.PlayMode.Flow {
             ShiftServices shift = night.Shift;
             Time.timeScale = 3f;
             yield return NightDrive.ServeStop(night, "farm_gate");
-            yield return NightDrive.ServeStop(night, "gas_station");
 
-            // campground: serve it, but stay stopped with the doors shut to deal with the Starer
-            yield return NightDrive.ArriveAt(night, "campground");
+            // gas_station: serve it, but stay stopped with the doors shut to deal with the Starer
+            yield return NightDrive.ArriveAt(night, "gas_station");
             Assert.IsTrue(shift.Doors.TryOpen());
             yield return FlowTestUtil.WaitFor(() => shift.Doors.IsFullyOpen, 10f, "the doors opening");
-            BusStop stop = night.Route.Stop("campground");
-            yield return FlowTestUtil.WaitFor(() => NightDrive.StopSettled(shift, stop), 180f, "campground's riders settling");
+            BusStop stop = night.Route.Stop("gas_station");
+            yield return FlowTestUtil.WaitFor(() => NightDrive.StopSettled(shift, stop), 180f, "gas_station's riders settling");
             shift.Doors.TryClose();
             yield return FlowTestUtil.WaitFor(() => shift.Doors.IsClosed, 10f, "the doors closing");
             RiderRecord starer = Starer(shift);
-            Assert.AreEqual(RiderStatus.Aboard, starer.Status, "the Starer boarded at campground");
+            Assert.AreEqual(RiderStatus.Aboard, starer.Status, "the Starer boarded at gas_station");
             MonsterBrain brain = starer.Passenger.GetComponent<MonsterBrain>();
             Assert.Less(brain.Threat, 25f, "still Dormant");
 
@@ -125,6 +126,7 @@ namespace BusDriver.Tests.PlayMode.Flow {
             Time.timeScale = 3f;
             shift.AutoPilot.Continue();
 
+            yield return NightDrive.ServeStop(night, "campground");
             yield return NightDrive.ArriveAt(night, "church");
             Assert.IsTrue(shift.Doors.TryOpen(), "the doors wouldn't open at the church");
             yield return FlowTestUtil.WaitFor(() => shift.Director.State == ShiftState.Summary, 30f, "the Summary");

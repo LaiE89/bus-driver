@@ -16,9 +16,9 @@ MonoBehaviour:
   displayName: The Starer
   rules:
   - condition: 1
-    ratePerSecond: -5
+    ratePerSecond: 0
   - condition: 0
-    ratePerSecond: 1.5
+    ratePerSecond: 10
   observerKinds: 15
   graceSeconds: 10
   seatZonePreference: 3

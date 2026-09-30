@@ -35,7 +35,7 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             Assert.Fail("no cheat '" + label + "'");
         }
 
-        // The one monster riding (night 1's own Starer is still waiting at campground)
+        // The one monster riding (night 1's own Starer is still waiting at gas_station)
         static MonsterBrain Only(ShiftServices shift) {
             MonsterBrain riding = null;
             foreach (MonsterBrain brain in shift.Monsters.Active) {

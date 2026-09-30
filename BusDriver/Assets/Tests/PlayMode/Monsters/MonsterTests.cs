@@ -83,7 +83,7 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             BusSeat seat = SeatCam2Sees(shift);
             Assert.IsNotNull(seat, "no seat in CAM 2's frame");
             Passenger rider = shift.DebugRiders.SpawnSeated(new RiderSpec {
-                lookId = "look06", boardStopId = "campground", destinationStopId = "church", monsterId = "starer",
+                lookId = "look06", boardStopId = "gas_station", destinationStopId = "church", monsterId = "starer",
             }, seat);
             Assert.IsNotNull(rider);
             MonsterBrain brain = rider.GetComponent<MonsterBrain>();
@@ -93,31 +93,44 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             Assert.IsTrue(brain.IsActive, "seated and aboard");
             Assert.IsTrue(brain.Meter.Core.InGrace, "grace starts when it sits down");
 
-            // Grace: nothing moves for the first 10 s, then it rises unwatched (§2.9, §2.10)
+            // The rates come from the definition: Observed first, then Always (§2.10, D106)
+            Assert.AreEqual(ThreatCondition.Observed, starer.rules[0].condition);
+            float watchedRate = starer.rules[0].ratePerSecond;
+            float unwatchedRate = starer.rules[1].ratePerSecond;
+            Assert.AreEqual(0f, watchedRate, "watching only freezes the Starer (D106)");
+            Assert.Greater(unwatchedRate, 0f);
+
+            // Grace: nothing moves for the first 10 s (§2.9)
             Time.timeScale = 3f;
             shift.Cctv.ShowHome();
             yield return new WaitForSeconds(3f);
             Assert.AreEqual(0f, brain.Threat, "the meter holds during grace");
-            yield return FlowTestUtil.WaitFor(() => !brain.Meter.Core.InGrace, 30f, "the end of the grace period");
-            yield return null;
 
-            Assert.IsFalse(brain.IsObserved, "the home view doesn't see a rear seat");
-            float[] result = new float[2];
-            yield return Measure(brain, 3f, result);
-            float expected = 1.5f * result[1];
-            Assert.AreEqual(expected, result[0], expected * Tolerance, $"unwatched: +1.5/s over {result[1]:0.00} s");
-            Assert.Greater(brain.CurrentRate, 0f);
-
-            // Watched on CAM 2: −5/s, from a value high enough to measure. On camera first: at 50,
-            // unwatched for a second, the Starer would advance out of CAM 2's frame (T-M4-08).
+            // Watched on CAM 2 first. Unwatched, it would climb fast enough to advance out of CAM 2's
+            // frame (T-M4-08), and then the camera couldn't find it again
             ShowCamera(shift.Cctv, 1);
             yield return FlowTestUtil.WaitFor(() => brain.IsObserved, 5f, "CAM 2 to see the Starer");
-            brain.Meter.Core.SetValue(50f);
+            yield return FlowTestUtil.WaitFor(() => !brain.Meter.Core.InGrace, 30f, "the end of the grace period");
+            yield return null;
             Assert.AreEqual(ObserverKinds.Cctv, brain.ObservedBy);
+            float[] result = new float[2];
+            yield return Measure(brain, 2f, result);
+            Assert.AreEqual(0f, result[0], 0.001f, $"watched from 0: frozen over {result[1]:0.00} s");
+            Assert.AreEqual(0f, brain.CurrentRate);
+
+            // Watched at 50 it doesn't fall either: the meter only stops rising
+            brain.Meter.Core.SetValue(50f);
+            yield return Measure(brain, 2f, result);
+            Assert.AreEqual(0f, result[0], 0.001f, $"watched at 50: frozen over {result[1]:0.00} s");
+            Assert.AreEqual(ThreatStage.Aggressive, brain.Stage, "still Aggressive at 50");
+
+            // Unwatched: it climbs at the definition's rate
+            shift.Cctv.ShowHome();
+            yield return FlowTestUtil.WaitFor(() => !brain.IsObserved, 5f, "the home view to lose the Starer");
             yield return Measure(brain, 3f, result);
-            expected = -5f * result[1];
-            Assert.AreEqual(expected, result[0], -expected * Tolerance, $"watched: −5/s over {result[1]:0.00} s");
-            Assert.AreEqual(ThreatStage.Unsettled, brain.Stage, "50 − 15 is Unsettled");
+            float expected = unwatchedRate * result[1];
+            Assert.AreEqual(expected, result[0], expected * Tolerance, $"unwatched: +{unwatchedRate}/s over {result[1]:0.00} s");
+            Assert.Greater(brain.CurrentRate, 0f);
 
             // The bounty comes from the definition (§2.7)
             Assert.AreEqual(starer.bountyCents, shift.Economy.BountyFor("starer"));

@@ -45,12 +45,14 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             StarerAdvance advance = brain.GetComponent<StarerAdvance>();
             Assert.IsNotNull(advance, "the Starer's prefab carries its ability");
             Assert.AreEqual(9, advance.BoardRow, "the row it sat down in");
-            Time.timeScale = 3f;
-            yield return FlowTestUtil.WaitFor(() => !brain.Meter.Core.InGrace, 30f, "the grace period");
-
+            // On camera before the grace runs out: unwatched at +10/s it would be moving up a row
+            // within a second of grace ending (D106)
             bool[] found = new bool[1];
             yield return KillSequenceTests.ObserveOnCctv(shift, brain, found);
             Assert.IsTrue(found[0], "a CCTV camera sees R9");
+            Time.timeScale = 3f;
+            yield return FlowTestUtil.WaitFor(() => !brain.Meter.Core.InGrace, 30f, "the grace period");
+            Assert.AreEqual(0f, brain.Threat, 0.001f, "watched through the end of grace: still at 0");
             brain.Meter.Core.SetValue(50f);
             Assert.AreEqual(5, advance.TargetRow, "9 − round(8 × 0.5)");
             float watched = 0f;
@@ -59,6 +61,7 @@ namespace BusDriver.Tests.PlayMode.Monsters {
                 watched += Time.deltaTime;
                 Assert.IsTrue(brain.IsObserved, "the camera keeps it in view");
                 Assert.AreEqual(9, advance.CurrentRow, "watched, it stays put");
+                Assert.AreEqual(50f, brain.Threat, 0.001f, "watched, its threat neither rises nor falls (D106)");
             }
             Assert.AreEqual(0, advance.Advances);
             Assert.Less(advance.TargetRow, 9, "it is still behind its target");
@@ -96,8 +99,12 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             Debug.Log($"[STARER] ignored: Die after {seconds:0.0} s (advanced {brain.GetComponent<StarerAdvance>().Advances} times)");
             Assert.AreEqual(DeathCause.MonsterKill, report.Cause);
             Assert.AreEqual("starer", report.SourceId);
-            Assert.GreaterOrEqual(seconds, 78f, "10 s grace + 66.7 s + the 4 s telegraph + the kill scare");
-            Assert.LessOrEqual(seconds, 88f);
+            // Grace + 100 / the unwatched rate + the telegraph + the kill scare: about 26 s (D106)
+            MonsterDefinition def = brain.Definition;
+            float expected = def.graceSeconds + 100f / def.rules[def.rules.Length - 1].ratePerSecond
+                + def.killTelegraphSeconds + def.killScare.Duration;
+            Assert.GreaterOrEqual(seconds, expected - 2f, $"expected about {expected:0.0} s");
+            Assert.LessOrEqual(seconds, expected + 3f, $"expected about {expected:0.0} s");
             Assert.AreEqual(KillOutcome.Killed, brain.Kill.LastOutcome);
             Time.timeScale = 1f;
             yield return FlowTestUtil.WaitFor(() => shift.Director.State == ShiftState.GameOver, 20f, "Game Over");
@@ -122,6 +129,7 @@ namespace BusDriver.Tests.PlayMode.Monsters {
                 highest = Mathf.Max(highest, brain.Threat);
             }
             Assert.Less(highest, 25f, "watched on CCTV for 120 s, it never leaves Dormant");
+            Assert.Less(highest, 2f, "watched from the moment it sat down, it stays at 0 (D106)");
             Assert.AreEqual(ThreatStage.Dormant, brain.Stage);
             Assert.AreEqual(0, advance.Advances, "and never moved");
             Assert.IsFalse(brain.Kill.IsRunning);

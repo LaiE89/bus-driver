@@ -95,9 +95,10 @@ namespace BusDriver.Tests.PlayMode.Flow {
         }
 
         // D43: night 1 aims at about 5 minutes. This reports its length at timeScale 1, with every
-        // rider, and never fails on it. AutoPilot never looks at the Starer, which D43 has reach
-        // Lethal around the church, so its kill is spared (as god mode would) rather than ending
-        // the drive early.
+        // rider, and never fails on it. AutoPilot never looks at the Starer, which reaches Lethal
+        // about 20 s after it sits down at gas_station (D106), so its kills are spared (as god mode
+        // would) rather than ending the drive early; each spare sets it back to 60, so it
+        // telegraphs again every few seconds.
         [UnityTest, Timeout(1200000)]
         public IEnumerator Night1_DurationReport() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;

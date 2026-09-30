@@ -32,7 +32,11 @@ namespace BusDriver.Tests.EditMode.Builders {
         [Test]
         public void Starer_MatchesSection2_10() {
             MonsterDefinition m = Monster("starer");
-            AssertRules(m, ThreatCondition.Observed, -5f, ThreatCondition.Always, 1.5f);
+            // D106: no rule may lower it, so its meter only falls through the escape reset
+            foreach (ThreatRule rule in m.rules) {
+                Assert.GreaterOrEqual(rule.ratePerSecond, 0f, "the Starer never calms down by being watched");
+            }
+            AssertRules(m, ThreatCondition.Observed, 0f, ThreatCondition.Always, 10f);
             Assert.AreEqual(All, m.observerKinds);
             Assert.AreEqual(SeatZone.Rear, m.seatZonePreference);
             Assert.AreEqual(EscapeKind.ObserveFor, m.escape.kind);

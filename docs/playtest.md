@@ -11,12 +11,12 @@ Where the logs are, for bug reports:
 Play night 1 at least three times: once ignoring the Starer, once watching it, once kicking it. Note anything that feels unfair or unreadable, with the time from the F1 "Run" section.
 
 **The Starer's escalation (§2.10)**
-- [ ] It boards at Hollow Creek Campground and sits at the back. Nothing about it stands out on the first CCTV look.
+- [ ] It boards at Pinecrest Gas and sits at the back. Nothing about it stands out on the first CCTV look.
 - [ ] Head tracking: on every CCTV camera and from the driver's seat, its head turns toward the camera you're looking through, slowly (about 25°/s), never snapping.
-- [ ] Unwatched after the cliff, it is a few rows closer each time you check the CCTV. You never see it move.
+- [ ] Unwatched, it is a few rows closer each time you check the CCTV. You never see it move. About 10 s of looking away after its grace is enough to set off the kill (D106): does that feel fair, or too fast?
 - [ ] Its eyes visibly widen and its idle motion visibly stops as it escalates. At Unsettled you can tell something is off; at Aggressive you can tell it's dangerous.
 - [ ] The lens scare: the first CCTV cycle after it turns Aggressive cuts to a camera with its face filling the lens. It lands as a jolt, not as a bug. If you don't cycle within 20 s, it never plays.
-- [ ] Watching it on CCTV keeps it down: it never moves forward while on screen.
+- [ ] Watching it freezes it: while it's on screen it neither moves forward nor calms down. It never gets better, so kicking it out is the only real fix (D106).
 
 **The kill-sequence telegraph (§2.14, D31)**
 - [ ] When it reaches Lethal it stands in the aisle beside the front row, the cabin lights flicker and the rumble plays. The telegraph is unmistakable even if you're watching the road.

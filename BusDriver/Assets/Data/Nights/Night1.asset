@@ -43,7 +43,7 @@ MonoBehaviour:
     decoy: 0
     monsterId: 
   - lookId: look06
-    boardStopId: campground
+    boardStopId: gas_station
     destinationStopId: church
     decoy: 0
     monsterId: starer

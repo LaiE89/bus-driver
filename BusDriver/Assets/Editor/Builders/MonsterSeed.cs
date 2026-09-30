@@ -67,10 +67,12 @@ namespace BusDriver.Editor.Builders {
             return new ThreatRule(condition, rate);
         }
 
-        // §2.10: punishes not watching the cabin
+        // §2.10, D106: punishes not watching the cabin. Watching only freezes it, so its meter never
+        // falls (except the kill-sequence escape reset). Swap Observed for ObservedByCctv to count the
+        // cameras alone
         static void FillStarer(MonsterDefinition m) {
             m.displayName = "The Starer";
-            m.rules = new[] { Rule(ThreatCondition.Observed, -5f), Rule(ThreatCondition.Always, 1.5f) };
+            m.rules = new[] { Rule(ThreatCondition.Observed, 0f), Rule(ThreatCondition.Always, 10f) };
             m.seatZonePreference = SeatZone.Rear;
             m.escape = new MonsterEscape(EscapeKind.ObserveFor, 1.5f, 60f);
             m.ability = new StarerAdvanceConfig();

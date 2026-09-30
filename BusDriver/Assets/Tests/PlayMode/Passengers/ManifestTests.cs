@@ -36,7 +36,7 @@ namespace BusDriver.Tests.PlayMode.Passengers {
             new[] { "gas_station", "look03", "church", "" },
             new[] { "gas_station", "look04", "campground", "" },
             new[] { "campground", "look05", "church", "" },
-            new[] { "campground", "look06", "church", "starer" },
+            new[] { "gas_station", "look06", "church", "starer" },
         };
 
         [UnityTest, Timeout(300000)]
@@ -66,8 +66,8 @@ namespace BusDriver.Tests.PlayMode.Passengers {
             }
             Assert.AreEqual(DecoyKind.NodOff, riders[2].Spec.decoy, "look03 is the NodOff decoy");
             Assert.AreEqual(2, night.Route.Stop("farm_gate").WaitingCount);
-            Assert.AreEqual(2, night.Route.Stop("gas_station").WaitingCount);
-            Assert.AreEqual(2, night.Route.Stop("campground").WaitingCount);
+            Assert.AreEqual(3, night.Route.Stop("gas_station").WaitingCount, "the decoy, look04 and the Starer (D106)");
+            Assert.AreEqual(1, night.Route.Stop("campground").WaitingCount);
         }
 
         [UnityTest, Timeout(300000)]

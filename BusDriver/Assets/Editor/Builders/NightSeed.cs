@@ -43,14 +43,14 @@ namespace BusDriver.Editor.Builders {
             switch (index) {
                 case 1:
                     night.threatRateMultiplier = 1f;
-                    // §2.19's table, in order; the Starer boards at campground, before the cliff
+                    // §2.19's table, in order; the Starer boards at gas_station, well before the cliff (D106)
                     night.scripted = new[] {
                         Rider("farm_gate", "look01", "campground"),
                         Rider("farm_gate", "look02", "church"),
                         Rider("gas_station", "look03", "church", DecoyKind.NodOff),
                         Rider("gas_station", "look04", "campground"),
                         Rider("campground", "look05", "church"),
-                        Rider("campground", "look06", "church", DecoyKind.None, Starer),
+                        Rider("gas_station", "look06", "church", DecoyKind.None, Starer),
                     };
                     night.riderCountMin = night.riderCountMax = 5;
                     night.decoyCount = 1;

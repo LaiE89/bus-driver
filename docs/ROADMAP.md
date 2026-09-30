@@ -281,6 +281,7 @@ Decisions are never edited once made. To change one, add a new row that supersed
 | D103 (agent) | **The fall (T-M4-09).** `FallZone.Init(shift)` is called by ShiftContext right after DeathDirector (§4.5 step 9); the hull entering any fall box in Driving calls `Die(Fall)`. `FallDeathPresenter` sits beside the other presenters in Night_Systems, wired to the FallCamera instance. It returns the CCTV to the home view and switches the CCTV off, disables the driver camera, puts the FallCamera rig on `FallCamAnchor` and turns it every frame to the bus's centre of mass (the camera below the rig carries a `CameraShake`), and switches on a pale spot light on the rig (new, off until a fall), without which the dark greybox bus is lost against the valley. "3.0 s after the zone was entered" and "0.5 for 1 s" are **wall-clock seconds while not paused** (unscaled time, counted only while `timeScale > 0`), so the slow motion doesn't stretch them and a pause holds them. At 3.0 s the fade takes 1 s with `ScreenFade.Caption` = "YOU WENT OVER THE EDGE" (drawn by `ScreenFadeView` over the black), then 1.5 s of black before Game Over. The landing is the first hull hit (`CrashDetector.OnCrash`) within 4 m of `generation.valleyFloorY`; hits on the cliff face don't count. The KillPlane also ignores a bus inside the Cliff zone. **Amends D77:** `FallCamAnchor` now hangs 60 m out from the edge and 12 m above the road, level with the bend's middle, looking back at the face: the edge is convex, so from the old spot (1.5 m out) a bus that had just gone over dropped behind the lip | 2026-09-30 | agent |
 | D104 (agent) | **Monster and death cheats (T-M4-10).** They live in `Gameplay.Debug.DevCheats`, a file wrapped whole in `#if UNITY_EDITOR || BUSDRIVER_DEV`, registered by `ShiftContext.Begin` inside the same gate after the IShiftBindables, so a release build compiles none of them (`BuildScriptsTests.DevCheats_OnlyCompileWithTheDevDefine` checks both gates). Groups: **Monsters** — "Spawn <name> seated" for every MonsterDefinition (a free Rear, else Mid, else any seat; monsters whose ability arrives in M5/M6 spawn with their definition and no ability), "Threat 0/25/50/75/99 (all)" (every monster except one in a kill sequence), "Force Lethal" (the riding monster with the most threat); **Death** — "God mode on/off" (a `DevCheats.GodMode` preventer: every death but Abandoned is ignored, and a telegraph that runs out spares the monster instead of expelling it, `ExpelsMonster = false`), "Kill me: monster / sanity / fall" (Abandoned waits for T-M7-08); **Night** — "Win the night" (`ShiftDirector.WinNightForDebug`: the Summary, as if the doors had opened at the end stop, without delivering the riders still aboard) | 2026-09-30 | agent |
 | D105 (agent) | **Night 1 with the Starer, end to end (T-M4-11).** A kick's sanity effect is the pure `Core.Rules.KickRules.SanityDelta(isMonster, balance)` (+10 monster, −8 innocent, from BalanceConfig). There is no SanitySystem before T-M5-02, so `Starer_Kicked_BountyAndSanity` asserts the seam: the rider's status turns Kicked, the ledger gets the 500 ¢ bounty for that rider id (no refund), and `KickRules` gives +10 for it; T-M5-02 applies `KickRules` when a rider's status turns Kicked. The test kicks as a player does (`OnFootKick`: leave the seat at a complete stop, walk down the aisle with `OnFootController.ExternalControl`, a scripted turn toward the rider, then Interact on what `PlayerInteractor` offers). `Night1_DemoRun_WithKick` makes its one kick stop at campground, where the Starer boards: the doors close after boarding, the player walks back and kicks it, sits down, and AutoPilot drives on to the church; it reaches the Summary with one monster kicked, a 500 ¢ bounty, five riders delivered and no errors, and logs the night's length (about 304 s of game time; informational). `docs/playtest.md` is started with the M4 manual checks (readability of the telegraph, the fall cam, scare timing) and the Player.log locations (§4.18) | 2026-09-30 | agent |
+| D106 | **The Starer is faster, and watching only freezes it.** (1) Night 1's scripted Starer boards at `gas_station`, one stop earlier than `campground`. (2) Its rules are `Observed → 0/s`, then `Always → +10/s`: about 10 s of being unwatched takes it from 0 to Lethal. (3) Being observed (any observer kind it counts: Cctv, Driver, OnFoot, Mirror) no longer lowers its threat; it only stops the rise, so its meter never decreases, except the kill-sequence escape, which still sets it to 60 (without that reset the kill would restart at once). Counting only the cameras is a one-field edit in `Starer.asset` (`Observed` → `ObservedByCctv`). This supersedes the Starer rules in §2.10 and D43's "the Starer boards at `campground`… still in its grace period or Dormant at the bend… reaches Lethal around the church". An ignored Starer now kills about 26 s after it sits down, well before the cliff, and each escape buys only 4 s of looking away. `Night1_DemoRun_WithKick` now makes its kick stop at `gas_station` (amends D105) | 2026-09-30 | user |
 
 ---
 
@@ -458,7 +459,7 @@ While a CCTV feed is showing, driving input still works: the bus keeps moving an
 ### 2.10 The Starer (punishes *not* watching the cabin)
 | Property | Value |
 |---|---|
-| Rules | `Observed → −5.0/s`, then `Always → +1.5/s` (about 67 s from 0 to Lethal while unwatched) |
+| Rules | `Observed → 0/s` (frozen), then `Always → +10.0/s` (about 10 s from 0 to Lethal while unwatched). Watching only stops the rise: the meter never falls, except the escape reset to 60 (D106) |
 | Observer kinds | Cctv, Driver, OnFoot, Mirror |
 | Seat preference | Rear zone (R7–R9); otherwise any seat |
 | Ability: advance | Its target row is `boardRow − round((boardRow − 1) × threat / 100)`, so it reaches R1 at Lethal. When it has been unobserved for ≥ 1 s and its current row is behind the target, it **teleports** to a free seat in the target row, nearest its current column. If that row is full, it tries the next row forward, and if none is free it stays put |
@@ -650,16 +651,16 @@ While a CCTV feed is showing, driving input still works: the bus keeps moving an
 ### 2.19 Nights 1–5 and the manifest
 | Night | Non-monster riders | Decoys (among them) | Monsters | Monster boarding stops | Threat × | Hints |
 |---|---|---|---|---|---|---|
-| 1 (**short shift → `church`**, D43) | scripted (5) | 1 (scripted) | Starer (scripted, at `campground`) | — | 1.0 | on |
+| 1 (**short shift → `church`**, D43) | scripted (5) | 1 (scripted) | Starer (scripted, at `gas_station`, D106) | — | 1.0 | on |
 | 2 | 8–10 | 1 | Starer + Whisperer | farm_gate–campground | 1.0 | off |
 | 3 | 9–11 | 2 | Mimic + 1 of {Starer, Whisperer, Weeping Angel} | Mimic: gas_station–campground; other: farm_gate–church | 1.1 | off |
 | 4 | 10–12 | 2 | 2–3 of any type (at most 2 of one type) | farm_gate–church | 1.2 | off |
 | 5 | 11–13 | 3 | 3–4, of **at least 3 different** types | farm_gate–clinic | 1.35 | off |
 
 **Night 1 scripted manifest.** It's a demo-length teaching shift, about 5 minutes (D43):
-- **The Starer boards at `campground`,** about 200 m before the cliff. It's still in its 10 s grace period or Dormant at the bend, so the bend is learned without monster pressure.
-- **After the cliff, it escalates:** about 43 s after sitting down it reaches Aggressive, which plays its lens scare on the next CCTV cycle.
-- **If ignored,** it reaches Lethal around the church.
+- **The Starer boards at `gas_station`** (D106), 650 m before the cliff. After its 10 s grace, 10 s without being watched takes it to Lethal, and watching only freezes it, so it has to be dealt with long before the bend: kick it out at the stop, or keep it on the CCTV.
+- **It escalates fast:** 2.5 s of unwatched time after the grace makes it Unsettled, and 5 s makes it Aggressive, which plays its lens scare on the next CCTV cycle.
+- **If ignored,** its kill lands about 26 s after it sits down (10 s grace, 10 s rise, the 4 s telegraph, the kill scare): before the cliff.
 
 | Board | Look | Destination | Kind |
 |---|---|---|---|
@@ -668,7 +669,7 @@ While a CCTV feed is showing, driving input still works: the bus keeps moving an
 | gas_station | look03 | church | decoy `NodOff` |
 | gas_station | look04 | campground | normal |
 | campground | look05 | church | normal |
-| campground | look06 | church | **Starer** |
+| gas_station | look06 | church | **Starer** (D106) |
 
 **Manifest generator rules** (nights 2–5; a pure-C# core, deterministic for a given `(seed, night)`, RNG stream `manifest`):
 1. Each non-monster rider gets a board stop drawn uniformly from the 6 stops (not the terminus), and a destination drawn uniformly from the stops after it, the terminus included.
@@ -2638,7 +2639,7 @@ Every ticket that needs something outside the codebase, in dependency order. Pla
 **Goal:** The first monster can kill you fairly, and you can kick it out. The cliff kills. Death wipes the run.
 
 **Milestone acceptance:**
-- Night 1 as designed: the Starer boards at `campground` and escalates after the cliff. Ignoring it kills you with a readable telegraph; watching it keeps it down; kicking it pays a bounty.
+- Night 1 as designed: the Starer boards at `gas_station` (D106) and escalates within seconds whenever nobody watches it. Ignoring it kills you with a readable telegraph; watching it keeps it down; kicking it pays a bounty.
 - Driving off the cliff plays the fall cam and ends the run.
 - Every M4 PlayMode test passes.
 
@@ -2758,10 +2759,10 @@ Every ticket that needs something outside the codebase, in dependency order. Pla
   - Add `StarerAdvanceConfig` and the ability: target row, teleport while unobserved ≥ 1 s, a full-row fallback.
   - Tells: head-track (the existing math), Stillness, EyesWide.
   - Add `scare.starer.lens` (triggered on the next CCTV cycle within 20 s of first entering Aggressive) and `scare.starer.kill`.
-  - Night 1's scripted Starer boards at `campground`.
+  - Night 1's scripted Starer boards at `gas_station` (D106; it was `campground`).
 - **Acceptance:**
   - [ ] PlayMode `Starer_AdvancesOnlyUnobserved` passes.
-  - [ ] PlayMode `Starer_Ignored_Kills`: with the bus parked, `Die` is called 78–88 s after it sits down (10 s grace + 66.7 s at 1.5/s × night 1's 1.0 + the 4 s telegraph + the kill scare).
+  - [ ] PlayMode `Starer_Ignored_Kills`: with the bus parked, `Die` is called about 26 s after it sits down, within −2/+3 s (10 s grace + 10 s at +10/s × night 1's 1.0 + the 4 s telegraph + the 2.2 s kill scare; D106). The window is computed from the definition.
   - [ ] PlayMode `Starer_Watched_NeverLethal`: CAM on it for 120 s, threat < 25.
   - [ ] PlayMode `Starer_TelegraphEscape_ByWatching` passes.
 

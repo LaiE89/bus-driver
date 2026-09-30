@@ -5,10 +5,10 @@ using NUnit.Framework;
 namespace BusDriver.Tests.EditMode.Core {
     // Threat rules (§2.9, T-M4-02): first match wins, multipliers on positive rates only
     public class ThreatRulesTests {
-        // The Starer's list (§2.10)
+        // The Starer's list (§2.10, D106): watching freezes it
         static readonly ThreatRule[] Starer = {
-            new ThreatRule(ThreatCondition.Observed, -5f),
-            new ThreatRule(ThreatCondition.Always, 1.5f),
+            new ThreatRule(ThreatCondition.Observed, 0f),
+            new ThreatRule(ThreatCondition.Always, 10f),
         };
         // The Whisperer's list (§2.11)
         static readonly ThreatRule[] Whisperer = {
@@ -30,8 +30,10 @@ namespace BusDriver.Tests.EditMode.Core {
 
         [Test]
         public void TheFirstMatchingRuleWins() {
-            Assert.AreEqual(-5f, ThreatRules.BaseRate(Starer, new ThreatContext { Observed = true }));
-            Assert.AreEqual(1.5f, ThreatRules.BaseRate(Starer, new ThreatContext()));
+            // Observed matches first, so its 0 wins over Always even though Always also holds
+            Assert.AreEqual(0f, ThreatRules.BaseRate(Starer, new ThreatContext { Observed = true }));
+            Assert.AreEqual(0, ThreatRules.FirstMatch(Starer, new ThreatContext { Observed = true }));
+            Assert.AreEqual(10f, ThreatRules.BaseRate(Starer, new ThreatContext()));
             // Watched on CCTV while the head is on the road: the CCTV rule comes first
             Assert.AreEqual(-3f, ThreatRules.BaseRate(Whisperer, new ThreatContext { ObservedByCctv = true, AttentionOnRoad = true }));
             Assert.AreEqual(1.2f, ThreatRules.BaseRate(Whisperer, new ThreatContext { AttentionOnRoad = true }));
@@ -59,22 +61,38 @@ namespace BusDriver.Tests.EditMode.Core {
         [Test]
         public void MultipliersScalePositiveRatesOnly() {
             ThreatContext unwatched = new ThreatContext();
-            ThreatContext watched = new ThreatContext { Observed = true };
+            ThreatContext onCctv = new ThreatContext { ObservedByCctv = true };
             // Night 5's ×1.35 and sanity 30's ×1.25
-            Assert.AreEqual(1.5f * 1.35f * 1.25f, ThreatRules.Rate(Starer, unwatched, 1.35f, 1.25f), 1e-5f);
-            Assert.AreEqual(-5f, ThreatRules.Rate(Starer, watched, 1.35f, 1.25f), "watching never gets better with a worse night");
+            Assert.AreEqual(10f * 1.35f * 1.25f, ThreatRules.Rate(Starer, unwatched, 1.35f, 1.25f), 1e-4f);
+            Assert.AreEqual(0f, ThreatRules.Rate(Starer, new ThreatContext { Observed = true }, 1.35f, 1.25f), "a frozen Starer stays frozen");
+            Assert.AreEqual(-3f, ThreatRules.Rate(Whisperer, onCctv, 1.35f, 1.25f), "watching never gets better with a worse night");
             Assert.AreEqual(0f, ThreatRules.ApplyMultipliers(0f, 2f, 2f));
         }
 
         [Test]
-        public void TheStarerIgnoredReachesLethalInAbout67Seconds() {
+        public void TheStarerIgnoredReachesLethalInAbout10Seconds() {
             ThreatMeterCore meter = new ThreatMeterCore();
             float seconds = 0f;
             while (!meter.IsLethal && seconds < 200f) {
                 meter.Tick(0.02f, ThreatRules.Rate(Starer, new ThreatContext(), 1f, ThreatRules.SanityFactor(100f, 1.5f)));
                 seconds += 0.02f;
             }
-            Assert.AreEqual(66.7f, seconds, 0.1f);
+            Assert.AreEqual(10f, seconds, 0.05f);
+        }
+
+        [Test]
+        public void TheStarersMeterNeverFalls() {
+            // D106: watching only stops the rise. Flicker between watched and unwatched frames at the
+            // worst multipliers and check every tick
+            ThreatMeterCore meter = new ThreatMeterCore();
+            float previous = meter.Value;
+            for (int frame = 0; frame < 1000 && !meter.IsLethal; frame++) {
+                ThreatContext context = new ThreatContext { Observed = frame % 3 != 0, ObservedByCctv = frame % 2 == 0 };
+                meter.Tick(0.02f, ThreatRules.Rate(Starer, context, 1.35f, 1.5f));
+                Assert.GreaterOrEqual(meter.Value, previous, "frame " + frame);
+                previous = meter.Value;
+            }
+            Assert.IsTrue(meter.IsLethal, "unwatched frames still add up to Lethal");
         }
     }
 }
