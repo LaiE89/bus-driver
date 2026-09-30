@@ -10,8 +10,8 @@ using UnityEngine;
 namespace BusDriver.Tests.EditMode {
     // Enforces the §4.1 hard rules on runtime code (Assets/Scripts): rule 5 (no Find*, tag lookups,
     // SendMessage, no static mutable state), rule 8 (no UnityEngine.Random), rule 12 (no direct
-    // Debug.Log), plus no legacy UnityEngine.Input reads (§4.10). Legacy violations are listed in
-    // ArchitectureAllowlist, which may only shrink.
+    // Debug.Log), plus no legacy UnityEngine.Input reads (§4.10). There is no allowlist (T-M1-20):
+    // the only exceptions are Log itself and the two statics §4.1.5 names.
     public class ArchitectureRulesTests {
         public static readonly Dictionary<string, Regex> Rules = new Dictionary<string, Regex> {
             { "GameObjectFind", new Regex(@"\bGameObject\.Find\w*\s*\(") },
@@ -66,26 +66,10 @@ namespace BusDriver.Tests.EditMode {
         }
 
         [Test]
-        public void NoBannedApisOutsideTheAllowlist() {
+        public void NoBannedApisInRuntimeCode() {
             List<string> offenders = new List<string>();
-            foreach (string violation in ScanAllScripts()) {
-                if (Array.IndexOf(ArchitectureAllowlist.Patterns, violation) < 0) {
-                    offenders.Add(violation);
-                }
-            }
+            offenders.AddRange(ScanAllScripts());
             Assert.IsEmpty(offenders, "Banned APIs in runtime code (ROADMAP §4.1): " + string.Join(", ", offenders));
-        }
-
-        [Test]
-        public void AllowlistHasNoStaleEntries() {
-            List<string> found = ScanAllScripts();
-            List<string> stale = new List<string>();
-            foreach (string entry in ArchitectureAllowlist.Patterns) {
-                if (!found.Contains(entry)) {
-                    stale.Add(entry);
-                }
-            }
-            Assert.IsEmpty(stale, "Allowlist entries that no longer match anything; delete them (the list only shrinks): " + string.Join(", ", stale));
         }
 
         [Test]
@@ -135,26 +119,23 @@ namespace BusDriver.Tests.EditMode {
         }
 
         [Test]
-        public void NoStaticMutableStateOutsideTheAllowlist() {
+        public void NoStaticMutableStateExceptBootstrapAndLogFilter() {
             List<string> offenders = new List<string>();
             foreach (string field in MutableStatics()) {
-                if (Array.IndexOf(AllowedStatics, field) < 0 && Array.IndexOf(ArchitectureAllowlist.Statics, field) < 0) {
+                if (Array.IndexOf(AllowedStatics, field) < 0) {
                     offenders.Add(field);
                 }
             }
             Assert.IsEmpty(offenders, "Static mutable fields in runtime code (ROADMAP §4.1.5): " + string.Join(", ", offenders));
         }
 
+        // The two allowed statics must still exist, or the exception list has gone stale
         [Test]
-        public void StaticsAllowlistHasNoStaleEntries() {
+        public void AllowedStaticsStillExist() {
             List<string> found = MutableStatics();
-            List<string> stale = new List<string>();
-            foreach (string entry in ArchitectureAllowlist.Statics) {
-                if (!found.Contains(entry)) {
-                    stale.Add(entry);
-                }
+            foreach (string field in AllowedStatics) {
+                CollectionAssert.Contains(found, field, "an allowed static no longer exists; update AllowedStatics");
             }
-            Assert.IsEmpty(stale, "Static allowlist entries that no longer exist; delete them: " + string.Join(", ", stale));
         }
     }
 }

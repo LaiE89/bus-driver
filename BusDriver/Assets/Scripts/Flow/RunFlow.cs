@@ -40,11 +40,17 @@ namespace BusDriver.Gameplay.Flow {
         }
 
         public void NewRun() {
+            NewRun(RngStreams.NewSeed());
+        }
+
+        // Tests and the smoke test: a New Run with a fixed seed, so every random system (riders,
+        // seats) plays out the same way on every run
+        internal void NewRun(int seed) {
             if (State == RunFlowState.LoadingNight) {
                 Log.Warn(LogCat.Flow, "New Run ignored: a night is already loading");
                 return;
             }
-            Run = RunState.NewRun(RngStreams.NewSeed());
+            Run = RunState.NewRun(seed);
             IsDebugRun = false;
             game.Meta.RecordRunStarted();
             game.Saves.Save(SaveSlot.Run, Run);

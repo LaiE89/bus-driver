@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using BusDriver.Core.Util;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
@@ -49,10 +50,13 @@ namespace BusDriver.Gameplay.Bus {
         readonly List<Passenger> passengers = new List<Passenger>();
         // The route's stops, handed over by ShiftContext (the bus prefab can't hold scene objects)
         IReadOnlyList<BusStop> stops = new BusStop[0];
+        // The run's seating stream (§2.6); a fixed fallback before Init, for tests that build a cabin alone
+        System.Random seating;
 
         // ShiftContext, step 3 of the Init order (§4.5)
         public void Init(ShiftServices shift) {
             stops = shift.Route.Stops;
+            seating = shift.Rng.Get(RngStreams.Seating);
             if (driverSeat != null) {
                 driverSeat.Bind(shift.Mode);
             }
@@ -130,7 +134,10 @@ namespace BusDriver.Gameplay.Bus {
                 return null;
             }
             if (preference == SeatPreference.Random) {
-                return free[UnityEngine.Random.Range(0, free.Count)];
+                if (seating == null) {
+                    seating = new System.Random(0);
+                }
+                return free[seating.Next(free.Count)];
             }
             BusSeat best = free[0];
             foreach (BusSeat seat in free) {

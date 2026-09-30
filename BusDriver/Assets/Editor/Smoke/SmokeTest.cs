@@ -69,7 +69,7 @@ namespace BusDriver.Editor.Smoke {
         static float peakSpeed;
         static float idlePitch;
         static readonly List<string> failures = new List<string>();
-        const int SeatingSeed = 20260929;
+        const int RunSeed = 20260929;
 
         // Boot phases before the bus exists
         static GameServices game;
@@ -132,9 +132,6 @@ namespace BusDriver.Editor.Smoke {
                 return;
             }
             if (bus == null) {
-                // Seat choice is random; a rider seated between the aisle and the monster blocks
-                // the kick ray, so fix the seed to make every run board the same way
-                UnityEngine.Random.InitState(SeatingSeed);
                 bus = night.Bus;
                 cctv = UnityEngine.Object.FindAnyObjectByType<CCTVSystem>();
                 rb = bus.GetComponent<Rigidbody>();
@@ -556,7 +553,9 @@ namespace BusDriver.Editor.Smoke {
                 Directory.CreateDirectory(saveRoot);
                 game = GameRoot.RebootForTests(saveRoot).Services;
                 Check(game.Flow.State == RunFlowState.Menu, "the menu did not boot into the Menu state");
-                game.Flow.NewRun();
+                // Riders and seats come from the run seed's streams; a rider seated between the
+                // aisle and the monster would block the kick ray, so every smoke run uses one seed
+                game.Flow.NewRun(RunSeed);
                 Log("new run from the menu");
                 return false;
             }

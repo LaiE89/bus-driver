@@ -1,4 +1,5 @@
 using UnityEngine;
+using BusDriver.Core.Util;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 
@@ -19,7 +20,9 @@ namespace BusDriver.Gameplay.Monsters {
         float huntReadyAt;
 
         protected override void OnSeated() {
-            float delay = Random.Range(Mathf.Min(minHuntDelay, maxHuntDelay), Mathf.Max(minHuntDelay, maxHuntDelay));
+            float low = Mathf.Min(minHuntDelay, maxHuntDelay);
+            float high = Mathf.Max(minHuntDelay, maxHuntDelay);
+            float delay = Shift != null ? low + (float)Shift.Rng.Get(RngStreams.Monster).NextDouble() * (high - low) : high;
             huntReadyAt = Time.time + delay;
             canHunt = true;
             floorLocalY = Cabin != null ? Cabin.AisleAtDoorLocal.y : transform.localPosition.y;
