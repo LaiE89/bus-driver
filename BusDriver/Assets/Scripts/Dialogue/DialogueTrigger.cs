@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using BusDriver.Core.Util;
 using BusDriver.Gameplay.Player;
 
 namespace BusDriver.UI.Screens {
@@ -18,7 +19,7 @@ namespace BusDriver.UI.Screens {
 
         public void TriggerDialogue() {
             if (SceneController.Instance == null) {
-                Debug.LogWarning("DialogueTrigger needs a SceneController in the scene");
+                Log.Warn(LogCat.Flow, "DialogueTrigger needs a SceneController in the scene");
                 return;
             }
             if (dialogue.isObjective) {

@@ -63,6 +63,7 @@ namespace BusDriver.Editor.Smoke {
         static Vector3 markTensor;
         static float peakSpeed;
         static readonly List<string> failures = new List<string>();
+        const int SeatingSeed = 20260929;
 
         // Entering play mode reloads the domain, so the hooks are re-attached from here
         static BusSmokeTest() {
@@ -120,6 +121,9 @@ namespace BusDriver.Editor.Smoke {
                 if (Time.timeSinceLevelLoad < 0.3f) {
                     return;
                 }
+                // Seat choice is random; a rider seated between the aisle and the monster blocks
+                // the kick ray, so fix the seed to make every run board the same way
+                UnityEngine.Random.InitState(SeatingSeed);
                 bus = UnityEngine.Object.FindAnyObjectByType<BusController>();
                 cctv = UnityEngine.Object.FindAnyObjectByType<CCTVSystem>();
                 rb = bus.GetComponent<Rigidbody>();

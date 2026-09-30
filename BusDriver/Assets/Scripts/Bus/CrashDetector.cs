@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using BusDriver.Core.Util;
 
 namespace BusDriver.Gameplay.Bus {
     // Only hull hits land here, wheel contacts are raycasts and never raise collision events
@@ -38,7 +39,7 @@ namespace BusDriver.Gameplay.Bus {
             }
             lastCrashTime = Time.time;
             bool isMajor = deltaV >= majorDeltaV;
-            Debug.Log($"{(isMajor ? "Major" : "Minor")} crash into {collision.collider.name}, deltaV {deltaV:F1} m/s");
+            Log.Info(LogCat.Flow, $"{(isMajor ? "Major" : "Minor")} crash into {collision.collider.name}, deltaV {deltaV:F1} m/s");
             OnCrash?.Invoke(deltaV, isMajor, collision);
         }
     }

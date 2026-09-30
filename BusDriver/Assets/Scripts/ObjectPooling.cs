@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using BusDriver.Core.Util;
 
 namespace BusDriver.Gameplay.World {
     [System.Serializable]
@@ -35,7 +36,7 @@ namespace BusDriver.Gameplay.World {
                     continue;
                 }
                 if (poolById.ContainsKey(pool.id)) {
-                    Debug.LogWarning($"ObjectPooling: duplicate pool id '{pool.id}' on {name}");
+                    Log.Warn(LogCat.Flow, $"ObjectPooling: duplicate pool id '{pool.id}' on {name}");
                     continue;
                 }
                 poolById[pool.id] = pool;
@@ -65,7 +66,7 @@ namespace BusDriver.Gameplay.World {
 
         public GameObject Spawn(string id, Vector3 position, Quaternion rotation, Transform parent = null) {
             if (!HasPool(id)) {
-                Debug.LogWarning($"ObjectPooling: no pool named '{id}'");
+                Log.Warn(LogCat.Flow, $"ObjectPooling: no pool named '{id}'");
                 return null;
             }
             Queue<GameObject> queue = available[id];

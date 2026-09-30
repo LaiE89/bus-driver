@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using BusDriver.Core.Util;
 using BusDriver.Gameplay.Audio;
 using BusDriver.UI.Screens;
 
@@ -47,7 +48,7 @@ namespace BusDriver.UI.Menu {
         }
 
         public void QuitGame() {
-            print("Quit!");
+            Log.Info(LogCat.Flow, "quit requested");
             Application.Quit();
         }
 

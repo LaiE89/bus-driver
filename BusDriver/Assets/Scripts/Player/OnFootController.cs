@@ -1,4 +1,5 @@
 using UnityEngine;
+using BusDriver.Core.Util;
 using BusDriver.UI.Screens;
 
 namespace BusDriver.Gameplay.Player {
@@ -46,7 +47,7 @@ namespace BusDriver.Gameplay.Player {
             if (avatarRoot != null) {
                 PlayerAvatarVisuals.ApplyCullLayer(avatarRoot, head);
             }else {
-                Debug.LogWarning("OnFootController: no Avatar in the scene. Run Tools/Bus Driver/Build MVP Scene.");
+                Log.Warn(LogCat.Flow, "OnFootController: no Avatar in the scene. Run Tools/Bus Driver/Build MVP Scene.");
             }
         }
 

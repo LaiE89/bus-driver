@@ -1,4 +1,5 @@
 using UnityEngine;
+using BusDriver.Core.Util;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Xml;
@@ -6,7 +7,7 @@ using System.Xml;
 namespace BusDriver.UI.Screens {
     public static class OptionsSaveSystem {
         public static void SaveSettings() {
-            Debug.Log(Application.persistentDataPath);
+            Log.Info(LogCat.Save, "settings folder: " + Application.persistentDataPath);
             string path = Application.persistentDataPath + "/settings.dat";
 
             OptionsData data = new OptionsData();
@@ -34,7 +35,7 @@ namespace BusDriver.UI.Screens {
                 return serializableObject;
 
             }else {
-                Debug.LogError("Save file not found in " + path);
+                Log.Error(LogCat.Save, "Save file not found in " + path);
                 return null;
             }
         }

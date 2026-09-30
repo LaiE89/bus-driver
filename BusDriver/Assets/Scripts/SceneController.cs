@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using BusDriver.Core.Util;
 using UnityEngine.SceneManagement;
 using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Bus;
@@ -112,7 +113,7 @@ namespace BusDriver.Gameplay.Player {
                 gameOverMenu = FindAnyObjectByType<GameOverMenu>(FindObjectsInactive.Include);
             }
             if (pauseMenu == null || gameOverMenu == null) {
-                Debug.LogWarning("SceneController: Pause/Game Over UI missing from scene. Run Tools/Bus Driver/Bake Overlay Menus Into Scene.");
+                Log.Warn(LogCat.Flow, "SceneController: Pause/Game Over UI missing from scene. Run Tools/Bus Driver/Bake Overlay Menus Into Scene.");
             }
         }
 
@@ -205,7 +206,7 @@ namespace BusDriver.Gameplay.Player {
             Passenger passenger = go.GetComponent<Passenger>();
             if (passenger == null) {
                 npcPool.Despawn(go);
-                Debug.LogWarning($"SceneController: pooled '{poolId}' has no Passenger component");
+                Log.Warn(LogCat.Flow, $"SceneController: pooled '{poolId}' has no Passenger component");
                 return null;
             }
             passenger.PrepareForWaiting(stop, worldPos, worldRot);
@@ -292,7 +293,7 @@ namespace BusDriver.Gameplay.Player {
         public void SetMode(PlayerMode mode) {
             if (busInput == null || driverLook == null || cctv == null || bus == null
                 || cabin == null || onFoot == null || driverCamera == null || onFootCamera == null) {
-                Debug.LogWarning("SceneController.SetMode: missing scene refs, skipping mode change");
+                Log.Warn(LogCat.Flow, "SceneController.SetMode: missing scene refs, skipping mode change");
                 return;
             }
             Mode = mode;
@@ -340,7 +341,7 @@ namespace BusDriver.Gameplay.Player {
                 PlayerAvatarVisuals.ApplyCullLayer(driverAvatar.transform);
                 return;
             }
-            Debug.LogWarning("SceneController: no DriverAvatar in the scene. Run Tools/Bus Driver/Build MVP Scene.");
+            Log.Warn(LogCat.Flow, "SceneController: no DriverAvatar in the scene. Run Tools/Bus Driver/Build MVP Scene.");
         }
 
         void Update() {

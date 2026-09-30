@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.Audio;
 using UnityEngine;
+using BusDriver.Core.Util;
 
 namespace BusDriver.Gameplay.Audio {
     public class SoundController : MonoBehaviour {
@@ -30,7 +31,7 @@ namespace BusDriver.Gameplay.Audio {
         public AudioSource GetSound(string sound) {
             Sound s = Array.Find(specialSounds, item => item.name == sound);
             if (s == null) {
-                Debug.LogWarning("Sound: " + name + " not found!");
+                Log.Warn(LogCat.Audio, "Sound: " + name + " not found!");
                 return null;
             }
             return s.source;
@@ -39,7 +40,7 @@ namespace BusDriver.Gameplay.Audio {
         public void Play(string name) {
             Sound s = Array.Find(specialSounds, sound => sound.name == name);
             if (s == null) {
-                Debug.LogWarning("Sound: " + name + " not found!");
+                Log.Warn(LogCat.Audio, "Sound: " + name + " not found!");
                 return;
             }
             s.source.Play();
@@ -48,7 +49,6 @@ namespace BusDriver.Gameplay.Audio {
         public void PlayOneShot(string name) {
             Sound s = Array.Find(specialSounds, sound => sound.name == name);
             if (s == null) {
-                // Debug.LogWarning("Sound: " + name + " not found!");
                 return;
             }
             //s.source.Play();
@@ -58,7 +58,7 @@ namespace BusDriver.Gameplay.Audio {
         public void PlayClipAtPoint(string name, Vector3 position, float pitch, float volume) {
             Sound s = Array.Find(specialSounds, sound => sound.name == name);
             if (s == null) {
-                Debug.LogWarning("Sound: " + name + " not found!");
+                Log.Warn(LogCat.Audio, "Sound: " + name + " not found!");
                 return;
             }
             var sound = PlayClipAt(s.source.clip, position, pitch);
@@ -82,7 +82,7 @@ namespace BusDriver.Gameplay.Audio {
         public Coroutine Stop(string sound, float fadeTime) {
             Sound s = Array.Find(specialSounds, item => item.name == sound);
             if (s == null) {
-                Debug.LogWarning("Sound: " + name + " not found!");
+                Log.Warn(LogCat.Audio, "Sound: " + name + " not found!");
                 return null;
             }
             //s.source.volume = s.volume * (1f + UnityEngine.Random.Range(-s.volumeVariance / 2f, s.volumeVariance / 2f));

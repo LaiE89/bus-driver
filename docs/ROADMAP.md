@@ -3806,7 +3806,7 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 | `T-M0-02` | Git attributes, ignore rules and the contributing guide | S | Done (2026-09-29) |
 | `T-M0-03` | Domain reload back on; remove dead assets | S | Done (2026-09-29) |
 | `T-M0-04` | Assembly definitions and namespaces (transitional layout) | M | Done (2026-09-29) |
-| `T-M0-05` | Logging wrapper | S | Todo |
+| `T-M0-05` | Logging wrapper | S | Done (2026-09-29) |
 | `T-M0-06` | Test infrastructure and the architecture-rules test (with allowlist) | S | Todo |
 | `T-M0-07` | Build scripts, build label, `--selftest` mode | M | Todo |
 | `T-M0-08` | [HUMAN] Build modules, itch.io page, butler | S | Blocked ([HUMAN] build modules, itch page, butler; tools/itch.env is git-ignored) |

@@ -1,4 +1,5 @@
 using UnityEngine;
+using BusDriver.Core.Util;
 using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Player;
 using BusDriver.UI.Screens;
@@ -37,7 +38,7 @@ namespace BusDriver.Gameplay.Bus {
                 sounds = FindAnyObjectByType<SoundController>();
             }
             if (sounds == null) {
-                Debug.LogWarning("BusEngineSound: no SoundController found");
+                Log.Warn(LogCat.Audio, "BusEngineSound: no SoundController found");
                 enabled = false;
                 return;
             }

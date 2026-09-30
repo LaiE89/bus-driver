@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using BusDriver.Core.Util;
 
 namespace BusDriver.Gameplay.Bus {
     // Why the bus refuses to drive. Separate reasons so getting back in the seat can
@@ -102,7 +103,7 @@ namespace BusDriver.Gameplay.Bus {
             }
             rb.isKinematic = false;
             if ((rb.inertiaTensor - cachedInertiaTensor).magnitude > cachedInertiaTensor.magnitude * 0.001f) {
-                Debug.LogWarning("Bus inertia tensor changed while frozen, restoring it");
+                Log.Warn(LogCat.Flow, "Bus inertia tensor changed while frozen, restoring it");
                 rb.inertiaTensor = cachedInertiaTensor;
                 rb.inertiaTensorRotation = cachedInertiaRotation;
             }
