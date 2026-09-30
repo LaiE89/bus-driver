@@ -3853,7 +3853,7 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 | `T-M1-16` | Generated scenes (Night_Systems, Route01_World legacy loop, Menu v0) and HUD/Screens prefabs; smoke test ported | L | Done (2026-09-30) |
 | `T-M1-17` | ShiftDirector skeleton; the Menu → Night → Menu loop | M | Done (2026-09-30) |
 | `T-M1-18` | Debug overlay shell | S | Done (2026-09-30) |
-| `T-M1-19` | Remove inherited leftovers (dialogue system, unused helpers) | S | Todo |
+| `T-M1-19` | Remove inherited leftovers (dialogue system, unused helpers) | S | Done (2026-09-30) |
 | `T-M1-20` | Architecture rules enforced (allowlist empty) | S | Todo |
 | `T-M1-21` | Split BusDriver.Runtime into BusDriver.Gameplay and BusDriver.UI | M | Todo |
 | `T-M2-01` | RouteDefinition type and Route01 seed data | M | Todo |
