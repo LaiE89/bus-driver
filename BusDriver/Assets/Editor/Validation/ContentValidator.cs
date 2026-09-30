@@ -22,6 +22,7 @@ namespace BusDriver.Editor.Validation {
             CheckEnvironment,
             CheckLooks,
             CheckNights,
+            CheckMonsters,
         };
 
         public static List<string> Validate() {
@@ -229,6 +230,56 @@ namespace BusDriver.Editor.Validation {
             GameObject greybox = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabBuilder.GreyboxPassengerViewPath);
             if (greybox == null || greybox.GetComponent<GreyboxPassengerView>() == null) {
                 problems.Add("missing the greybox passenger view " + PrefabBuilder.GreyboxPassengerViewPath);
+            }
+        }
+
+        // Every monster the nights name has a definition in the config, with valid ids, a rule list,
+        // journal text and a generated logic prefab that points back at it (§2.9–§2.12b, T-M4-03)
+        static void CheckMonsters(List<string> problems) {
+            GameRootConfig config = Config;
+            if (config == null) {
+                return;
+            }
+            MonsterDefinition[] monsters = config.monsters ?? new MonsterDefinition[0];
+            foreach (string id in MonsterSeed.Ids) {
+                if (config.Monster(id) == null) {
+                    problems.Add($"GameRootConfig.monsters has no '{id}'");
+                }
+            }
+            HashSet<string> ids = new HashSet<string>();
+            foreach (MonsterDefinition monster in monsters) {
+                if (monster == null) {
+                    problems.Add("GameRootConfig.monsters has an empty entry");
+                    continue;
+                }
+                string m = "monster '" + monster.id + "'";
+                if (!Ids.IsSnakeCase(monster.id)) {
+                    problems.Add($"{m}: the id isn't lower_snake_case");
+                }else if (!ids.Add(monster.id)) {
+                    problems.Add($"{m} is listed twice");
+                }
+                if (string.IsNullOrEmpty(monster.displayName)) {
+                    problems.Add($"{m} has no display name");
+                }
+                if (monster.rules == null || monster.rules.Length == 0) {
+                    problems.Add($"{m} has no threat rules");
+                }
+                if (monster.observerKinds == ObserverKinds.None) {
+                    problems.Add($"{m} counts no observer kind");
+                }
+                if (monster.escape.kind != EscapeKind.None && monster.escape.seconds <= 0f) {
+                    problems.Add($"{m}: a kill-sequence escape needs a positive time");
+                }
+                if (monster.bountyCents < 0) {
+                    problems.Add($"{m}: the bounty can't be negative");
+                }
+                if (monster.journal == null || string.IsNullOrEmpty(monster.journal.hint) || string.IsNullOrEmpty(monster.journal.sightingText)) {
+                    problems.Add($"{m} needs its journal sighting text and hint");
+                }
+                Gameplay.Monsters.MonsterBrain brain = monster.logicPrefab != null ? monster.logicPrefab.GetComponent<Gameplay.Monsters.MonsterBrain>() : null;
+                if (brain == null || brain.Definition != monster || monster.logicPrefab.GetComponent<Gameplay.Passengers.Passenger>() == null) {
+                    problems.Add($"{m}: logicPrefab must be its generated monster prefab (PrefabBuilder)");
+                }
             }
         }
 

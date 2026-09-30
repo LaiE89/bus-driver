@@ -7,14 +7,11 @@ using UnityEngine;
 
 namespace BusDriver.Gameplay.Debug {
     // A development and test hook (T-M2-07): puts extra riders at a stop, or straight into a seat,
-    // registered with the PassengerRegistry like any manifest rider. The smoke test boards and
-    // kicks through it (the legacy Weeping Angel, until the monster prefabs of T-M4-03), tests
-    // stage stops with it, and the F1 overlay offers it as a cheat.
+    // registered with the PassengerRegistry like any manifest rider. A rider spec with a monsterId
+    // gets that monster's generated prefab (T-M4-03), exactly as the manifest spawns it. The smoke
+    // test boards and kicks through it, tests stage stops with it, and the F1 overlay offers it as
+    // a cheat.
     public sealed class DebugRiders : MonoBehaviour {
-        [SerializeField] Passenger riderPrefab;
-        [Tooltip("The legacy test monster, until the monster prefabs of T-M4-03")]
-        [SerializeField] Passenger angelPrefab;
-
         ShiftServices shift;
         int spawned;
 
@@ -24,12 +21,20 @@ namespace BusDriver.Gameplay.Debug {
             if (!DevBuild.IsEnabled()) {
                 return;
             }
-            services.Debug.AddCheat(new DebugCheat("Riders", "Rider at the nearest stop", () => SpawnAtNearestStop(false)));
-            services.Debug.AddCheat(new DebugCheat("Riders", "Weeping Angel at the nearest stop", () => SpawnAtNearestStop(true)));
+            services.Debug.AddCheat(new DebugCheat("Riders", "Rider at the nearest stop", () => SpawnAtNearestStop("")));
+            GameRootConfig config = services.Game.Config;
+            for (int i = 0; i < config.monsters.Length; i++) {
+                MonsterDefinition monster = config.monsters[i];
+                if (monster != null) {
+                    string id = monster.id;
+                    services.Debug.AddCheat(new DebugCheat("Riders", monster.displayName + " at the nearest stop", () => SpawnAtNearestStop(id)));
+                }
+            }
         }
 
-        // A rider (or the legacy angel) waiting at the stop, riding to the night's end stop
-        internal Passenger SpawnWaiting(BusStop stop, bool angel) {
+        // A rider (or the monster of that id; "" for a human) waiting at the stop, riding to the
+        // night's end stop
+        internal Passenger SpawnWaiting(BusStop stop, string monsterId) {
             if (stop == null) {
                 return null;
             }
@@ -37,18 +42,17 @@ namespace BusDriver.Gameplay.Debug {
                 lookId = NextLookId(),
                 boardStopId = stop.StopId,
                 destinationStopId = EndStopId(),
-                monsterId = angel ? "weeping_angel" : "",
+                monsterId = monsterId ?? "",
             };
-            return SpawnWaiting(stop, spec, angel);
+            return SpawnWaiting(stop, spec);
         }
 
         // A rider waiting in the stop's next free spot, facing the road (spawned as the manifest does)
-        internal Passenger SpawnWaiting(BusStop stop, RiderSpec spec, bool angel = false) {
-            Passenger prefab = angel ? angelPrefab : riderPrefab;
-            if (stop == null || prefab == null) {
+        internal Passenger SpawnWaiting(BusStop stop, RiderSpec spec) {
+            if (stop == null) {
                 return null;
             }
-            return shift.Manifest.SpawnWaiting(spec, stop, prefab);
+            return shift.Manifest.SpawnWaiting(spec, stop, null);
         }
 
         // A rider already sitting in a free seat (aboard without boarding: no Boarded event)
@@ -59,31 +63,31 @@ namespace BusDriver.Gameplay.Debug {
         // The same, in a given free seat (tests that need a rider where a camera can see them)
         internal Passenger SpawnSeated(RiderSpec spec, BusSeat seat) {
             BusCabin cabin = shift.Cabin;
-            if (seat == null || !seat.IsFree || riderPrefab == null) {
+            if (seat == null || !seat.IsFree) {
                 return null;
             }
-            Passenger passenger = shift.Manifest.Create(spec, riderPrefab, seat.transform.position, seat.transform.rotation, cabin.PassengerRoot);
+            Passenger passenger = shift.Manifest.Create(spec, null, seat.transform.position, seat.transform.rotation, cabin.PassengerRoot);
             passenger.PlaceSeated(cabin, seat);
             shift.Riders.MarkAboard(passenger);
             return passenger;
         }
 
         // Each debug rider in the next look, round the list
-        string NextLookId() {
+        internal string NextLookId() {
             PassengerLookDefinition[] looks = shift.Game.Config.looks;
             string id = looks.Length > 0 && looks[spawned % looks.Length] != null ? looks[spawned % looks.Length].id : "";
             spawned++;
             return id;
         }
 
-        string EndStopId() {
+        internal string EndStopId() {
             if (shift.Progress != null && shift.Progress.EndStop != null) {
                 return shift.Progress.EndStop.StopId;
             }
             return shift.Route.Route.terminusStopId;
         }
 
-        void SpawnAtNearestStop(bool angel) {
+        void SpawnAtNearestStop(string monsterId) {
             if (shift == null || shift.Route == null) {
                 return;
             }
@@ -98,7 +102,7 @@ namespace BusDriver.Gameplay.Debug {
                     nearest = stop;
                 }
             }
-            SpawnWaiting(nearest, angel);
+            SpawnWaiting(nearest, monsterId);
         }
     }
 }

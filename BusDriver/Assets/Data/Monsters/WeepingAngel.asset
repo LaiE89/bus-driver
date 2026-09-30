@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88bd55ed3ff534f139d9154bd19e4097, type: 3}
+  m_Name: WeepingAngel
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.MonsterDefinition
+  id: weeping_angel
+  displayName: The Weeping Angel
+  rules:
+  - condition: 1
+    ratePerSecond: 0
+  - condition: 0
+    ratePerSecond: 1.2
+  observerKinds: 15
+  graceSeconds: 10
+  seatZonePreference: 3
+  seatZoneFallback: 2
+  killTelegraphSeconds: 4
+  escape:
+    kind: 1
+    seconds: 2
+    resetThreat: 60
+  bountyCents: 500
+  ability:
+    rid: 1543484118205726723
+  journal:
+    sightingText: A rider who hides their face in their hands and weeps.
+    tellsText:
+    - It never moves while anyone is watching. Not even a breath.
+    - Unwatched, it stands and comes down the aisle.
+    - You can hear it scrape along the floor.
+    hint: Watching only holds it. Throw it out.
+    icon: {fileID: 0}
+  logicPrefab: {fileID: 8972899070241056763, guid: e1cf8648c66ad4e839e08f5f4d3240a8, type: 3}
+  references:
+    version: 2
+    RefIds:
+    - rid: 1543484118205726723
+      type: {class: AngelStalkConfig, ns: BusDriver.Core.Data, asm: BusDriver.Core}
+      data:
+        walkSpeed: 0.55
+        stuckTeleportSeconds: 3
+        standAtThreat: 25

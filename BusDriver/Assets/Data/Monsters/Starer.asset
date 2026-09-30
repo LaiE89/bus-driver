@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88bd55ed3ff534f139d9154bd19e4097, type: 3}
+  m_Name: Starer
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.MonsterDefinition
+  id: starer
+  displayName: The Starer
+  rules:
+  - condition: 1
+    ratePerSecond: -5
+  - condition: 0
+    ratePerSecond: 1.5
+  observerKinds: 15
+  graceSeconds: 10
+  seatZonePreference: 3
+  seatZoneFallback: 0
+  killTelegraphSeconds: 4
+  escape:
+    kind: 1
+    seconds: 1.5
+    resetThreat: 60
+  bountyCents: 500
+  ability:
+    rid: 1543484118205726720
+  journal:
+    sightingText: A rider at the back who never takes their eyes off you.
+    tellsText:
+    - Its head turns to whichever camera is watching it.
+    - The bolder it gets, the stiller it sits and the wider its eyes.
+    - It moves forward a row whenever nobody is looking.
+    hint: It only moves when you aren't looking.
+    icon: {fileID: 0}
+  logicPrefab: {fileID: 2439779750513369075, guid: 74533426f8229471dbd05a060b350b10, type: 3}
+  references:
+    version: 2
+    RefIds:
+    - rid: 1543484118205726720
+      type: {class: StarerAdvanceConfig, ns: BusDriver.Core.Data, asm: BusDriver.Core}
+      data:
+        unobservedBeforeAdvance: 1
+        headTrackDegreesPerSecond: 25
+        headTrackYawLimit: 110
+        headTrackPitchLimit: 35
+        lensScareWindowSeconds: 20

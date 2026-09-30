@@ -11,8 +11,9 @@ using BusDriver.Gameplay.World;
 namespace BusDriver.Gameplay.Passengers {
     public enum PassengerState { Waiting, Boarding, Seated, Leaving, Gone }
 
-    // Base class for everyone who rides the bus. Monsters are passengers too (see Monster),
-    // so anything a monster might want to do differently is a virtual hook here.
+    // Everyone who rides the bus. A monster is a Passenger plus components (MonsterBrain,
+    // ThreatMeter, its ability, §4.1 rule 4), which listen to its events and answer IKickHandler.
+    // The virtual hooks remain for the legacy PR #5 WeepingAngel until T-M6-05 ports it.
     // Movement is plain waypoint walking in bus-local space: the bus moves, so no NavMesh,
     // and passengers have no physics.
     // Logic only (§4.14): the root owns Anchor_Head (observation) and the interact collider; the
@@ -42,6 +43,8 @@ namespace BusDriver.Gameplay.Passengers {
         // The logic head, for observation linecasts and "is it on camera"
         public Transform Head { get { return anchorHead; } }
         public PassengerViewBase View { get { return view; } }
+        // Sat down after boarding, or was placed straight into a seat (a monster's grace starts, §2.9)
+        public event Action<Passenger> Seated;
         // Seat zone preference (§2.6, §2.9): a monster may prefer a zone, and a second one after it
         public SeatZone PreferredZone { get; private set; } = SeatZone.Any;
         public SeatZone FallbackZone { get; private set; } = SeatZone.Any;
@@ -162,15 +165,27 @@ namespace BusDriver.Gameplay.Passengers {
             RefreshInteractable();
             OnBoarded();
             OnSeated();
+            RaiseSeated();
         }
 
         public bool Kick() {
-            if (State != PassengerState.Seated || !OnKickRequested()) {
+            if (State != PassengerState.Seated || !OnKickRequested() || !KickAllowed()) {
                 return false;
             }
             WasKicked = true;
             Cabin.NotifyKicked(this);
             StartCoroutine(LeaveRoutine(true));
+            return true;
+        }
+
+        // Every IKickHandler on the rider gets a say (§2.13). Kicks are rare, so the lookup may allocate.
+        bool KickAllowed() {
+            IKickHandler[] handlers = GetComponents<IKickHandler>();
+            for (int i = 0; i < handlers.Length; i++) {
+                if (!handlers[i].AllowKick(this)) {
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -246,7 +261,14 @@ namespace BusDriver.Gameplay.Passengers {
             State = PassengerState.Seated;
             RefreshInteractable();
             OnSeated();
+            RaiseSeated();
             Cabin.NotifySeated(this);
+        }
+
+        void RaiseSeated() {
+            if (Seated != null) {
+                Seated(this);
+            }
         }
 
         IEnumerator ReturnToStop() {

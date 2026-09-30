@@ -4,6 +4,7 @@ using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Flow;
+using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
@@ -48,6 +49,7 @@ namespace BusDriver.Editor.Builders {
             PlayerAttention attention = contextObject.AddComponent<PlayerAttention>();
             ViewFactory views = contextObject.AddComponent<ViewFactory>();
             ManifestSpawner manifest = contextObject.AddComponent<ManifestSpawner>();
+            MonsterSystem monsters = contextObject.AddComponent<MonsterSystem>();
             SetRef(manifest, "riderPrefab", LoadRider(PrefabBuilder.PassengerPath));
             SetRef(views, "greyboxView", LoadGreyboxView());
 
@@ -74,8 +76,6 @@ namespace BusDriver.Editor.Builders {
             PlayerInteractor interactor = systems.AddComponent<PlayerInteractor>();
             DebugRiders debugRiders = systems.AddComponent<DebugRiders>();
             AutoPilot autoPilot = systems.AddComponent<AutoPilot>();
-            SetRef(debugRiders, "riderPrefab", LoadRider(PrefabBuilder.PassengerPath));
-            SetRef(debugRiders, "angelPrefab", LoadRider(PrefabBuilder.LegacyWeepingAngelPath));
             SetRef(mode, "busInput", bus.GetComponent<BusInput>());
             SetRef(mode, "driverLook", look);
             SetRef(mode, "cctv", bus.GetComponentInChildren<CCTVSystem>(true));
@@ -104,6 +104,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "riders", riders);
             SetRef(context, "views", views);
             SetRef(context, "manifest", manifest);
+            SetRef(context, "monsters", monsters);
             SetRefArray(context, "bindables", Bindables(scene).ToArray());
 
             bus.SetActive(false);

@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88bd55ed3ff534f139d9154bd19e4097, type: 3}
+  m_Name: Whisperer
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.MonsterDefinition
+  id: whisperer
+  displayName: The Whisperer
+  rules:
+  - condition: 2
+    ratePerSecond: -3
+  - condition: 3
+    ratePerSecond: 1.2
+  - condition: 0
+    ratePerSecond: 0.4
+  observerKinds: 1
+  graceSeconds: 10
+  seatZonePreference: 2
+  seatZoneFallback: 3
+  killTelegraphSeconds: 4
+  escape:
+    kind: 0
+    seconds: 0
+    resetThreat: 60
+  bountyCents: 500
+  ability:
+    rid: 1543484118205726721
+  journal:
+    sightingText: A rider who leans toward the nearest passenger and never stops talking.
+    tellsText:
+    - It leans toward its neighbour.
+    - Its mouth never stops moving.
+    - The longer you watch the road, the louder the whispers get.
+    hint: Don't listen to it for too long.
+    icon: {fileID: 0}
+  logicPrefab: {fileID: 518886888208414577, guid: 5fbb284c1b6a340bc91726f7c21a533e, type: 3}
+  references:
+    version: 2
+    RefIds:
+    - rid: 1543484118205726721
+      type: {class: WhispererDrainConfig, ns: BusDriver.Core.Data, asm: BusDriver.Core}
+      data:
+        drainPerSecondByStage:
+        - 0
+        - 0.25
+        - 0.6
+        - 1.2
+        whisperVolumeByStage:
+        - 0
+        - 0.3
+        - 0.6
+        - 1

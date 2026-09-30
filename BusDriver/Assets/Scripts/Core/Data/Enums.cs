@@ -58,4 +58,6 @@ namespace BusDriver.Core.Data {
     public enum RiderStatus : int { Waiting = 0, Aboard = 1, Delivered = 2, Kicked = 3, Died = 4, Lost = 5 }
     // A money event of the night (§2.7, T-M3-05). Lost = the refund when a rider is killed.
     public enum LedgerKind : int { Fare = 0, Tip = 1, Refund = 2, Lost = 3, Bounty = 4 }
+    // How a kill sequence's telegraph is escaped (§2.14, D31, D47; MonsterDefinition.escape, T-M4-03)
+    public enum EscapeKind : int { None = 0, ObserveFor = 1, UnobservedFor = 2 }
 }

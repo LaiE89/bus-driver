@@ -41,3 +41,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8553a9da666fa4bddae09fd53038c178, type: 2}
   - {fileID: 11400000, guid: ae3c54f3afc7845d1826ff3e26b222ae, type: 2}
   - {fileID: 11400000, guid: aba9ab1a69da347ae8c2823f09aeed5f, type: 2}
+  monsters:
+  - {fileID: 11400000, guid: bb8149314fbba4fe0bbded8a9ad355c3, type: 2}
+  - {fileID: 11400000, guid: 1d552c969b5814490a4f54f46f12fe52, type: 2}
+  - {fileID: 11400000, guid: 794d8086dfb544ebda198390b814d582, type: 2}
+  - {fileID: 11400000, guid: 67cbc82a8955b4c26935cac9eb693673, type: 2}

@@ -6,6 +6,7 @@ using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Economy;
+using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
@@ -37,6 +38,8 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] ViewFactory views;
         [Tooltip("Spawns the night's riders (§4.6)")]
         [SerializeField] ManifestSpawner manifest;
+        [Tooltip("The night's monsters and the kill-sequence slot (§4.6)")]
+        [SerializeField] MonsterSystem monsters;
         [Tooltip("The development and test driver (§4.18)")]
         [SerializeField] AutoPilot autoPilot;
         [Tooltip("Development and test riders (T-M2-07), until ManifestSpawner (T-M3-03)")]
@@ -116,11 +119,14 @@ namespace BusDriver.Gameplay.Flow {
             shift.Views.Init(shift);
             // 6. ShiftLedger (built in BuildServices), EconomyRules
             shift.Economy.Init(shift);
-            // 7–13. Sanity, scares, death, monsters, hallucinations, items and journal/hints arrive
-            // with M4–M7; the legacy game over stands in for DeathDirector until T-M4-06
+            // 7–9. Sanity, scares and death arrive with M4–M5; the legacy game over stands in for
+            // DeathDirector until T-M4-06
             if (shift.GameOver != null) {
                 shift.GameOver.Init(shift);
             }
+            // 10. MonsterSystem
+            shift.Monsters.Init(shift);
+            // 11–13. Hallucinations, items and journal/hints arrive with M5–M7
             // 14. ManifestSpawner, and the debug rider hook beside it
             shift.Manifest.Init(shift);
             if (shift.DebugRiders != null) {
@@ -166,6 +172,7 @@ namespace BusDriver.Gameplay.Flow {
                 Riders = riders,
                 Views = views,
                 Manifest = manifest,
+                Monsters = monsters,
                 Night = ResolveNight(setup),
                 Balance = ResolveBalance(),
                 Ledger = new ShiftLedger(setup.Run.walletCents),

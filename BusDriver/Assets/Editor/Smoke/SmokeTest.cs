@@ -23,7 +23,7 @@ namespace BusDriver.Editor.Smoke {
     // (no -quit, the test exits the editor itself). It plays the Menu scene, reboots GameRoot on a
     // throwaway save root and starts a New Run through RunFlow (T-M1-16), then drives the bus on
     // Route 1 (T-M2-07) through BusController.SetInput, keeping its lane with AutoPilot's steering,
-    // boards the riders the debug rider hook put at farm_gate, kicks the Weeping Angel, logs
+    // boards the riders the debug rider hook put at farm_gate, kicks the Starer, logs
     // "[SMOKE]" lines, writes camera captures (driver, CCTV, a stop, the cliff, the tunnel) to
     // Logs/smoke and exits 0 on pass, 1 on fail.
     [InitializeOnLoad]
@@ -54,7 +54,7 @@ namespace BusDriver.Editor.Smoke {
         static BusDoors doors;
         static OnFootController onFoot;
         static BusStop stop;
-        static WeepingAngel monster;
+        static Passenger monster;
         static float phaseStart;
         static bool stepDone;
         static bool stepDone2;
@@ -73,7 +73,7 @@ namespace BusDriver.Editor.Smoke {
         static float idlePitch;
         static readonly List<string> failures = new List<string>();
         const int RunSeed = 20260929;
-        // The stop the test boards at, and the riders waiting there (the angel first, as the MVP had it)
+        // The stop the test boards at, and the riders waiting there (the monster first, as the MVP had it)
         const string TestStopId = "farm_gate";
         const int TestRiders = 2;
         // The right lane's centre, and the left one (room for the hard-right check)
@@ -170,16 +170,16 @@ namespace BusDriver.Editor.Smoke {
                 cabin = bus.GetComponent<BusCabin>();
                 doors = bus.GetComponent<BusDoors>();
                 path = new RoutePath(night.Route.Route);
-                // Night 1's manifest waits at the stop (T-M3-03); the debug rider hook adds the legacy
-                // angel and two more riders
+                // Night 1's manifest waits at the stop (T-M3-03); the debug rider hook adds a Starer
+                // and two more riders
                 stop = night.Route.Stop(TestStopId);
                 Check(stop != null, "Route01_World has no stop '" + TestStopId + "'");
                 Check(night.Route.Stops.Count == night.Route.Route.stops.Length, "the route root doesn't list every stop");
                 int manifestWaiting = stop.WaitingCount;
                 Check(manifestWaiting == 2, "night 1's manifest should have two riders waiting at " + TestStopId + ", found " + manifestWaiting);
-                monster = night.Shift.DebugRiders.SpawnWaiting(stop, true) as WeepingAngel;
+                monster = night.Shift.DebugRiders.SpawnWaiting(stop, NightSeed.Starer);
                 for (int i = 0; i < TestRiders; i++) {
-                    night.Shift.DebugRiders.SpawnWaiting(stop, false);
+                    night.Shift.DebugRiders.SpawnWaiting(stop, "");
                 }
                 Check(monster != null && stop.WaitingCount == manifestWaiting + TestRiders + 1, "the debug rider hook did not put the riders at the stop");
                 RoutePose spawnPose = path.Evaluate(night.Route.Route.depotSpawnDistance);
@@ -188,7 +188,7 @@ namespace BusDriver.Editor.Smoke {
                     "the bus did not start at the route's spawn marker");
                 cabin.OnPassengerBoarded += p => boardedEvents++;
                 cabin.OnPassengerSeated += p => seatedEvents++;
-                cabin.OnPassengerKicked += p => kickedWasMonster = p is Monster;
+                cabin.OnPassengerKicked += p => kickedWasMonster = p.GetComponent<MonsterBrain>() != null;
                 cabin.OnPassengerLeft += p => { leftEvents++; leftWasKicked = p.WasKicked; };
                 startTime = Time.time;
                 Log("started");
@@ -385,7 +385,7 @@ namespace BusDriver.Editor.Smoke {
                             Check(rider.transform.IsChildOf(bus.transform), rider.name + " is not parented to the bus");
                             Check(rider.Seat != null && rider.Seat.Occupant == rider, rider.name + " does not own its seat");
                         }
-                        Check(monster.IsAboard && monster is Monster && monster is Passenger, "monster is not aboard as a passenger");
+                        Check(monster.IsAboard && monster.GetComponent<MonsterBrain>() != null, "monster is not aboard as a passenger with a MonsterBrain");
                         // Kicking is on foot only (D46): nothing is offered from the driver's seat
                         PlayerInteractor seatedInteractor = UnityEngine.Object.FindAnyObjectByType<PlayerInteractor>();
                         Check(seatedInteractor != null && seatedInteractor.Current == null, "seated player is offered an interaction");

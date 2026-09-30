@@ -4,9 +4,11 @@ using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 
 namespace BusDriver.Gameplay.Monsters {
+    // The legacy PR #5 Weeping Angel, kept only as the reference T-M6-05 ports its walk path from
+    // (§2.12b). Nothing spawns it: the weeping_angel monster is the generated MonsterBrain prefab.
     // Moves only when unwatched, and only after it has sat down once.
     // Path is seat → aisle → along aisle → toward the player, so it never cuts through benches.
-    public class WeepingAngel : Monster {
+    public class WeepingAngel : Passenger {
         [SerializeField] float moveSpeed = 0.55f;
         [SerializeField] float aisleReach = 0.08f;
         [SerializeField] float stopDistance = 0.35f;

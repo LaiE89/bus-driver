@@ -43,6 +43,9 @@ namespace BusDriver.Core.Data {
         [Tooltip("Every passenger look (Data/Looks), in id order")]
         public PassengerLookDefinition[] looks = new PassengerLookDefinition[0];
 
+        [Tooltip("Every monster type (Data/Monsters): starer, whisperer, mimic, weeping_angel")]
+        public MonsterDefinition[] monsters = new MonsterDefinition[0];
+
         public RouteDefinition Route(string routeId) {
             for (int i = 0; i < routes.Length; i++) {
                 if (routes[i] != null && routes[i].id == routeId) {
@@ -57,6 +60,15 @@ namespace BusDriver.Core.Data {
             for (int i = 0; i < nights.Length; i++) {
                 if (nights[i] != null && nights[i].nightIndex == nightIndex) {
                     return nights[i];
+                }
+            }
+            return null;
+        }
+
+        public MonsterDefinition Monster(string monsterId) {
+            for (int i = 0; i < monsters.Length; i++) {
+                if (monsters[i] != null && monsters[i].id == monsterId) {
+                    return monsters[i];
                 }
             }
             return null;

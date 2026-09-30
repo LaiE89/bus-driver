@@ -15,7 +15,8 @@ namespace BusDriver.Editor.Builders {
     // BuildAll step 7 (§4.15): the logic prefabs and their greybox views. For now: Bus, OnFootRig
     // and FallCamera (T-M1-14), the HUD and Screens (UIPrefabBuilder, T-M1-16), the environment
     // kinds (EnvironmentPrefabBuilder, T-M2-06), the Passenger logic prefab and its greybox view
-    // (T-M3-01) and the legacy WeepingAngel (until T-M6-05). The 12 m bus geometry, camera
+    // (T-M3-01), a monster variant per MonsterDefinition (T-M4-03) and the legacy WeepingAngel
+    // (a reference only, until T-M6-05). The 12 m bus geometry, camera
     // placements and seat layout are the MVP's, unchanged (Appendix A.2). The logic root owns
     // every collider, camera, light and anchor; the view owns only renderers (§4.14).
     public static class PrefabBuilder {
@@ -27,6 +28,7 @@ namespace BusDriver.Editor.Builders {
         public const string ViewsFolder = Folder + "/Views";
         public const string GreyboxPassengerViewPath = ViewsFolder + "/View_GreyboxPassenger.prefab";
         public const string LegacyWeepingAngelPath = Folder + "/WeepingAngel.prefab";
+        public const string MonstersFolder = Folder + "/Monsters";
         public const string TuningPath = "Assets/Settings/BusTuning.asset";
 
         // Names the scene builders and tests look things up by
@@ -87,6 +89,7 @@ namespace BusDriver.Editor.Builders {
             EnsureFolder(ViewsFolder);
             BuildGreyboxPassengerView();
             BuildRider<Passenger>(PassengerPath, "Passenger");
+            BuildMonsterVariants();
             BuildRider<WeepingAngel>(LegacyWeepingAngelPath, "WeepingAngel");
             UIPrefabBuilder.Build();
             EnvironmentPrefabBuilder.Build();
@@ -608,6 +611,35 @@ namespace BusDriver.Editor.Builders {
             SetLayerRecursively(root, Layers.Passenger);
             SaveOrOverwritePrefab(root, path);
             Object.DestroyImmediate(root);
+        }
+
+        public static string MonsterPath(string monsterId) {
+            return MonstersFolder + "/Monster_" + monsterId + ".prefab";
+        }
+
+        // One prefab variant of Passenger.prefab per MonsterDefinition (§4.15 step 7, T-M4-03): the
+        // rider plus a ThreatMeter and a MonsterBrain pointing at its definition. The definition's
+        // logicPrefab is the one Data field the builder owns (D98).
+        static void BuildMonsterVariants() {
+            EnsureFolder(MonstersFolder);
+            GameObject rider = AssetDatabase.LoadAssetAtPath<GameObject>(PassengerPath);
+            GameRootConfig config = DataSeeder.EnsureGameRootConfig();
+            foreach (MonsterDefinition monster in config.monsters ?? new MonsterDefinition[0]) {
+                if (monster == null || string.IsNullOrEmpty(monster.id)) {
+                    continue;
+                }
+                GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(rider);
+                instance.name = "Monster_" + monster.id;
+                instance.AddComponent<ThreatMeter>();
+                MonsterBrain brain = instance.AddComponent<MonsterBrain>();
+                SetRef(brain, "definition", monster);
+                GameObject saved = SaveOrOverwritePrefab(instance, MonsterPath(monster.id));
+                Object.DestroyImmediate(instance);
+                if (monster.logicPrefab != saved) {
+                    monster.logicPrefab = saved;
+                    EditorUtility.SetDirty(monster);
+                }
+            }
         }
 
         // The greybox passenger view (§4.14): the MVP capsule and sphere with a face bar, plus a

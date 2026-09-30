@@ -4,6 +4,7 @@ using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Economy;
+using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
@@ -61,6 +62,8 @@ namespace BusDriver.Gameplay.Flow {
         // The night's money (§2.7, §4.6)
         public ShiftLedger Ledger;
         public EconomyRules Economy;
+        // The night's monsters and the kill-sequence slot (§4.6)
+        public MonsterSystem Monsters;
 
         // Legacy until DeathDirector (T-M4-06)
         public LegacyGameOver GameOver;
