@@ -21,6 +21,7 @@ namespace BusDriver.Gameplay.Audio {
                 s.source.spatialBlend = s.spatialBlend;
                 s.source.loop = s.loop;
                 s.source.outputAudioMixerGroup = s.group;
+                s.source.ignoreListenerPause = s.ignoreListenerPause;
             }
         }
 

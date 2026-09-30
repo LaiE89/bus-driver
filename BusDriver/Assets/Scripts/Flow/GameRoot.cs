@@ -52,6 +52,10 @@ namespace BusDriver.Gameplay.Flow {
             services.Settings = new SettingsService(services.Saves, config.mixer);
             services.Meta = new MetaService(services.Saves);
             services.Input = new InputService(ResolveActions(config), services.Settings);
+            services.Pause = new PauseService(services.Input);
+            services.Cursor = new CursorService();
+            services.Input.OnContextChanged += services.Cursor.Apply;
+            services.Cursor.Apply(services.Input.EffectiveContext);
             services.Scenes = new SceneLoader(this);
             services.Flow = new RunFlow(services);
             services.Scenes.Attach(services);
@@ -77,6 +81,17 @@ namespace BusDriver.Gameplay.Flow {
 
         void Update() {
             Services.Input.Tick();
+        }
+
+        void OnApplicationFocus(bool hasFocus) {
+            if (Services == null) {
+                return;
+            }
+            Services.Pause.HandleFocus(hasFocus);
+            // The OS frees the cursor while the window is in the background
+            if (hasFocus) {
+                Services.Cursor.Apply(Services.Input.EffectiveContext);
+            }
         }
 
         void Start() {

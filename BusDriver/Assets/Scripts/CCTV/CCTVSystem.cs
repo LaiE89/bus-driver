@@ -2,13 +2,14 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
 using BusDriver.UI.Screens;
 
 namespace BusDriver.Gameplay.Bus {
     // Fullscreen camera switching: exactly one camera renders at a time, so checking
     // the cabin hides the road completely while the bus keeps moving.
-    public class CCTVSystem : MonoBehaviour {
+    public class CCTVSystem : MonoBehaviour, IGameBindable {
         [SerializeField] Camera homeCamera;
         [SerializeField] Camera[] cctvCameras;
         [SerializeField] string[] cameraLabels;
@@ -31,6 +32,11 @@ namespace BusDriver.Gameplay.Bus {
         public event Action<int> OnViewChanged;
 
         Volume cctvVolume;
+        GameServices game;
+
+        public void Bind(GameServices services) {
+            game = services;
+        }
 
         void Awake() {
             CreateVolume();
@@ -38,7 +44,7 @@ namespace BusDriver.Gameplay.Bus {
         }
 
         void Update() {
-            if (ingameMenus.pausedGame) {
+            if (game != null && game.Pause.IsPaused) {
                 return;
             }
             // Read the static every frame so a rebind applies immediately

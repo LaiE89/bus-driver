@@ -1104,10 +1104,6 @@ namespace BusDriver.Editor.Builders {
             SetRef(mode, "ears", ears);
             SetRef(mode, "earsSeatParent", anchor);
             SetRef(mode, "driverAvatar", driverAvatarRoot);
-            PauseMenu pauseMenu = Object.FindAnyObjectByType<PauseMenu>(FindObjectsInactive.Include);
-            if (pauseMenu != null) {
-                SetRef(mode, "pauseMenu", pauseMenu);
-            }
             GameOverMenu gameOverMenu = Object.FindAnyObjectByType<GameOverMenu>(FindObjectsInactive.Include);
             if (gameOverMenu != null) {
                 SetRef(mode, "gameOverMenu", gameOverMenu);
@@ -1206,9 +1202,10 @@ namespace BusDriver.Editor.Builders {
 
             // Same vertical stack as Menu: Title / Start / Options / Quit
             Label("PauseTitle", pausePanel, "PAUSED", 120f, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), new Vector2(0f, 304f), new Vector2(1220f, 200f), Color.white);
-            Button resumeButton = MenuButton("Resume Button", pausePanel, "RESUME", new Vector2(0f, 98f), 74f);
-            Button optionsButton = MenuButton("Options Button", pausePanel, "OPTIONS", new Vector2(0f, -40f), 74f);
-            Button mainMenuButton = MenuButton("Main Menu Button", pausePanel, "MAIN MENU", new Vector2(0f, -189f), 72f);
+            Button resumeButton = MenuButton("Resume Button", pausePanel, "RESUME", new Vector2(0f, 120f), 74f);
+            Button optionsButton = MenuButton("Options Button", pausePanel, "OPTIONS", new Vector2(0f, 0f), 74f);
+            Button quitToMenuButton = MenuButton("Quit To Menu Button", pausePanel, "QUIT TO MENU", new Vector2(0f, -120f), 72f);
+            Button quitGameButton = MenuButton("Quit Game Button", pausePanel, "QUIT GAME", new Vector2(0f, -240f), 72f);
 
             GameObject optionsRoot = InstantiateMenuPrefab(
                 "Assets/Prefabs/Level Essentials/In Canvas/Options Menu.prefab",
@@ -1219,17 +1216,18 @@ namespace BusDriver.Editor.Builders {
                 canvasObject.transform,
                 "Controls Menu");
 
-            PauseMenu pauseMenu = canvasObject.AddComponent<PauseMenu>();
-            SetRef(pauseMenu, "pauseRoot", pausePanel.gameObject);
+            PauseScreen pauseScreen = canvasObject.AddComponent<PauseScreen>();
+            SetRef(pauseScreen, "pauseRoot", pausePanel.gameObject);
             if (optionsRoot != null) {
-                SetRef(pauseMenu, "optionsRoot", optionsRoot);
+                SetRef(pauseScreen, "optionsRoot", optionsRoot);
             }
             if (controlsRoot != null) {
-                SetRef(pauseMenu, "controlsRoot", controlsRoot);
+                SetRef(pauseScreen, "controlsRoot", controlsRoot);
             }
-            SetRef(pauseMenu, "resumeButton", resumeButton);
-            SetRef(pauseMenu, "optionsButton", optionsButton);
-            SetRef(pauseMenu, "mainMenuButton", mainMenuButton);
+            SetRef(pauseScreen, "resumeButton", resumeButton);
+            SetRef(pauseScreen, "optionsButton", optionsButton);
+            SetRef(pauseScreen, "quitToMenuButton", quitToMenuButton);
+            SetRef(pauseScreen, "quitGameButton", quitGameButton);
 
             GameObject gameOverDimObject = new GameObject("Dim", typeof(RectTransform));
             gameOverDimObject.layer = UILayer;

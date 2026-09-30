@@ -1,17 +1,24 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
 
 namespace BusDriver.UI.Screens {
     // Full-screen game over overlay: Retry / Main Menu.
     // UI is baked in the scene (or via Tools/Bus Driver/Bake Overlay Menus Into Scene).
-    public class GameOverMenu : MonoBehaviour {
+    public class GameOverMenu : MonoBehaviour, IGameBindable {
         [SerializeField] GameObject gameOverRoot;
         [SerializeField] Button retryButton;
         [SerializeField] Button mainMenuButton;
 
+        GameServices game;
+
         public bool IsOpen { get { return gameOverRoot != null && gameOverRoot.activeSelf; } }
+
+        public void Bind(GameServices services) {
+            game = services;
+        }
 
         void Awake() {
             WireButtons();
@@ -42,18 +49,19 @@ namespace BusDriver.UI.Screens {
             }
         }
 
+        // Reloading the scene resets pause and time scale (SceneLoader, PauseService)
         public void Retry() {
             PlayUISound();
-            Time.timeScale = 1f;
-            ingameMenus.pausedGame = false;
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
         public void BackToMainMenu() {
             PlayUISound();
-            Time.timeScale = 1f;
-            ingameMenus.pausedGame = false;
-            SceneManager.LoadScene("Menu");
+            if (game != null) {
+                game.Flow.QuitToMenu();
+            }else {
+                SceneManager.LoadScene("Menu");
+            }
         }
 
         static void ReplaceClick(Button button, UnityEngine.Events.UnityAction action) {

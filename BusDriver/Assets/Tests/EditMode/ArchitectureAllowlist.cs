@@ -17,8 +17,6 @@ namespace BusDriver.Tests.EditMode {
             "Sounds/SoundController.cs|FindObjectByType",
             "Passengers/WeepingAngel.cs|UnityRandom",
             "Menus/MainMenu.cs|GameObjectFind",
-            "Menus/PauseMenu.cs|FindObjectByType",
-            "Menus/ingameMenus.cs|LegacyInput",
             "Player/DriverLook.cs|LegacyInput",
             "Player/OnFootController.cs|LegacyInput",
             "Player/PlayerInteractor.cs|FindObjectByType",
@@ -35,7 +33,6 @@ namespace BusDriver.Tests.EditMode {
             "BusDriver.Gameplay.Player.GameKeys.leaveSeat",
             "BusDriver.Gameplay.Player.GameKeys.handbrake",
             "BusDriver.UI.Menu.MainMenu.soundController",
-            "BusDriver.UI.Screens.ingameMenus.pausedGame",
         };
     }
 }

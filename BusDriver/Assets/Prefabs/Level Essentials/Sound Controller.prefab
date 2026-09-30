@@ -62,6 +62,7 @@ MonoBehaviour:
     spatialBlend: 0
     loop: 0
     music: 0
+    ignoreListenerPause: 1
     group: {fileID: 24300002, guid: f47922c61f176ea40b87b83231abdcde, type: 2}
     source: {fileID: 0}
   - name: Wind Ambience

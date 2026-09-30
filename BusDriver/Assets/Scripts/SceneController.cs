@@ -1,9 +1,11 @@
 using System;
 using UnityEngine;
+using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using UnityEngine.SceneManagement;
 using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.World;
 using BusDriver.UI.Screens;
@@ -18,8 +20,10 @@ namespace BusDriver.Gameplay.Player {
         [Min(0f)] public float weight = 1f;
     }
 
-    // Scene hub for the bus route: player mode, pause, shared services, and NPC spawning.
-    public class SceneController : MonoBehaviour {
+    // Scene hub for the bus route: player mode, shared services, and NPC spawning. Pause and the
+    // cursor belong to PauseService and CursorService (T-M1-08); this only says when pausing is
+    // allowed and which input context the player mode wants.
+    public class SceneController : MonoBehaviour, IGameBindable {
         public static SceneController Instance { get; private set; }
 
         [Header("Driving")]
@@ -54,10 +58,10 @@ namespace BusDriver.Gameplay.Player {
         [Tooltip("If set, the first waiter at the first empty stop uses this pool id (useful for testing monsters).")]
         [SerializeField] string guaranteedFirstNpcId = "WeepingAngel";
 
-        [Header("Input")]
-        [SerializeField] KeyCode pauseKey = KeyCode.Escape;
-        [SerializeField] PauseMenu pauseMenu;
+        [Header("Screens")]
         [SerializeField] GameOverMenu gameOverMenu;
+
+        GameServices game;
 
         public PlayerMode Mode { get; private set; }
         public bool IsGameOver { get; private set; }
@@ -92,8 +96,6 @@ namespace BusDriver.Gameplay.Player {
             }
             Instance = this;
 
-            ingameMenus.pausedGame = false;
-            Time.timeScale = 1;
             CacheServices();
             if (npcPool == null) {
                 npcPool = GetComponent<ObjectPooling>();
@@ -104,15 +106,18 @@ namespace BusDriver.Gameplay.Player {
             EnsureDriverAvatar();
             PlayerAvatarVisuals.HideAvatarFromCamera(driverCamera);
             PlayerAvatarVisuals.HideAvatarFromCamera(onFootCamera);
-            if (pauseMenu == null) {
-                pauseMenu = FindAnyObjectByType<PauseMenu>(FindObjectsInactive.Include);
-            }
             if (gameOverMenu == null) {
                 gameOverMenu = FindAnyObjectByType<GameOverMenu>(FindObjectsInactive.Include);
             }
-            if (pauseMenu == null || gameOverMenu == null) {
-                Log.Warn(LogCat.Flow, "SceneController: Pause/Game Over UI missing from scene. Run Tools/Bus Driver/Bake Overlay Menus Into Scene.");
+            if (gameOverMenu == null) {
+                Log.Warn(LogCat.Flow, "SceneController: Game Over UI missing from scene. Run Tools/Bus Driver/Bake Overlay Menus Into Scene.");
             }
+        }
+
+        // From the scene root, before Start. Pausing is allowed in this scene until the game is over.
+        public void Bind(GameServices services) {
+            game = services;
+            game.Pause.CanPause = () => !IsGameOver;
         }
 
         void CacheServices() {
@@ -135,7 +140,6 @@ namespace BusDriver.Gameplay.Player {
 
         void Start() {
             SetMode(PlayerMode.Driving);
-            ApplyCursor();
             if (soundController != null && !string.IsNullOrEmpty(ambienceSound)) {
                 soundController.Play(ambienceSound);
             }
@@ -325,6 +329,9 @@ namespace BusDriver.Gameplay.Player {
                 driverLook.enabled = true;
                 cctv.enabled = true;
             }
+            if (game != null) {
+                game.Input.SetContext(mode == PlayerMode.OnFoot ? InputContext.OnFoot : InputContext.Driving);
+            }
             OnModeChanged?.Invoke(mode);
         }
 
@@ -343,17 +350,7 @@ namespace BusDriver.Gameplay.Player {
         }
 
         void Update() {
-            if (IsGameOver) {
-                return;
-            }
-            if (UnityEngine.Input.GetKeyDown(pauseKey)) {
-                if (pauseMenu != null && pauseMenu.OptionsOpen) {
-                    pauseMenu.HandleEscapeFromSubmenu();
-                }else {
-                    SetPaused(!ingameMenus.pausedGame);
-                }
-            }
-            if (ingameMenus.pausedGame || Mode != PlayerMode.Driving) {
+            if (IsGameOver || (game != null && game.Pause.IsPaused) || Mode != PlayerMode.Driving) {
                 return;
             }
             if (UnityEngine.Input.GetKeyDown(GameKeys.leaveSeat)) {
@@ -363,64 +360,20 @@ namespace BusDriver.Gameplay.Player {
             }
         }
 
+        // The game stops under the Game Over screen: not a pause, since it can't be resumed
         public void TriggerGameOver() {
             if (IsGameOver) {
                 return;
             }
             IsGameOver = true;
-            ingameMenus.pausedGame = true;
-            Time.timeScale = 0f;
-            if (pauseMenu != null) {
-                pauseMenu.Hide();
+            if (game != null) {
+                game.Pause.TrySetPaused(false);
+                game.Input.SetContext(InputContext.Screen);
             }
+            Time.timeScale = 0f;
+            AudioListener.pause = true;
             if (gameOverMenu != null) {
                 gameOverMenu.Show();
-            }
-            ApplyCursor();
-            if (soundController != null) {
-                soundController.PauseAll();
-            }
-        }
-
-        public void SetPaused(bool paused) {
-            if (IsGameOver) {
-                return;
-            }
-            ingameMenus.pausedGame = paused;
-            Time.timeScale = paused ? 0 : 1;
-            ApplyCursor();
-            if (pauseMenu != null) {
-                if (paused) {
-                    pauseMenu.Show();
-                }else {
-                    pauseMenu.Hide();
-                }
-            }
-            if (soundController == null) {
-                return;
-            }
-            if (paused) {
-                soundController.PauseAll();
-            }else {
-                soundController.UnPauseAll();
-            }
-        }
-
-        public void BackToMainMenu() {
-            SetPaused(false);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-            SceneManager.LoadScene("Menu");
-        }
-
-        void ApplyCursor() {
-            Cursor.lockState = ingameMenus.pausedGame ? CursorLockMode.None : CursorLockMode.Locked;
-            Cursor.visible = ingameMenus.pausedGame;
-        }
-
-        void OnApplicationFocus(bool hasFocus) {
-            if (hasFocus) {
-                ApplyCursor();
             }
         }
 
@@ -428,8 +381,6 @@ namespace BusDriver.Gameplay.Player {
             if (Instance == this) {
                 Instance = null;
             }
-            ingameMenus.pausedGame = false;
-            Time.timeScale = 1;
         }
     }
 }

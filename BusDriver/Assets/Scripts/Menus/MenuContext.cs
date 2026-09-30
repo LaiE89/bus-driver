@@ -1,3 +1,4 @@
+using BusDriver.Core.Data;
 using BusDriver.Gameplay.Flow;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace BusDriver.UI.Menu {
 
         public void Initialize(GameServices game) {
             Game = game;
+            game.Input.SetContext(InputContext.Menu);
             // MainMenu and the options screen (D56)
             SceneBinding.BindAll(gameObject.scene, game);
             if (buildLabel != null) {

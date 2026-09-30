@@ -1,19 +1,24 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
+using BusDriver.Core.Util;
+using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
-using BusDriver.UI.Hud;
 
 namespace BusDriver.UI.Screens {
-    // In-game pause overlay: Resume / Options / Main Menu.
-    // UI is baked in the scene (or via Tools/Bus Driver/Bake Overlay Menus Into Scene).
-    public class PauseMenu : MonoBehaviour {
+    // The pause screen (§2.21, was PauseMenu + ingameMenus): Resume / Options / Quit to Menu /
+    // Quit Game. It shows whatever PauseService says; Esc (Global/Pause) or UI Cancel pauses, backs
+    // out of Options/Controls, or resumes. The panels are baked into the legacy scene by the
+    // builders; Screens.prefab and ScreenRouter take over in T-M1-16.
+    public class PauseScreen : MonoBehaviour, IGameBindable {
         [SerializeField] GameObject pauseRoot;
         [SerializeField] GameObject optionsRoot;
         [SerializeField] GameObject controlsRoot;
         [SerializeField] Button resumeButton;
         [SerializeField] Button optionsButton;
-        [SerializeField] Button mainMenuButton;
+        [SerializeField] Button quitToMenuButton;
+        [SerializeField] Button quitGameButton;
+
+        GameServices game;
 
         public bool IsOpen { get { return pauseRoot != null && pauseRoot.activeSelf; } }
         public bool OptionsOpen {
@@ -25,14 +30,40 @@ namespace BusDriver.UI.Screens {
 
         void Awake() {
             WireButtons();
-            if (pauseRoot != null) {
-                pauseRoot.SetActive(false);
+            SetActive(pauseRoot, false);
+            SetActive(optionsRoot, false);
+            SetActive(controlsRoot, false);
+        }
+
+        // From the scene root, before Start
+        public void Bind(GameServices services) {
+            game = services;
+            game.Pause.OnPauseChanged += HandlePauseChanged;
+        }
+
+        void OnDestroy() {
+            if (game != null) {
+                game.Pause.OnPauseChanged -= HandlePauseChanged;
             }
-            if (optionsRoot != null) {
-                optionsRoot.SetActive(false);
+        }
+
+        // Pause and Cancel are both Esc on the keyboard: one press, one step back
+        void Update() {
+            if (game == null) {
+                return;
             }
-            if (controlsRoot != null) {
-                controlsRoot.SetActive(false);
+            if (game.Input.Actions.Pause.WasPerformedThisFrame() || game.Input.Actions.Cancel.WasPerformedThisFrame()) {
+                Back();
+            }
+        }
+
+        public void Back() {
+            if (!game.Pause.IsPaused) {
+                game.Pause.TrySetPaused(true);
+            }else if (OptionsOpen) {
+                HandleEscapeFromSubmenu();
+            }else {
+                Resume();
             }
         }
 
@@ -43,56 +74,46 @@ namespace BusDriver.UI.Screens {
             if (optionsButton != null) {
                 ReplaceClick(optionsButton, OpenOptions);
             }
-            if (mainMenuButton != null) {
-                ReplaceClick(mainMenuButton, BackToMainMenu);
+            if (quitToMenuButton != null) {
+                ReplaceClick(quitToMenuButton, QuitToMenu);
+            }
+            if (quitGameButton != null) {
+                ReplaceClick(quitGameButton, QuitGame);
             }
             WireSubmenuButtons();
         }
 
+        void HandlePauseChanged(bool paused) {
+            if (paused) {
+                Show();
+            }else {
+                Hide();
+            }
+        }
+
         public void Show() {
-            if (optionsRoot != null) {
-                optionsRoot.SetActive(false);
-            }
-            if (controlsRoot != null) {
-                controlsRoot.SetActive(false);
-            }
-            if (pauseRoot != null) {
-                pauseRoot.SetActive(true);
-            }
+            SetActive(optionsRoot, false);
+            SetActive(controlsRoot, false);
+            SetActive(pauseRoot, true);
             PlayUISound();
         }
 
         public void Hide() {
-            if (pauseRoot != null) {
-                pauseRoot.SetActive(false);
-            }
-            if (optionsRoot != null) {
-                optionsRoot.SetActive(false);
-            }
-            if (controlsRoot != null) {
-                controlsRoot.SetActive(false);
-            }
-            RefreshHudHints();
+            SetActive(pauseRoot, false);
+            SetActive(optionsRoot, false);
+            SetActive(controlsRoot, false);
         }
 
         public void Resume() {
-            if (SceneController.Instance != null) {
-                SceneController.Instance.SetPaused(false);
-            }else {
-                Hide();
-                ingameMenus.pausedGame = false;
-                Time.timeScale = 1f;
+            if (game != null) {
+                game.Pause.TrySetPaused(false);
             }
             PlayUISound();
         }
 
         public void OpenOptions() {
-            if (pauseRoot != null) {
-                pauseRoot.SetActive(false);
-            }
-            if (controlsRoot != null) {
-                controlsRoot.SetActive(false);
-            }
+            SetActive(pauseRoot, false);
+            SetActive(controlsRoot, false);
             if (optionsRoot != null) {
                 optionsRoot.SetActive(true);
                 OptionsScreen options = optionsRoot.GetComponentInChildren<OptionsScreen>(true);
@@ -104,9 +125,7 @@ namespace BusDriver.UI.Screens {
         }
 
         public void OpenControls() {
-            if (optionsRoot != null) {
-                optionsRoot.SetActive(false);
-            }
+            SetActive(optionsRoot, false);
             if (controlsRoot != null) {
                 controlsRoot.SetActive(true);
                 ControlsMenu controls = controlsRoot.GetComponentInChildren<ControlsMenu>(true);
@@ -118,26 +137,15 @@ namespace BusDriver.UI.Screens {
         }
 
         public void CloseControls() {
-            if (controlsRoot != null) {
-                controlsRoot.SetActive(false);
-            }
-            if (optionsRoot != null) {
-                optionsRoot.SetActive(true);
-            }
+            SetActive(controlsRoot, false);
+            SetActive(optionsRoot, true);
             PlayUISound();
         }
 
         public void CloseOptions() {
-            if (optionsRoot != null) {
-                optionsRoot.SetActive(false);
-            }
-            if (controlsRoot != null) {
-                controlsRoot.SetActive(false);
-            }
-            if (pauseRoot != null) {
-                pauseRoot.SetActive(true);
-            }
-            RefreshHudHints();
+            SetActive(optionsRoot, false);
+            SetActive(controlsRoot, false);
+            SetActive(pauseRoot, true);
             PlayUISound();
         }
 
@@ -149,11 +157,20 @@ namespace BusDriver.UI.Screens {
             CloseOptions();
         }
 
-        public void BackToMainMenu() {
+        // A plain quit for now; leaving a night as a death (D21) arrives in T-M7-08
+        public void QuitToMenu() {
             PlayUISound();
-            Time.timeScale = 1f;
-            ingameMenus.pausedGame = false;
-            SceneManager.LoadScene("Menu");
+            if (game == null) {
+                Log.Error(LogCat.Flow, "PauseScreen was never bound to the game services");
+                return;
+            }
+            game.Flow.QuitToMenu();
+        }
+
+        public void QuitGame() {
+            PlayUISound();
+            Log.Info(LogCat.Flow, "quit requested");
+            Application.Quit();
         }
 
         public void OnOptionsBack() {
@@ -179,6 +196,12 @@ namespace BusDriver.UI.Screens {
             }
         }
 
+        static void SetActive(GameObject target, bool active) {
+            if (target != null) {
+                target.SetActive(active);
+            }
+        }
+
         static Button FindDirectChildButton(Transform root, string childName) {
             Transform child = root.Find(childName);
             if (child != null) {
@@ -198,13 +221,6 @@ namespace BusDriver.UI.Screens {
         static void ReplaceClick(Button button, UnityEngine.Events.UnityAction action) {
             button.onClick = new Button.ButtonClickedEvent();
             button.onClick.AddListener(action);
-        }
-
-        void RefreshHudHints() {
-            DrivingHUD hud = FindAnyObjectByType<DrivingHUD>();
-            if (hud != null) {
-                hud.RefreshControlsHint();
-            }
         }
 
         void PlayUISound() {

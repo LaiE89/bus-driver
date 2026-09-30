@@ -1,21 +1,28 @@
 using UnityEngine;
+using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
 using BusDriver.UI.Screens;
 
 namespace BusDriver.Gameplay.Bus {
-    public class BusInput : MonoBehaviour {
+    public class BusInput : MonoBehaviour, IGameBindable {
         [SerializeField] BusController bus;
         [SerializeField] KeyCode resetKey = KeyCode.R;
 
         // Something else (the smoke test) calls bus.SetInput. Parking on disable still applies.
         public bool ExternalControl { get; set; }
 
+        GameServices game;
+
+        public void Bind(GameServices services) {
+            game = services;
+        }
+
         void OnEnable() {
             bus.Park(false);
         }
 
         void Update() {
-            if (ingameMenus.pausedGame || ExternalControl) {
+            if ((game != null && game.Pause.IsPaused) || ExternalControl) {
                 return;
             }
             // Raw axes, BusController does its own steering smoothing

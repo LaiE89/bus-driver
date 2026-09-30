@@ -23,6 +23,7 @@ STATUS = {
     "T-M1-04": "Done (2026-09-30)",
     "T-M1-05": "Done (2026-09-30)",
     "T-M1-06": "Done (2026-09-30)",
+    "T-M1-08": "Done (2026-09-30)",
 }
 def M(mid, title, phase, goal, acceptance, note=""):
     MILESTONES.append(dict(id=mid, title=title, phase=phase, goal=goal, acceptance=acceptance, note=note, tickets=[]))
@@ -241,7 +242,7 @@ T("T-M1-11", "Migrate every sound to AudioService; placeholder audio", "M", "cod
   "Group routing needs T-M1-10. Until then every definition routes to Master.", "§4.12, Appendix A.3",
   ["`git mv` `Assets/SFX/*` to `Assets/Audio/Clips/*`, keeping the metas.",
    "`DataSeeder` creates a `SoundDefinition` for every entry on `Sound Controller.prefab` (read the prefab to list them) and for every Appendix A.3 id.",
-   "Rewrite `BusEngineSound` (keeping the handbrake-stop cue), `CCTVSystem`, the menu UI clicks, `PauseMenu`, `GameOverMenu` and the scene ambience to use `IAudioService`. Remove `SceneController.soundController`.",
+   "Rewrite `BusEngineSound` (keeping the handbrake-stop cue), `CCTVSystem`, the menu UI clicks, `PauseScreen`, `GameOverMenu` and the scene ambience to use `IAudioService`. Remove `SceneController.soundController`.",
    "Delete `SoundController`, `Sound`, `Sound Controller.prefab` and its instances.",
    "Add `PlaceholderAudioBuilder`."],
   ["No reference to `SoundController` remains.",

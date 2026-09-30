@@ -1,7 +1,6 @@
 using UnityEngine;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Flow;
-using BusDriver.UI.Screens;
 
 namespace BusDriver.Gameplay.Player {
     // Walking around inside the parked bus. The rig lives at the scene root, not under the
@@ -28,6 +27,7 @@ namespace BusDriver.Gameplay.Player {
 
         CharacterController controller;
         SettingsService settings;
+        PauseService pause;
         float yaw;
         float pitch;
         float fallSpeed;
@@ -35,6 +35,7 @@ namespace BusDriver.Gameplay.Player {
         // From the scene root (LegacyNightRoot, later ShiftContext)
         public void Bind(GameServices game) {
             settings = game.Settings;
+            pause = game.Pause;
         }
 
         internal float Sensitivity {
@@ -87,7 +88,7 @@ namespace BusDriver.Gameplay.Player {
         }
 
         void Update() {
-            if (ingameMenus.pausedGame) {
+            if (pause != null && pause.IsPaused) {
                 return;
             }
             Vector2 move = ExternalMove;

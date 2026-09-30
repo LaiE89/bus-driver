@@ -89,6 +89,9 @@ namespace BusDriver.Gameplay.Flow {
         }
 
         void HandleSceneLoaded(Scene scene, LoadSceneMode mode) {
+            if (mode == LoadSceneMode.Single) {
+                game.Pause.ResetForSceneChange();
+            }
             Wire(scene);
         }
 

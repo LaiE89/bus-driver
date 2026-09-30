@@ -6,7 +6,7 @@ using BusDriver.Gameplay.Input;
 namespace BusDriver.Gameplay.Flow {
     // Everything that lives for the whole application (§4.5). GameRoot builds it once, in the
     // order Saves → Settings → Meta → Audio → Input → Pause → Cursor → Scenes → Flow. Services
-    // that don't exist yet are added by their tickets (Pause/Cursor T-M1-08, Audio T-M1-09).
+    // that don't exist yet are added by their tickets (Audio T-M1-09).
     public sealed class GameServices {
         public GameRootConfig Config;
         public BuildInfo Build;
@@ -14,6 +14,8 @@ namespace BusDriver.Gameplay.Flow {
         public SettingsService Settings;
         public MetaService Meta;
         public InputService Input;
+        public PauseService Pause;
+        public CursorService Cursor;
         public SceneLoader Scenes;
         public RunFlow Flow;
     }

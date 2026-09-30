@@ -2,12 +2,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.World;
 using BusDriver.UI.Screens;
 
 namespace BusDriver.UI.Hud {
-    public class DrivingHUD : MonoBehaviour {
+    public class DrivingHUD : MonoBehaviour, IGameBindable {
         [SerializeField] BusController bus;
         [SerializeField] CCTVSystem cctv;
         [SerializeField] SceneController mode;
@@ -40,6 +41,24 @@ namespace BusDriver.UI.Hud {
         [SerializeField] float clockStart = 2 * 3600 + 13 * 60;
 
         float clock;
+        GameServices game;
+
+        // From the scene root, before OnEnable of anything activated later and before Start
+        public void Bind(GameServices services) {
+            game = services;
+            game.Pause.OnPauseChanged += HandlePauseChanged;
+        }
+
+        void OnDestroy() {
+            if (game != null) {
+                game.Pause.OnPauseChanged -= HandlePauseChanged;
+            }
+        }
+
+        // Rebinds happen on the pause screen, so the hint is rebuilt on the way out
+        void HandlePauseChanged(bool paused) {
+            RefreshControlsHint();
+        }
 
         void Awake() {
             clock = clockStart;
@@ -105,7 +124,7 @@ namespace BusDriver.UI.Hud {
 
         // Only ever offers what would actually work right now
         string BuildPrompt() {
-            if (ingameMenus.pausedGame) {
+            if (game != null && game.Pause.IsPaused) {
                 return "";
             }
             if (mode.Mode == PlayerMode.OnFoot) {

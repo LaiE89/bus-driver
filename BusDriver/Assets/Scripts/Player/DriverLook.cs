@@ -1,7 +1,6 @@
 using UnityEngine;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
-using BusDriver.UI.Screens;
 
 namespace BusDriver.Gameplay.Player {
     // Seated head look, sits on the pivot that parents the driver camera
@@ -18,10 +17,12 @@ namespace BusDriver.Gameplay.Player {
         float yaw;
         float pitch;
         SettingsService settings;
+        PauseService pause;
 
         // From the scene root (LegacyNightRoot, later ShiftContext)
         public void Bind(GameServices game) {
             settings = game.Settings;
+            pause = game.Pause;
         }
 
         internal float Sensitivity {
@@ -34,7 +35,7 @@ namespace BusDriver.Gameplay.Player {
         }
 
         void Update() {
-            if (ingameMenus.pausedGame || (cctv != null && cctv.IsViewingCCTV)) {
+            if ((pause != null && pause.IsPaused) || (cctv != null && cctv.IsViewingCCTV)) {
                 return;
             }
             float sens = Sensitivity;

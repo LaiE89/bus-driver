@@ -2,7 +2,6 @@ using UnityEngine;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Player;
-using BusDriver.UI.Screens;
 
 namespace BusDriver.Gameplay.Bus {
     // Drives the looping "Bus Engine" clip from bus speed, and plays "Brake" once
@@ -23,7 +22,6 @@ namespace BusDriver.Gameplay.Bus {
         SoundController sounds;
         AudioSource source;
         float baseVolume = 1f;
-        bool wasPaused;
         bool brakePlayed;
         bool handbrakeUsedWhileMoving;
 
@@ -57,19 +55,6 @@ namespace BusDriver.Gameplay.Bus {
         void Update() {
             if (source == null || bus == null) {
                 return;
-            }
-
-            if (ingameMenus.pausedGame) {
-                wasPaused = true;
-                return;
-            }
-            if (wasPaused) {
-                wasPaused = false;
-                if (!source.isPlaying) {
-                    source.Play();
-                }else {
-                    source.UnPause();
-                }
             }
 
             float speed = bus.SpeedKmh;

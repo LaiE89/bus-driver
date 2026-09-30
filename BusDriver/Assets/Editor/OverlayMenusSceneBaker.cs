@@ -89,9 +89,9 @@ namespace BusDriver.Editor.Builders {
                 hud = hudGo.transform;
             }
 
-            PauseMenu pauseMenu = EnsurePauseMenu(canvas, hud);
+            PauseScreen pauseScreen = EnsurePauseScreen(canvas, hud);
             GameOverMenu gameOverMenu = EnsureGameOverMenu(canvas, hud);
-            EnsureOptionsAndControls(canvas, pauseMenu);
+            EnsureOptionsAndControls(canvas, pauseScreen);
             EnsureEventSystem();
             if (canvas.GetComponent<GraphicRaycaster>() == null) {
                 canvas.gameObject.AddComponent<GraphicRaycaster>();
@@ -100,11 +100,7 @@ namespace BusDriver.Editor.Builders {
             SceneController controller = Object.FindAnyObjectByType<SceneController>();
             if (controller != null) {
                 SerializedObject so = new SerializedObject(controller);
-                SerializedProperty pauseProp = so.FindProperty("pauseMenu");
                 SerializedProperty gameOverProp = so.FindProperty("gameOverMenu");
-                if (pauseProp != null) {
-                    pauseProp.objectReferenceValue = pauseMenu;
-                }
                 if (gameOverProp != null) {
                     gameOverProp.objectReferenceValue = gameOverMenu;
                 }
@@ -115,10 +111,10 @@ namespace BusDriver.Editor.Builders {
             Debug.Log("Overlay menus baked into open scene.");
         }
 
-        static PauseMenu EnsurePauseMenu(Canvas canvas, Transform hud) {
-            PauseMenu menu = Object.FindAnyObjectByType<PauseMenu>(FindObjectsInactive.Include);
+        static PauseScreen EnsurePauseScreen(Canvas canvas, Transform hud) {
+            PauseScreen menu = Object.FindAnyObjectByType<PauseScreen>(FindObjectsInactive.Include);
             if (menu == null) {
-                menu = canvas.gameObject.AddComponent<PauseMenu>();
+                menu = canvas.gameObject.AddComponent<PauseScreen>();
             }
 
             Transform panel = hud.Find("PausePanel");
@@ -134,15 +130,17 @@ namespace BusDriver.Editor.Builders {
             panel.gameObject.SetActive(false);
             EnsureDim(panel);
             CreateLabel(panel, "PauseTitle", "PAUSED", 120f, new Vector2(0f, 304f), new Vector2(1220f, 200f));
-            Button resume = CreateMenuButton(panel, "Resume Button", "RESUME", new Vector2(0f, 98f), 74f);
-            Button options = CreateMenuButton(panel, "Options Button", "OPTIONS", new Vector2(0f, -40f), 74f);
-            Button mainMenu = CreateMenuButton(panel, "Main Menu Button", "MAIN MENU", new Vector2(0f, -189f), 72f);
+            Button resume = CreateMenuButton(panel, "Resume Button", "RESUME", new Vector2(0f, 120f), 74f);
+            Button options = CreateMenuButton(panel, "Options Button", "OPTIONS", new Vector2(0f, 0f), 74f);
+            Button quitToMenu = CreateMenuButton(panel, "Quit To Menu Button", "QUIT TO MENU", new Vector2(0f, -120f), 72f);
+            Button quitGame = CreateMenuButton(panel, "Quit Game Button", "QUIT GAME", new Vector2(0f, -240f), 72f);
 
             SerializedObject so = new SerializedObject(menu);
             so.FindProperty("pauseRoot").objectReferenceValue = panel.gameObject;
             so.FindProperty("resumeButton").objectReferenceValue = resume;
             so.FindProperty("optionsButton").objectReferenceValue = options;
-            so.FindProperty("mainMenuButton").objectReferenceValue = mainMenu;
+            so.FindProperty("quitToMenuButton").objectReferenceValue = quitToMenu;
+            so.FindProperty("quitGameButton").objectReferenceValue = quitGame;
             so.ApplyModifiedPropertiesWithoutUndo();
             return menu;
         }
@@ -177,8 +175,8 @@ namespace BusDriver.Editor.Builders {
             return menu;
         }
 
-        static void EnsureOptionsAndControls(Canvas canvas, PauseMenu pauseMenu) {
-            SerializedObject so = new SerializedObject(pauseMenu);
+        static void EnsureOptionsAndControls(Canvas canvas, PauseScreen pauseScreen) {
+            SerializedObject so = new SerializedObject(pauseScreen);
             SerializedProperty optionsProp = so.FindProperty("optionsRoot");
             SerializedProperty controlsProp = so.FindProperty("controlsRoot");
 

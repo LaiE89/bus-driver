@@ -11,6 +11,8 @@ namespace BusDriver.Gameplay.Audio {
         [Range(0f, 1f)] public float spatialBlend;
         public bool loop;
         public bool music;
+        // UI sounds keep playing while the listener is paused (§4.11)
+        public bool ignoreListenerPause;
         public AudioMixerGroup group;
         [HideInInspector] public AudioSource source;
     }
