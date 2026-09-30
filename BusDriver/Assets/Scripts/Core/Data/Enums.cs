@@ -32,6 +32,8 @@ namespace BusDriver.Core.Data {
     // Added with the save models (T-M1-03, D54)
     public enum ArrivalRating : int { None = 0, Early = 1, OnTime = 2, Late = 3, Missed = 4 }
     public enum ScareIntensity : int { Full = 0, Reduced = 1 }
+    // A SoundDefinition's spatial blend (T-M1-09, D60)
+    public enum SoundSpatial : int { TwoD = 0, ThreeD = 1 }
     // Mirrors UnityEngine.FullScreenMode's values; save models hold no Unity types (§4.9)
     public enum WindowMode : int { ExclusiveFullScreen = 0, FullScreenWindow = 1, MaximizedWindow = 2, Windowed = 3 }
 }

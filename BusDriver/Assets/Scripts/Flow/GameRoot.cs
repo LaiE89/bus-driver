@@ -2,6 +2,7 @@ using System;
 using BusDriver.Core.Data;
 using BusDriver.Core.Save;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Input;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -17,6 +18,8 @@ namespace BusDriver.Gameplay.Flow {
         static GameRoot bootstrapped;
 
         public GameServices Services { get; private set; }
+        // The concrete service, for its per-frame tick; everything else sees IAudioService
+        AudioService audio;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Bootstrap() {
@@ -51,6 +54,9 @@ namespace BusDriver.Gameplay.Flow {
             services.Saves = new SaveService(saveRoot, SaveMigrations.CreateDefault(), build.Label);
             services.Settings = new SettingsService(services.Saves, config.mixer);
             services.Meta = new MetaService(services.Saves);
+            // Scaled time: a paused listener doesn't advance clips, so voices mustn't time out
+            audio = new AudioService(transform, config.soundLibrary, config.audioConfig, config.mixer, () => Time.time);
+            services.Audio = audio;
             services.Input = new InputService(ResolveActions(config), services.Settings);
             services.Pause = new PauseService(services.Input);
             services.Cursor = new CursorService();
@@ -81,6 +87,11 @@ namespace BusDriver.Gameplay.Flow {
 
         void Update() {
             Services.Input.Tick();
+        }
+
+        // After gameplay has moved things, so attached sounds follow this frame's positions
+        void LateUpdate() {
+            audio.Tick();
         }
 
         void OnApplicationFocus(bool hasFocus) {

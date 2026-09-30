@@ -13,11 +13,16 @@ namespace BusDriver.Core.Data {
             + "Empty in the editor, where the label falls back to \"<version> (dev)\".")]
         public string buildLabel = "";
 
-        [Tooltip("Assets/SFX/MainMixer.mixer (moves to Assets/Audio/ in T-M1-09)")]
+        [Tooltip("Assets/Audio/MainMixer.mixer")]
         public AudioMixer mixer;
 
         [Tooltip("Assets/Input/BusDriver.inputactions, also the project-wide actions. Typed loosely because "
             + "Core doesn't reference the Input System (§4.2); InputService casts it (D57).")]
         public ScriptableObject inputActions;
+
+        [Tooltip("Every SoundDefinition (Data/Audio/SoundLibrary)")]
+        public SoundLibrary soundLibrary;
+        [Tooltip("Group, snapshot and parameter routing into the mixer (Data/Audio/AudioConfig)")]
+        public AudioConfig audioConfig;
     }
 }

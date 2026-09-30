@@ -67,6 +67,8 @@ namespace BusDriver.Gameplay.Flow {
             }
             IsLoading = true;
             Progress = 0f;
+            // Everything but UI stops on a scene change (§4.3, §4.12)
+            game.Audio.StopSceneSounds();
             Log.Info(LogCat.Flow, "loading " + sceneName);
             AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
             if (operation == null) {
