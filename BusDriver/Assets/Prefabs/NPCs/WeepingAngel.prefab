@@ -236,6 +236,7 @@ MonoBehaviour:
   exitWalkDistance: 2.5
   sitTime: 0.4
   displayName: Passenger
+  stopRequestSound: Stop
   moveSpeed: 0.55
   aisleReach: 0.08
   stopDistance: 0.35

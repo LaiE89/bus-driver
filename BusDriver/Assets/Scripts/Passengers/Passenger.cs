@@ -18,7 +18,7 @@ public class Passenger : MonoBehaviour, IInteractable {
     [SerializeField] float sitTime = 0.4f;
     [SerializeField] string displayName = "Passenger";
     [Tooltip("Sound played when they ring for their stop")]
-    [SerializeField] string stopRequestSound = "Stop Request";
+    [SerializeField] string stopRequestSound = "Stop";
 
     public PassengerState State { get; private set; }
     public BusSeat Seat { get; private set; }
@@ -283,7 +283,8 @@ public class Passenger : MonoBehaviour, IInteractable {
             && DistanceToDestination() <= rideStartDistance * 0.5f) {
             HasRequestedStop = true;
             if (SceneController.Instance != null && SceneController.Instance.soundController != null) {
-                SceneController.Instance.soundController.PlayOneShot(stopRequestSound);
+                // Play (not OneShot): this cue should cut through the engine loop cleanly
+                SceneController.Instance.soundController.Play(stopRequestSound);
             }
         }
 
