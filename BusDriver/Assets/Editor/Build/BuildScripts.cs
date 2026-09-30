@@ -83,6 +83,19 @@ namespace BusDriver.Editor.Build {
             }
         }
 
+        // Development builds get the Development flag and BUSDRIVER_DEV, which keeps the F1 overlay and
+        // the cheats (§4.18); release builds get neither (BuildScriptsTests)
+        public static BuildPlayerOptions OptionsFor(BuildTarget target, string outputPath, string[] scenes, bool dev) {
+            return new BuildPlayerOptions {
+                scenes = scenes,
+                locationPathName = outputPath,
+                target = target,
+                targetGroup = BuildTargetGroup.Standalone,
+                options = dev ? BuildOptions.Development : BuildOptions.None,
+                extraScriptingDefines = dev ? new[] { DevDefine } : new string[0],
+            };
+        }
+
         static bool Build(BuildTarget target, string outputPath, bool dev) {
             if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, target)) {
                 // Windows from a Mac needs the Unity Hub module installed by a person (T-M0-08)
@@ -109,14 +122,7 @@ namespace BusDriver.Editor.Build {
             }
 
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
-            BuildPlayerOptions options = new BuildPlayerOptions {
-                scenes = scenes.ToArray(),
-                locationPathName = outputPath,
-                target = target,
-                targetGroup = BuildTargetGroup.Standalone,
-                options = dev ? BuildOptions.Development : BuildOptions.None,
-                extraScriptingDefines = dev ? new[] { DevDefine } : new string[0],
-            };
+            BuildPlayerOptions options = OptionsFor(target, outputPath, scenes.ToArray(), dev);
             BuildReport report;
             try {
                 report = BuildPipeline.BuildPlayer(options);

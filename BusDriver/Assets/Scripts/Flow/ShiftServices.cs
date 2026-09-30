@@ -1,5 +1,6 @@
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.Shift;
@@ -15,6 +16,8 @@ namespace BusDriver.Gameplay.Flow {
         public GameServices Game;
         public NightSetup Setup;
         public RngStreams Rng;
+        // The F1 overlay's sections and cheats (§4.18); services register theirs in Init
+        public DebugRegistry Debug;
         public RouteSceneRoot Route;
         public ShiftDirector Director;
 

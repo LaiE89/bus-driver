@@ -1,3 +1,4 @@
+using BusDriver.UI.Debug;
 using BusDriver.UI.Hud;
 using BusDriver.UI.Screens;
 using BusDriver.UI.Theme;
@@ -12,12 +13,14 @@ namespace BusDriver.Editor.Builders {
     public static class UIPrefabBuilder {
         public const string HudPath = PrefabBuilder.Folder + "/HUD.prefab";
         public const string ScreensPath = PrefabBuilder.Folder + "/Screens.prefab";
+        public const string DebugOverlayPath = PrefabBuilder.Folder + "/DebugOverlay.prefab";
 
         // Canvas order (§4.13): CCTV under the HUD, screens over both, debug on top
         public const int CctvOrder = 5;
         public const int HudOrder = 10;
         public const int ScreensOrder = 20;
         public const int GameOverOrder = 30;
+        public const int DebugOrder = 40;
 
         static readonly Vector2 Center = new Vector2(0.5f, 0.5f);
         static readonly Color Dim = new Color(0f, 0f, 0f, 0.6f);
@@ -26,6 +29,7 @@ namespace BusDriver.Editor.Builders {
         public static void Build() {
             BuildHud();
             BuildScreens();
+            BuildDebugOverlay();
         }
 
         // ================================================================== HUD
@@ -101,6 +105,41 @@ namespace BusDriver.Editor.Builders {
             SetRef(router, "pauseScreen", pause);
 
             SaveOrOverwritePrefab(canvas.gameObject, ScreensPath);
+            Object.DestroyImmediate(canvas.gameObject);
+        }
+
+        // ======================================================= debug overlay
+
+        // T-M1-18 (§4.18): a dim left column with the section readouts and a column of cheat buttons
+        // cloned from a template. It is in every build's scene; release builds remove it on Awake.
+        static void BuildDebugOverlay() {
+            Canvas canvas = UIBuild.CreateCanvas("DebugOverlay", null, DebugOrder);
+            DebugOverlay overlay = canvas.gameObject.AddComponent<DebugOverlay>();
+            RectTransform panel = UIBuild.Panel("Panel", canvas.transform);
+            RectTransform column = UIBuild.Fill("Readouts", panel, new Color(0f, 0f, 0f, 0.7f), false).rectTransform;
+            UIBuild.Place(column, new Vector2(0f, 1f), new Vector2(20f, -20f), new Vector2(760f, 1040f));
+            TMP_Text body = UIBuild.Label("Body", column, "", ThemeRole.Caption, TextAlignmentOptions.TopLeft, new Vector2(0f, 1f), new Vector2(16f, -12f), new Vector2(728f, 1016f));
+            body.textWrappingMode = TextWrappingModes.Normal;
+            body.richText = true;
+
+            RectTransform cheats = (RectTransform)UIBuild.UIObject("Cheats", panel).transform;
+            UIBuild.Place(cheats, new Vector2(1f, 1f), new Vector2(-20f, -20f), new Vector2(420f, 1040f));
+            VerticalLayoutGroup layout = cheats.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 6f;
+            layout.childAlignment = TextAnchor.UpperRight;
+            layout.childControlWidth = true;
+            layout.childControlHeight = false;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            Button template = UIBuild.CreateButton("Cheat Template", cheats, "CHEAT", new Vector2(0.5f, 1f), Vector2.zero, new Vector2(420f, 40f));
+            UIBuild.Theme(template.GetComponentInChildren<TMP_Text>(), ThemeRole.Caption);
+
+            panel.gameObject.SetActive(false);
+            SetRef(overlay, "panel", panel.gameObject);
+            SetRef(overlay, "body", body);
+            SetRef(overlay, "cheatList", cheats);
+            SetRef(overlay, "cheatTemplate", template);
+            SaveOrOverwritePrefab(canvas.gameObject, DebugOverlayPath);
             Object.DestroyImmediate(canvas.gameObject);
         }
 

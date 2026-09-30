@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Text;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.Shift;
@@ -64,6 +66,7 @@ namespace BusDriver.Gameplay.Flow {
             Shift = shift;
             // Holds the bus and keeps pausing off until its first state (§2.1)
             shift.Director.Init(shift);
+            RegisterDebugSections(shift);
 
             // 1. RouteTracker, RouteProgress (T-M2-09, T-M2-11)
             // 2. ShiftClockDriver (T-M2-12)
@@ -99,6 +102,7 @@ namespace BusDriver.Gameplay.Flow {
                 Game = Game,
                 Setup = setup,
                 Rng = new RngStreams(setup.Run.seed),
+                Debug = new DebugRegistry(),
                 Route = Route,
                 Bus = bus,
                 Doors = bus.GetComponent<BusDoors>(),
@@ -117,6 +121,22 @@ namespace BusDriver.Gameplay.Flow {
                 Director = director,
             };
             return shift;
+        }
+
+        // The first F1 sections (T-M1-18). Clock and route are placeholders until ShiftClockDriver
+        // (T-M2-12) and RouteTracker (T-M2-09) register their own.
+        void RegisterDebugSections(ShiftServices shift) {
+            shift.Debug.Register("Run", text => {
+                text.Append("seed ").Append(shift.Setup.Run.seed)
+                    .Append("  night ").Append(shift.Setup.NightIndex)
+                    .Append("  wallet ").Append(Money.Format(shift.Setup.Run.walletCents))
+                    .Append(shift.Setup.IsDebugRun ? "  (debug run)" : "").Append('\n');
+                text.Append("shift ").Append(shift.Director.State).Append('\n');
+            });
+            shift.Debug.Register("Clock / Route", text => {
+                text.Append("clock —  (ShiftClock, T-M2-12)\n");
+                text.Append("route —  (RouteTracker, T-M2-09)\n");
+            });
         }
 
         static void BindGame(IReadOnlyList<MonoBehaviour> list, GameServices game) {

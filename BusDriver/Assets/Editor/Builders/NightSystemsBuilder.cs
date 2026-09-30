@@ -42,6 +42,7 @@ namespace BusDriver.Editor.Builders {
             Instantiate(PrefabBuilder.FallCameraPath, "FallCamera");
             Instantiate(UIPrefabBuilder.HudPath, "HUD");
             Instantiate(UIPrefabBuilder.ScreensPath, "Screens");
+            Instantiate(UIPrefabBuilder.DebugOverlayPath, "DebugOverlay");
             BuildGameOver();
             UIInputModuleSetup.Configure(new GameObject("EventSystem"));
 
