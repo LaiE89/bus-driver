@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using BusDriver.Core.Data;
+using BusDriver.Core.Rules;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Route;
@@ -6,45 +8,45 @@ using BusDriver.Gameplay.World;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using static BusDriver.Editor.Builders.BuilderUtil;
 
 namespace BusDriver.Editor.Builders {
-    // BuildAll step 8 (§4.15): Generated/Scenes/Route01_World.unity. This is the LEGACY MODE of
-    // T-M1-16: the MVP's closed test loop, roadside, obstacles, three stops with lamps and the
-    // pooled waiting riders (LegacyRiderSpawner, including the WeepingAngel), ported as-is from
-    // BusDriverSceneBuilder. T-M2-07 replaces it with Route 1 built from RouteDefinition.
+    // BuildAll step 8 (§4.15, T-M2-07): Generated/Scenes/Route01_World.unity, built from the
+    // RouteDefinition (§3) and the EnvironmentViewSet. In order: the road ribbon, the cross-section
+    // profiles and their dressing, the side stubs, the stops, the signs, the depot and the lodge, the
+    // zone triggers, the cliff's fall zones and camera anchor, the safety floor and KillPlane, the
+    // night lighting and the RouteSceneRoot. Deterministic: fixed dressing seed, data order.
     public static class RouteBuilder {
         public const string ScenePath = SceneIds.GeneratedFolder + "/" + SceneIds.Route01World + ".unity";
+        public const string MeshFolder = GeneratedRoot + "/Meshes/Route01";
+        public const string RootName = "Route Root";
+        public const string SpawnName = "Bus Spawn";
+        public const string CliffName = "Cliff";
+        public const string FallCamAnchorName = "FallCamAnchor";
+        public const string StubWallName = "Stub Wall";
 
-        const float RoadWidth = 8f;
-        const float KerbWidth = 0.3f;
-        const float KerbHeight = 0.15f;
-        const float ArcStepDegrees = 5f;
-        const float SpawnDistance = 12f;
+        // The fall zones and the tunnel/rumble triggers are boxes this long, overlapping a little
+        const float ZoneBoxStep = 10f;
+        const float ZoneBoxOverlap = 0.5f;
+        // The walls closing the route's two ends (§3.1 row 26: the lodge's end wall)
+        const float EndWallThickness = 1f;
+        // The depot yard pad on the left, 0 → depotPadEnd (§3.1 row 1)
+        const float DepotPadWidth = 2.9f;
+        const float LampInset = 0.7f;
+        const float SignOffset = 0.5f;
 
-        struct RoadSample {
-            public Vector3 pos;
-            public float heading;
-            public float distance;
+        struct Built {
+            public RouteDefinition Route;
+            public RoutePath Path;
+            public RouteGeneration Gen;
+            public List<BusStop> Stops;
+            public List<ZoneVolume> Zones;
+            public List<FallZone> FallZones;
+            public KillPlane KillPlane;
+            public Transform FallCamAnchor;
+            public int NextSeed;
         }
-
-        struct RoadArc {
-            public Vector3 center;
-            public float radius;
-            public float sign;
-            public float midHeading;
-        }
-
-        // Builder state for one run
-        static List<RoadSample> samples;
-        static List<RoadArc> arcs;
-        static List<BusStop> busStops;
-        static LightingPresetApplier lighting;
-        static Vector3 turtlePos;
-        static float turtleHeading;
-        static float turtleDistance;
 
         [MenuItem("Tools/Bus Driver/Builders/Route01_World")]
         public static void Build() {
@@ -52,319 +54,474 @@ namespace BusDriver.Editor.Builders {
                 return;
             }
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            BuildEnvironment();
-            BuildLighting();
-            BuildRouteRoot();
+            RouteDefinition route = LoadRoute();
+            Built b = new Built {
+                Route = route,
+                Path = new RoutePath(route),
+                Gen = route.generation,
+                Stops = new List<BusStop>(),
+                Zones = new List<ZoneVolume>(),
+                FallZones = new List<FallZone>(),
+                NextSeed = 1,
+            };
+            EnsureFolder(MeshFolder);
+
+            Transform world = Group("World", null).transform;
+            List<RouteOpening> openings = StubOpenings(b);
+            RoadMeshBuilder.Build(route, b.Path, Group("Road", world).transform, MeshFolder);
+            ProfileBuildResult profiles = ProfileBuilder.Build(route, b.Path, Group("Profiles", world).transform, openings, MeshFolder);
+            BuildDressing(ref b, profiles, Group("Dressing", world).transform);
+            BuildStubs(ref b, Group("Stubs", world).transform);
+            BuildStops(ref b, Group("Stops", world).transform);
+            BuildSigns(ref b, Group("Signs", world).transform);
+            BuildDepot(ref b, Group("Depot", world).transform);
+            BuildLodge(ref b, Group("Lodge", world).transform);
+            BuildRumbleMarkings(b, Group("Rumble Strips", world).transform);
+
+            BuildZones(ref b, Group("Zones", null).transform);
+            BuildCliff(ref b, Group(CliffName, null).transform);
+            BuildMap(ref b, Group("Map", null).transform);
+            LightingPresetApplier lighting = LightingBuild.CreateApplier(null);
+            BuildRouteRoot(ref b, lighting);
             SaveScene(scene, ScenePath);
+        }
+
+        static RouteDefinition LoadRoute() {
+            GameRootConfig config = AssetDatabase.LoadAssetAtPath<GameRootConfig>(GameRootConfig.AssetPath);
+            RouteDefinition route = config != null ? config.Route(RouteSeed.RouteId) : null;
+            if (route == null) {
+                throw new System.InvalidOperationException("no route '" + RouteSeed.RouteId + "' in GameRootConfig; DataSeeder runs before RouteBuilder");
+            }
+            return route;
         }
 
         static Material M(string name) {
             return MaterialLibraryBuilder.Get(name);
         }
 
-        static Vector3 Forward(float heading) {
-            float rad = heading * Mathf.Deg2Rad;
-            return new Vector3(Mathf.Sin(rad), 0f, Mathf.Cos(rad));
+        static float Sign(RouteSide side) {
+            return RouteStrip.SideSign(side);
         }
 
-        static Vector3 Right(float heading) {
-            float rad = heading * Mathf.Deg2Rad;
-            return new Vector3(Mathf.Cos(rad), 0f, -Mathf.Sin(rad));
+        static SideProfile ProfileAt(Built b, RouteSide side, float distance) {
+            RouteSegment segment = b.Route.segments[b.Path.SegmentIndexAt(distance)];
+            return side == RouteSide.Left ? segment.left : segment.right;
         }
 
-        // ------------------------------------------------------------ environment
-
-        static void BuildEnvironment() {
-            Transform environment = Group("Environment", null).transform;
-            // The one and only drivable collider. Road slabs are visual, so the wheels never roll
-            // across a seam between two colliders.
-            GameObject ground = Box("Ground", environment, new Vector3(70f, -0.5f, 100f), new Vector3(600f, 1f, 600f), M("Ground"), true);
-            ground.isStatic = true;
-            BuildRoad(environment);
-            BuildRoadside(environment);
-            BuildObstacles(environment);
-            BuildBusStops(environment);
-        }
-
-        // Clockwise loop: long straight, two R40 corners, a chicane on the far side, two more corners
-        static void BuildRoad(Transform environment) {
-            Transform road = Group("Road", environment).transform;
-            samples = new List<RoadSample>();
-            arcs = new List<RoadArc>();
-            turtlePos = Vector3.zero;
-            turtleHeading = 0f;
-            turtleDistance = 0f;
-
-            Straight(road, 200f);
-            Arc(road, 40f, 90f);
-            Straight(road, 60f);
-            Arc(road, 40f, 90f);
-            Straight(road, 40f);
-            Arc(road, 60f, 30f);
-            Arc(road, 60f, -30f);
-            Arc(road, 60f, -30f);
-            Arc(road, 60f, 30f);
-            Straight(road, 40f);
-            Arc(road, 40f, 90f);
-            Straight(road, 60f);
-            Arc(road, 40f, 90f);
-
-            if (turtlePos.magnitude > 0.5f) {
-                Debug.LogWarning($"RouteBuilder: the legacy loop does not close, end point is {turtlePos.magnitude:F2} m from the start");
+        // A box with a collider on World, in world space
+        static GameObject Solid(string name, Transform parent, Vector3 center, Quaternion rotation, Vector3 size, Material material, bool containment) {
+            GameObject go = material != null
+                ? Box(name, parent, Vector3.zero, size, material, true)
+                : Group(name, parent);
+            if (material == null) {
+                go.AddComponent<BoxCollider>().size = size;
             }
+            go.transform.SetPositionAndRotation(center, rotation);
+            go.layer = Layers.World;
+            go.isStatic = true;
+            if (containment) {
+                go.tag = Tags.Containment;
+            }
+            return go;
         }
 
-        static void Straight(Transform road, float length) {
-            AddRoadPiece(road, turtlePos, turtleHeading, length, 0f, 0f);
-            turtlePos += Forward(turtleHeading) * length;
-        }
+        // ------------------------------------------------------------------ dressing
 
-        // Positive degrees turn right
-        static void Arc(Transform road, float radius, float degrees) {
-            float sign = Mathf.Sign(degrees);
-            arcs.Add(new RoadArc {
-                center = turtlePos + Right(turtleHeading) * radius * sign,
-                radius = radius,
-                sign = sign,
-                midHeading = turtleHeading + degrees * 0.5f
-            });
-            int steps = Mathf.CeilToInt(Mathf.Abs(degrees) / ArcStepDegrees);
-            float step = degrees / steps;
-            float chord = 2f * radius * Mathf.Sin(Mathf.Abs(step) * 0.5f * Mathf.Deg2Rad);
-            for (int i = 0; i < steps; i++) {
-                float chordHeading = turtleHeading + step * 0.5f;
-                AddRoadPiece(road, turtlePos, chordHeading, chord, radius, sign);
-                turtlePos += Forward(chordHeading) * chord;
-                turtleHeading += step;
+        // The profile builder's placements, as environment views (§3.4, T-M2-06)
+        static void BuildDressing(ref Built b, ProfileBuildResult profiles, Transform parent) {
+            Transform trees = Group("Trees", parent).transform;
+            foreach (DressingSpot spot in profiles.Trees) {
+                GameObject tree = EnvironmentPrefabBuilder.Place(EnvironmentKinds.Tree(spot.Variant), trees, spot.Position, Quaternion.Euler(0f, spot.YawDeg, 0f));
+                tree.transform.localScale = Vector3.one * spot.Scale;
             }
-        }
-
-        // radius 0 means a straight piece
-        static void AddRoadPiece(Transform road, Vector3 start, float heading, float length, float radius, float sign) {
-            Vector3 forward = Forward(heading);
-            Vector3 right = Right(heading);
-            Vector3 mid = start + forward * (length * 0.5f);
-            Quaternion rotation = Quaternion.Euler(0f, heading, 0f);
-
-            // On a curve the outside edge is longer than the centreline chord, so each strip gets
-            // the chord length for its own radius plus a little overlap
-            float LengthAt(float lateral) {
-                if (radius <= 0f) {
-                    return length;
-                }
-                return length * (radius - sign * lateral) / radius * 1.06f;
+            Transform rocks = Group("Rocks", parent).transform;
+            foreach (DressingSpot spot in profiles.Rocks) {
+                GameObject rock = EnvironmentPrefabBuilder.Place(EnvironmentKinds.RockChunk, rocks, spot.Position, Quaternion.Euler(0f, spot.YawDeg, 0f));
+                rock.transform.localScale = Vector3.one * spot.Scale;
             }
-
-            float halfRoad = RoadWidth * 0.5f;
-            GameObject slab = Box("Slab", road, mid, new Vector3(RoadWidth, 0.04f, Mathf.Max(LengthAt(-halfRoad), LengthAt(halfRoad))), M("Asphalt"));
-            slab.transform.rotation = rotation;
-            slab.isStatic = true;
-
-            foreach (float side in new[] { -1f, 1f }) {
-                float lateral = side * (halfRoad + KerbWidth * 0.5f);
-                Vector3 kerbPos = mid + right * lateral + Vector3.up * (KerbHeight * 0.5f);
-                GameObject kerb = Box("Kerb", road, kerbPos, new Vector3(KerbWidth, KerbHeight, LengthAt(lateral)), M("Kerb"), true);
-                kerb.transform.rotation = rotation;
-                kerb.isStatic = true;
-            }
-
-            int count = Mathf.Max(1, Mathf.CeilToInt(length));
-            for (int i = 0; i < count; i++) {
-                float along = length * i / count;
-                samples.Add(new RoadSample { pos = start + forward * along, heading = heading, distance = turtleDistance + along });
-            }
-            turtleDistance += length;
-        }
-
-        static RoadSample SampleAt(float distance) {
-            distance = Mathf.Repeat(distance, turtleDistance);
-            foreach (RoadSample sample in samples) {
-                if (sample.distance >= distance) {
-                    return sample;
+            Transform rails = Group("Guardrails", parent).transform;
+            float segment = b.Gen.guardrailSegmentLength;
+            foreach (RailSpot spot in profiles.Guardrails) {
+                GameObject rail = EnvironmentPrefabBuilder.Place(EnvironmentKinds.GuardrailSegment, rails, spot.Position, spot.Rotation);
+                if (spot.Length < segment - 0.01f) {
+                    rail.transform.localScale = new Vector3(1f, 1f, spot.Length / segment);
                 }
             }
-            return samples[samples.Count - 1];
-        }
-
-        static Vector3 RoadPoint(RoadSample sample, float lateral, float height) {
-            return sample.pos + Right(sample.heading) * lateral + Vector3.up * height;
-        }
-
-        // Emissive dashes and reflector posts are the speed cues at night. Small emissive props
-        // stay non-static: static batching renders them magenta (§4.17).
-        static void BuildRoadside(Transform environment) {
-            Transform markings = Group("Markings", environment).transform;
-            for (float d = 0f; d < turtleDistance; d += 6f) {
-                RoadSample sample = SampleAt(d);
-                GameObject dash = Box("Dash", markings, RoadPoint(sample, 0f, 0.025f), new Vector3(0.15f, 0.012f, 2f), M("LinePaint"));
-                dash.transform.rotation = Quaternion.Euler(0f, sample.heading, 0f);
+            foreach (RailSpot spot in profiles.EndCaps) {
+                EnvironmentPrefabBuilder.Place(EnvironmentKinds.GuardrailEndCap, rails, spot.Position, spot.Rotation);
             }
-            for (float d = 0f; d < turtleDistance; d += 20f) {
-                RoadSample sample = SampleAt(d);
-                foreach (float side in new[] { -1f, 1f }) {
-                    float lateral = side * (RoadWidth * 0.5f + 1f);
-                    Box("Post", markings, RoadPoint(sample, lateral, 0.45f), new Vector3(0.1f, 0.9f, 0.1f), M("Post")).isStatic = true;
-                    Box("Reflector", markings, RoadPoint(sample, lateral, 0.95f), new Vector3(0.12f, 0.15f, 0.12f), M("Reflector"));
-                }
+            Transform lamps = Group("Tunnel Lights", parent).transform;
+            foreach (Vector3 position in profiles.TunnelLights) {
+                RoutePose pose = b.Path.Evaluate(b.Path.Project(position).Distance);
+                EnvironmentPrefabBuilder.Place(EnvironmentKinds.TunnelLamp, lamps, position, pose.Rotation, b.NextSeed++);
             }
         }
 
-        static void BuildObstacles(Transform environment) {
-            Transform obstacles = Group("Obstacles", environment).transform;
+        // ------------------------------------------------------------------ stubs
 
-            // Walls and a lamp on the outside of each tight corner
-            foreach (RoadArc arc in arcs) {
-                if (arc.radius > 45f) {
+        // A stub's geometry (§3.3): 8 m wide, 20 m long, branching off the road at 70° from the
+        // route heading toward its side, starting at the shoulder's outer edge
+        struct StubFrame {
+            public RoutePose Pose;
+            public float Sign;
+            public Vector3 Axis;
+            // Unit vector across the stub, to its right when looking down the axis
+            public Vector3 Across;
+            public Vector3 Mouth;
+            public float MouthLateral;
+            public float HalfWidth;
+            public float Length;
+        }
+
+        static StubFrame FrameOf(Built b, RouteStub stub) {
+            RoutePose pose = b.Path.Evaluate(stub.distance);
+            float sign = Sign(stub.side);
+            float angle = stub.angleDeg * Mathf.Deg2Rad;
+            Vector3 axis = (pose.Forward * Mathf.Cos(angle) + pose.Right * (sign * Mathf.Sin(angle))).normalized;
+            float mouthLateral = RoadMeshBuilder.ShoulderEdge(b.Route, stub.distance, stub.side);
+            return new StubFrame {
+                Pose = pose,
+                Sign = sign,
+                Axis = axis,
+                Across = Vector3.Cross(Vector3.up, axis).normalized,
+                Mouth = pose.Offset(mouthLateral * sign),
+                MouthLateral = mouthLateral,
+                HalfWidth = stub.width * 0.5f,
+                Length = stub.length,
+            };
+        }
+
+        // Where a stub wall (at ±halfWidth across the axis) is at a given lateral distance from the
+        // centreline, as a distance along the axis (stubs sit on straights, §3.2)
+        static float AxisAtLateral(StubFrame f, float acrossOffset, float lateral) {
+            Vector3 start = f.Mouth + f.Across * acrossOffset;
+            float startLateral = Vector3.Dot(start - f.Pose.Position, f.Pose.Right) * f.Sign;
+            float lateralPerMetre = Vector3.Dot(f.Axis, f.Pose.Right) * f.Sign;
+            return (lateral - startLateral) / lateralPerMetre;
+        }
+
+        // The route distance where a stub wall crosses a lateral line
+        static float RouteDistanceAt(StubFrame f, float acrossOffset, float lateral) {
+            Vector3 point = f.Mouth + f.Across * acrossOffset + f.Axis * AxisAtLateral(f, acrossOffset, lateral);
+            return f.Pose.Distance + Vector3.Dot(point - f.Pose.Position, f.Pose.Forward);
+        }
+
+        // The main road's containment line opens exactly between the two stub walls' crossings (§3.3)
+        static List<RouteOpening> StubOpenings(Built b) {
+            List<RouteOpening> openings = new List<RouteOpening>();
+            foreach (RouteStub stub in b.Route.stubs) {
+                StubFrame f = FrameOf(b, stub);
+                float line = ProfileBuilder.ContainmentOffset(b.Gen, ProfileAt(b, stub.side, stub.distance));
+                if (line < 0f) {
                     continue;
                 }
-                Vector3 outward = Right(arc.midHeading) * -arc.sign;
-                GameObject wall = Box("Corner Wall", obstacles, arc.center + outward * (arc.radius + 12f) + Vector3.up * 1.5f, new Vector3(1f, 3f, 40f), M("Wall"), true);
-                wall.transform.rotation = Quaternion.Euler(0f, arc.midHeading, 0f);
-                wall.isStatic = true;
-                StreetLamp(obstacles, arc.center + outward * (arc.radius + 7f), -outward);
+                float a = RouteDistanceAt(f, -f.HalfWidth, line);
+                float c = RouteDistanceAt(f, f.HalfWidth, line);
+                // The main wall runs a little into the stub walls, so there's no seam to squeeze through
+                const float overlap = 0.1f;
+                openings.Add(new RouteOpening { Side = stub.side, From = Mathf.Min(a, c) + overlap, To = Mathf.Max(a, c) - overlap });
             }
-
-            // Building silhouettes along the outside of the long straights
-            float[] buildingHeights = { 7f, 12f, 9f, 14f };
-            for (int i = 0; i < buildingHeights.Length; i++) {
-                RoadSample sample = SampleAt(20f + i * 45f);
-                float height = buildingHeights[i];
-                GameObject building = Box("Building", obstacles, RoadPoint(sample, -16f, height * 0.5f), new Vector3(12f, height, 18f), M("Building"), true);
-                building.transform.rotation = Quaternion.Euler(0f, sample.heading, 0f);
-                building.isStatic = true;
-            }
-
-            ParkedCar(obstacles, 95f, -2.9f);
-            ParkedCar(obstacles, 345f, 2.9f);
-            ParkedCar(obstacles, 700f, -2.9f);
-
-            // Light enough to shove, heavy enough not to jitter against an 11 t bus
-            RoadSample crateSpot = SampleAt(290f);
-            Vector3[] crateOffsets = { new Vector3(1.2f, 0.5f, 0f), new Vector3(2.3f, 0.5f, 0.2f), new Vector3(1.7f, 1.5f, 0.1f) };
-            foreach (Vector3 offset in crateOffsets) {
-                Vector3 pos = RoadPoint(crateSpot, offset.x, offset.y) + Forward(crateSpot.heading) * offset.z;
-                GameObject crate = Box("Crate", obstacles, pos, Vector3.one, M("Obstacle"), true);
-                crate.transform.rotation = Quaternion.Euler(0f, crateSpot.heading, 0f);
-                crate.AddComponent<Rigidbody>().mass = 50f;
-            }
+            return openings;
         }
 
-        static void ParkedCar(Transform parent, float distance, float lateral) {
-            RoadSample sample = SampleAt(distance);
-            GameObject car = Box("Parked Car", parent, RoadPoint(sample, lateral, 0.75f), new Vector3(1.9f, 1.5f, 4.5f), M("Obstacle"), true);
-            car.transform.rotation = Quaternion.Euler(0f, sample.heading, 0f);
-            car.isStatic = true;
-        }
+        // Ground, two invisible walls (tagged Containment: they close the opening, §3.5) and the
+        // blocker across the end, facing the main road
+        static void BuildStubs(ref Built b, Transform parent) {
+            float wallHeight = b.Gen.containmentWallHeight;
+            const float wallThickness = 0.3f;
+            for (int i = 0; i < b.Route.stubs.Length; i++) {
+                RouteStub stub = b.Route.stubs[i];
+                StubFrame f = FrameOf(b, stub);
+                Transform root = Group($"Stub {stub.distance:0} {stub.side} {stub.blocker}", parent).transform;
+                Quaternion along = Quaternion.LookRotation(f.Axis, Vector3.up);
+                float y = f.Pose.Position.y;
 
-        static void StreetLamp(Transform parent, Vector3 basePos, Vector3 armDirection) {
-            Transform lamp = Group("Street Lamp", parent).transform;
-            lamp.position = basePos;
-            Box("Pole", lamp, new Vector3(0f, 2.75f, 0f), new Vector3(0.15f, 5.5f, 0.15f), M("Post"), true).isStatic = true;
-            Vector3 head = Vector3.up * 5.5f + armDirection * 1.2f;
-            Box("Head", lamp, head, new Vector3(0.4f, 0.12f, 0.4f), M("LampWhite"));
+                // From just inside the shoulder to the blocker; its top a hair under the ribbon
+                float groundStart = -1.5f;
+                float groundLength = f.Length - groundStart;
+                Vector3 groundCenter = f.Mouth + f.Axis * (groundStart + groundLength * 0.5f);
+                groundCenter.y = y - 0.055f;
+                Solid("Ground", root, groundCenter, along, new Vector3(stub.width + 0.6f, 0.1f, groundLength), M("Asphalt"), false);
 
-            Light light = Group("Light", lamp).AddComponent<Light>();
-            light.transform.localPosition = head - Vector3.up * 0.1f;
-            light.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            light.type = LightType.Spot;
-            light.spotAngle = 120f;
-            light.innerSpotAngle = 60f;
-            light.range = 16f;
-            light.intensity = 35f;
-            light.color = new Color(1f, 0.8f, 0.55f);
-            light.shadows = LightShadows.None;
-        }
+                foreach (float side in new[] { -1f, 1f }) {
+                    float offset = side * (f.HalfWidth + wallThickness * 0.5f);
+                    // Each wall starts where it crosses the shoulder's edge, so neither pokes into the road
+                    float from = AxisAtLateral(f, offset, f.MouthLateral);
+                    float length = f.Length - from;
+                    Vector3 center = f.Mouth + f.Across * offset + f.Axis * (from + length * 0.5f);
+                    center.y = y + wallHeight * 0.5f - 1f;
+                    Solid(StubWallName, root, center, along, new Vector3(wallThickness, wallHeight + 1f, length), null, true);
+                }
 
-        static void BuildBusStops(Transform environment) {
-            Transform stops = Group("Bus Stops", environment).transform;
-            busStops = new List<BusStop>();
-            // The first one is a short roll from the spawn point so boarding is quick to test
-            float[] distances = { 60f, 420f, 640f };
-            int[] waitingCounts = { 3, 2, 2 };
-            for (int stopIndex = 0; stopIndex < distances.Length; stopIndex++) {
-                RoadSample sample = SampleAt(distances[stopIndex]);
-                Transform stop = Group("Bus Stop", stops).transform;
-                stop.SetPositionAndRotation(RoadPoint(sample, 0f, 0f), Quaternion.Euler(0f, sample.heading, 0f));
-
-                float edge = RoadWidth * 0.5f;
-                Box("Pad", stop, new Vector3(edge - 1.4f, 0.027f, 0f), new Vector3(2.6f, 0.012f, 14f), M("StopPad")).isStatic = true;
-                Box("Pole", stop, new Vector3(edge + 1.2f, 1.3f, 5f), new Vector3(0.1f, 2.6f, 0.1f), M("Post"), true).isStatic = true;
-                Box("Sign", stop, new Vector3(edge + 1.2f, 2.4f, 5f), new Vector3(0.6f, 0.4f, 0.06f), M("StopPad")).isStatic = true;
-                Box("Shelter Back", stop, new Vector3(edge + 2.6f, 1.2f, 0f), new Vector3(0.1f, 2.4f, 4f), M("Wall"), true).isStatic = true;
-                Box("Shelter Roof", stop, new Vector3(edge + 1.9f, 2.45f, 0f), new Vector3(1.6f, 0.1f, 4f), M("Wall")).isStatic = true;
-                StreetLamp(stop, stop.TransformPoint(new Vector3(edge + 1.2f, 0f, -4f)), -Right(sample.heading));
-
-                // Waiting riders are spawned at night start by LegacyRiderSpawner
-                BusStop busStop = stop.gameObject.AddComponent<BusStop>();
-                SetInt(busStop, "spawnCount", waitingCounts[stopIndex]);
-                SetVector(busStop, "firstWaitLocal", new Vector3(edge + 1.2f, 0f, -1.2f));
-                SetVector(busStop, "waitLocalStep", new Vector3(0.3f, 0f, 1.2f));
-                busStops.Add(busStop);
+                Vector3 end = f.Mouth + f.Axis * f.Length;
+                end.y = y;
+                EnvironmentPrefabBuilder.Place(EnvironmentKinds.Blocker(stub.blocker, stub.variant), root, end,
+                    Quaternion.LookRotation(-f.Axis, Vector3.up));
             }
         }
 
-        // ---------------------------------------------------------------- lighting
+        // ------------------------------------------------------------------ stops, signs
 
-        // This scene is the active one during a night (§4.3), so its RenderSettings are the night's:
-        // the shared NightLightingPreset, through a LightingPresetApplier (T-M2-05)
-        static void BuildLighting() {
-            lighting = LightingBuild.CreateApplier(null);
+        // On the centreline at the stop's distance, +X toward the kerb (§3.2, A.4)
+        static void BuildStops(ref Built b, Transform parent) {
+            foreach (RouteStop stop in b.Route.stops) {
+                RoutePose pose = b.Path.Evaluate(stop.distance);
+                GameObject placed = EnvironmentPrefabBuilder.Place(EnvironmentKinds.Stop(stop.kind), parent, pose.Position, pose.Rotation, b.NextSeed++);
+                placed.name = "Stop " + stop.stopId;
+                BusStop busStop = placed.GetComponent<BusStop>();
+                SetString(busStop, "stopId", stop.stopId);
+                b.Stops.Add(busStop);
+            }
         }
 
-        // --------------------------------------------------------------- route root
+        // Signs face −Z, so +Z along the route faces the traffic; chevrons stand on the cliff's gravel
+        static void BuildSigns(ref Built b, Transform parent) {
+            foreach (RouteSign sign in b.Route.signs) {
+                RoutePose pose = b.Path.Evaluate(sign.distance);
+                float edge = RoadMeshBuilder.ShoulderEdge(b.Route, sign.distance, sign.side);
+                float lateral = sign.kind == SignKind.Chevron ? edge - 0.15f : edge + SignOffset;
+                EnvironmentPrefabBuilder.Place(EnvironmentKinds.Sign(sign.kind), parent, pose.Offset(lateral * Sign(sign.side)), pose.Rotation);
+            }
+        }
 
-        // Stops, the bus spawn (the right-hand lane at the start of the long straight), the pooled
-        // riders and the night's ambience (amb.wind)
-        static void BuildRouteRoot() {
-            GameObject rootObject = new GameObject("Route Root");
-            RouteSceneRoot route = rootObject.AddComponent<RouteSceneRoot>();
-            LegacyRiderSpawner riders = rootObject.AddComponent<LegacyRiderSpawner>();
-            ObjectPooling npcPool = rootObject.AddComponent<ObjectPooling>();
-            ConfigureNpcPools(npcPool);
-            ConfigureSpawnableNpcs(riders);
-            SetRef(riders, "npcPool", npcPool);
-            SetBool(riders, "populateStopsOnInit", true);
+        // ------------------------------------------------------------------ depot and lodge
+
+        // §3.1 row 1: the yard pad on the left from 0 to 60 m, the depot building behind the forest
+        // wall, two lamps (§3.3), and a wall across the road behind the spawn
+        static void BuildDepot(ref Built b, Transform parent) {
+            float padEnd = b.Route.depotPadEnd;
+            RoutePose mid = b.Path.Evaluate(padEnd * 0.5f);
+            float edge = RoadMeshBuilder.ShoulderEdge(b.Route, mid.Distance, RouteSide.Left);
+            Vector3 pad = mid.Offset(-(edge + DepotPadWidth * 0.5f), -0.05f);
+            Solid("Yard Pad", parent, pad, mid.Rotation, new Vector3(DepotPadWidth, 0.1f, padEnd), M("Concrete"), false);
+
+            float wall = ProfileBuilder.ContainmentOffset(b.Gen, ProfileAt(b, RouteSide.Left, mid.Distance));
+            EnvironmentPrefabBuilder.Place(EnvironmentKinds.DepotBuilding, parent, mid.Offset(-(wall + 6.5f)),
+                Quaternion.LookRotation(mid.Right, Vector3.up));
+            foreach (float d in new[] { padEnd * 0.25f, padEnd * 0.75f }) {
+                RoutePose pose = b.Path.Evaluate(d);
+                PlaceLamp(ref b, parent, pose, RouteSide.Left);
+            }
+            RoutePose start = b.Path.Evaluate(0f);
+            EndWall(b, parent, "Depot Wall", start, -1f);
+        }
+
+        // §3.1 row 26: the lodge building and its end wall block the road at the route's end; two
+        // lamps (§3.3) light the terminus
+        static void BuildLodge(ref Built b, Transform parent) {
+            RoutePose end = b.Path.Evaluate(b.Path.TotalLength);
+            EndWall(b, parent, "End Wall", end, 1f);
+            EnvironmentPrefabBuilder.Place(EnvironmentKinds.LodgeBuilding, parent, end.Offset(0f) + end.Forward * (EndWallThickness + 7f),
+                Quaternion.LookRotation(-end.Forward, Vector3.up));
+            string terminus = b.Route.terminusStopId;
+            float at = b.Route.TryGetStop(terminus, out RouteStop stop) ? stop.distance + 15f : b.Path.TotalLength - 25f;
+            RoutePose pose = b.Path.Evaluate(at);
+            PlaceLamp(ref b, parent, pose, RouteSide.Left);
+            PlaceLamp(ref b, parent, pose, RouteSide.Right);
+        }
+
+        // A street lamp just inside the containment line, its arm reaching over the road
+        static void PlaceLamp(ref Built b, Transform parent, RoutePose pose, RouteSide side) {
+            float line = ProfileBuilder.ContainmentOffset(b.Gen, ProfileAt(b, side, pose.Distance));
+            float sign = Sign(side);
+            EnvironmentPrefabBuilder.Place(EnvironmentKinds.StreetLamp, parent, pose.Offset((line - LampInset) * sign),
+                Quaternion.LookRotation(pose.Right * -sign, Vector3.up), b.NextSeed++);
+        }
+
+        // Across both containment lines, beyond the route's end (direction +1) or before its start (−1)
+        static void EndWall(Built b, Transform parent, string name, RoutePose pose, float direction) {
+            float width = 2f * b.Gen.forestWallOffset + 2f;
+            float height = b.Gen.containmentWallHeight;
+            Vector3 center = pose.Position + pose.Forward * (direction * EndWallThickness * 0.5f) + Vector3.up * (height * 0.5f - 0.5f);
+            Solid(name, parent, center, pose.Rotation, new Vector3(width, height + 1f, EndWallThickness), M("Wall"), true);
+        }
+
+        // Painted strips where the rumble zones are, so the bend is announced to the eye too (§3.3)
+        static void BuildRumbleMarkings(Built b, Transform parent) {
+            Material paint = M("Kerb");
+            foreach (RouteZone zone in b.Route.zones) {
+                if (zone.kind != RouteZoneKind.RumbleStrip) {
+                    continue;
+                }
+                if (zone.span == ZoneSpan.Across) {
+                    for (float d = zone.start + 0.5f; d < zone.end; d += 1.5f) {
+                        RoutePose pose = b.Path.Evaluate(d);
+                        GameObject stripe = Box("Rumble Stripe", parent, Vector3.zero, new Vector3(b.Route.RoadWidthAt(d), 0.012f, 0.5f), paint);
+                        stripe.transform.SetPositionAndRotation(pose.Offset(0f, 0.015f), pose.Rotation);
+                        stripe.layer = Layers.World;
+                    }
+                    continue;
+                }
+                RouteSide side = zone.span == ZoneSpan.LeftEdge ? RouteSide.Left : RouteSide.Right;
+                List<float> rows = RouteStrip.Rows(zone.start, zone.end, b.Gen.sampleStep);
+                Vector3 origin = b.Path.Evaluate(zone.start).Position;
+                Mesh mesh = RouteStrip.Build(b.Path, rows, side, d => {
+                    float half = b.Route.RoadWidthAt(d) * 0.5f;
+                    return new[] { new StripEdge(half - zone.edgeWidth, 0.015f), new StripEdge(half, 0.015f) };
+                }, origin, StripFacing.Up, b.Gen.uvLength, null, "RumbleEdge");
+                mesh = RoadMeshBuilder.Save(mesh, MeshFolder, $"Rumble_{side}_{zone.start:0}");
+                GameObject strip = new GameObject("Rumble Edge");
+                strip.transform.SetParent(parent, false);
+                strip.transform.position = origin;
+                strip.layer = Layers.World;
+                strip.AddComponent<MeshFilter>().sharedMesh = mesh;
+                strip.AddComponent<MeshRenderer>().sharedMaterial = paint;
+            }
+        }
+
+        // ------------------------------------------------------------------ zones
+
+        // The tunnel, bridge and rumble strip volumes (§3.3); the cliff's are its fall zones
+        static void BuildZones(ref Built b, Transform parent) {
+            foreach (RouteZone zone in b.Route.zones) {
+                if (zone.kind == RouteZoneKind.Cliff) {
+                    continue;
+                }
+                string name = zone.kind + (zone.span == ZoneSpan.Across ? "" : " " + zone.span) + $" {zone.start:0}–{zone.end:0}";
+                ZoneVolume volume = NewVolume(name, parent, zone.kind, zone.start, zone.end);
+                switch (zone.kind) {
+                    case RouteZoneKind.Tunnel: volume.gameObject.AddComponent<TunnelZone>(); break;
+                    case RouteZoneKind.RumbleStrip: volume.gameObject.AddComponent<RumbleZone>(); break;
+                }
+                float inner;
+                float outer;
+                float top;
+                switch (zone.span) {
+                    case ZoneSpan.LeftEdge:
+                    case ZoneSpan.RightEdge:
+                        // Along the road's edge, inside it
+                        float half = b.Route.RoadWidthAt(zone.start) * 0.5f;
+                        float sign = zone.span == ZoneSpan.LeftEdge ? -1f : 1f;
+                        inner = sign * (half - zone.edgeWidth);
+                        outer = sign * half;
+                        top = 1.5f;
+                        break;
+                    default:
+                        float reach = zone.kind == RouteZoneKind.Tunnel ? b.Gen.tunnelWallOffset : b.Gen.forestWallOffset;
+                        inner = -reach;
+                        outer = reach;
+                        top = zone.kind == RouteZoneKind.Tunnel ? b.Gen.tunnelCeilingHeight : 3f;
+                        break;
+                }
+                ZoneBoxes(b, volume, zone.start, zone.end, inner, outer, -0.5f, top);
+                b.Zones.Add(volume);
+            }
+        }
+
+        static ZoneVolume NewVolume(string name, Transform parent, RouteZoneKind kind, float start, float end) {
+            GameObject go = Group(name, parent);
+            go.layer = Layers.Zone;
+            ZoneVolume volume = go.AddComponent<ZoneVolume>();
+            SetInt(volume, "kind", (int)kind);
+            SetFloat(volume, "start", start);
+            SetFloat(volume, "end", end);
+            return volume;
+        }
+
+        // Trigger boxes over [from, to], between two signed laterals, from `bottom` to `top` above the
+        // road. Each box is at most ZoneBoxStep long.
+        static void ZoneBoxes(Built b, ZoneVolume volume, float from, float to, float lateralA, float lateralB, float bottom, float top) {
+            int count = Mathf.Max(1, Mathf.CeilToInt((to - from) / ZoneBoxStep - 1e-3f));
+            float step = (to - from) / count;
+            for (int i = 0; i < count; i++) {
+                float y = b.Path.ElevationAt(from + step * (i + 0.5f));
+                ZoneBox(b, volume, i, from + step * i, from + step * (i + 1), lateralA, lateralB, y + bottom, y + top);
+            }
+        }
+
+        // One trigger box, at absolute heights. On a curve it is lengthened for its outer edge, so
+        // neighbouring boxes overlap and leave no wedge-shaped gaps.
+        static void ZoneBox(Built b, ZoneVolume volume, int index, float from, float to, float lateralA, float lateralB,
+                            float yBottom, float yTop) {
+            RoutePose pose = b.Path.Evaluate((from + to) * 0.5f);
+            RouteSegment segment = b.Route.segments[pose.SegmentIndex];
+            float outer = Mathf.Max(Mathf.Abs(lateralA), Mathf.Abs(lateralB));
+            float stretch = segment.kind == SegmentKind.Arc ? (segment.radius + outer) / segment.radius : 1f;
+            Vector3 center = pose.Offset((lateralA + lateralB) * 0.5f);
+            center.y = (yBottom + yTop) * 0.5f;
+
+            GameObject box = Group($"Box {index:00}", volume.transform);
+            box.transform.SetPositionAndRotation(center, pose.Rotation);
+            box.layer = Layers.Zone;
+            BoxCollider collider = box.AddComponent<BoxCollider>();
+            collider.isTrigger = true;
+            collider.size = new Vector3(Mathf.Abs(lateralB - lateralA), yTop - yBottom, (to - from) * stretch + ZoneBoxOverlap);
+            SetRef(box.AddComponent<ZoneTrigger>(), "volume", volume);
+        }
+
+        // §3.3 Cliff: fall zone boxes along the left edge, from 1 m outside the road edge and 40 m
+        // out, from road height −1.5 m down to the valley floor +1 m. The fall camera's anchor sits on
+        // the edge near the bend's end, looking back along it (§2.14 Fall).
+        static void BuildCliff(ref Built b, Transform parent) {
+            if (!b.Route.TryGetZone(RouteZoneKind.Cliff, out RouteZone cliff)) {
+                throw new System.InvalidOperationException("route '" + b.Route.id + "' has no Cliff zone");
+            }
+            ZoneVolume volume = NewVolume("FallZone", parent, RouteZoneKind.Cliff, cliff.start, cliff.end);
+            FallZone fall = volume.gameObject.AddComponent<FallZone>();
+            float edge = b.Route.cliffRoadWidth * 0.5f;
+            float inner = -(edge + b.Gen.fallZoneInset);
+            float outer = inner - b.Gen.fallZoneWidth;
+            int count = Mathf.Max(1, Mathf.CeilToInt((cliff.end - cliff.start) / ZoneBoxStep - 1e-3f));
+            float step = (cliff.end - cliff.start) / count;
+            for (int i = 0; i < count; i++) {
+                float from = cliff.start + step * i;
+                float top = b.Path.ElevationAt(from + step * 0.5f) - b.Gen.fallZoneTopBelowRoad;
+                ZoneBox(b, volume, i, from, from + step, inner, outer, b.Gen.valleyFloorY + b.Gen.fallZoneAboveFloor, top);
+            }
+            b.Zones.Add(volume);
+            b.FallZones.Add(fall);
+
+            float at = cliff.end - (cliff.end - cliff.start) * 0.25f;
+            RoutePose pose = b.Path.Evaluate(at);
+            RoutePose target = b.Path.Evaluate(cliff.start + (cliff.end - cliff.start) * 0.35f);
+            Transform anchor = Group(FallCamAnchorName, parent).transform;
+            anchor.position = pose.Offset(-(RoadMeshBuilder.ShoulderEdge(b.Route, at, RouteSide.Left) + 1.5f), 3f);
+            Vector3 look = target.Offset(-(edge + 4f), -6f) - anchor.position;
+            anchor.rotation = Quaternion.LookRotation(look.normalized, Vector3.up);
+            b.FallCamAnchor = anchor;
+        }
+
+        // ------------------------------------------------------------------ map, root
+
+        // The safety floor at −80 and the KillPlane trigger at −70 under the whole map (§3.4)
+        static void BuildMap(ref Built b, Transform parent) {
+            Bounds bounds = new Bounds(Vector3.zero, Vector3.zero);
+            for (float d = 0f; d <= b.Path.TotalLength; d += 10f) {
+                bounds.Encapsulate(b.Path.Evaluate(d).Position);
+            }
+            const float margin = 300f;
+            Vector3 size = new Vector3(bounds.size.x + margin * 2f, 1f, bounds.size.z + margin * 2f);
+            Vector3 center = new Vector3(bounds.center.x, b.Gen.safetyFloorY - 0.5f, bounds.center.z);
+            Solid("Safety Floor", parent, center, Quaternion.identity, size, null, false);
+
+            GameObject plane = Group("KillPlane", parent);
+            plane.transform.position = new Vector3(bounds.center.x, b.Gen.killPlaneY, bounds.center.z);
+            plane.layer = Layers.Zone;
+            BoxCollider trigger = plane.AddComponent<BoxCollider>();
+            trigger.isTrigger = true;
+            trigger.size = new Vector3(size.x, 2f, size.z);
+            b.KillPlane = plane.AddComponent<KillPlane>();
+        }
+
+        // The spawn marker, the ambience and the lists the night needs (§4.3)
+        static void BuildRouteRoot(ref Built b, LightingPresetApplier lighting) {
+            GameObject rootObject = new GameObject(RootName);
+            RouteSceneRoot root = rootObject.AddComponent<RouteSceneRoot>();
             SceneAmbience ambience = rootObject.AddComponent<SceneAmbience>();
 
-            RoadSample spawn = SampleAt(SpawnDistance);
-            Transform spawnPoint = Group("Bus Spawn", rootObject.transform).transform;
-            spawnPoint.SetPositionAndRotation(RoadPoint(spawn, 2f, 0.05f), Quaternion.Euler(0f, spawn.heading, 0f));
+            // Right lane at depotSpawnDistance, facing the route direction
+            RoutePose spawn = b.Path.Evaluate(b.Route.depotSpawnDistance);
+            Transform spawnPoint = Group(SpawnName, rootObject.transform).transform;
+            spawnPoint.SetPositionAndRotation(spawn.Offset(b.Route.roadWidth * 0.25f, 0.05f), spawn.Rotation);
 
-            SetRefArray(route, "stops", busStops.ToArray());
-            SetRef(route, "busSpawn", spawnPoint);
-            SetRef(route, "riders", riders);
-            SetRefArray(route, "bindables", new Object[] { lighting, ambience });
-        }
-
-        static void ConfigureNpcPools(ObjectPooling pooling) {
-            SerializedObject so = new SerializedObject(pooling);
-            SerializedProperty pools = so.FindProperty("pools");
-            pools.arraySize = 2;
-            SetPool(pools.GetArrayElementAtIndex(0), "Passenger", PrefabBuilder.LegacyPassengerPath, 16);
-            SetPool(pools.GetArrayElementAtIndex(1), "WeepingAngel", PrefabBuilder.LegacyWeepingAngelPath, 4);
-            so.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        static void SetPool(SerializedProperty element, string id, string prefabPath, int prewarm) {
-            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-            if (prefab == null) {
-                throw new System.InvalidOperationException("no " + prefabPath + "; PrefabBuilder runs before RouteBuilder");
-            }
-            element.FindPropertyRelative("id").stringValue = id;
-            element.FindPropertyRelative("prefab").objectReferenceValue = prefab;
-            element.FindPropertyRelative("prewarm").intValue = prewarm;
-        }
-
-        static void ConfigureSpawnableNpcs(LegacyRiderSpawner spawner) {
-            SerializedObject so = new SerializedObject(spawner);
-            SerializedProperty list = so.FindProperty("spawnableNpcs");
-            list.arraySize = 2;
-            list.GetArrayElementAtIndex(0).FindPropertyRelative("poolId").stringValue = "Passenger";
-            list.GetArrayElementAtIndex(0).FindPropertyRelative("weight").floatValue = 10f;
-            list.GetArrayElementAtIndex(1).FindPropertyRelative("poolId").stringValue = "WeepingAngel";
-            list.GetArrayElementAtIndex(1).FindPropertyRelative("weight").floatValue = 1f;
-            so.FindProperty("guaranteedFirstNpcId").stringValue = "WeepingAngel";
-            so.ApplyModifiedPropertiesWithoutUndo();
+            SetRef(root, "route", b.Route);
+            SetRefArray(root, "stops", b.Stops.ToArray());
+            SetRef(root, "busSpawn", spawnPoint);
+            SetRefArray(root, "zones", b.Zones.ToArray());
+            SetRefArray(root, "fallZones", b.FallZones.ToArray());
+            SetRef(root, "killPlane", b.KillPlane);
+            SetRef(root, "fallCamAnchor", b.FallCamAnchor);
+            SetRefArray(root, "bindables", new Object[] { lighting, ambience });
         }
     }
 }

@@ -4,7 +4,6 @@ using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.Shift;
-using BusDriver.Gameplay.World;
 using UnityEngine;
 
 namespace BusDriver.Gameplay.Flow {
@@ -35,9 +34,10 @@ namespace BusDriver.Gameplay.Flow {
         public Camera DriverCamera;
         public Camera OnFootCamera;
 
-        // Legacy until their replacements: DeathDirector (T-M4-06), ManifestSpawner (T-M2-07)
+        // Legacy until DeathDirector (T-M4-06)
         public LegacyGameOver GameOver;
-        public LegacyRiderSpawner Riders;
+        // Development and test riders, until ManifestSpawner (T-M3-03)
+        public DebugRiders DebugRiders;
     }
 
     // UI and other components that ShiftContext binds without knowing their types (§4.5 step 15)

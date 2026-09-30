@@ -89,25 +89,6 @@ namespace BusDriver.Gameplay.Passengers {
             Shift = shift;
         }
 
-        // Reset a pooled passenger so they can wait at a stop again.
-        public void PrepareForWaiting(BusStop stop, Vector3 position, Quaternion rotation) {
-            StopAllCoroutines();
-            Cabin = null;
-            Seat = null;
-            IsAboard = false;
-            WasKicked = false;
-            abortRequested = false;
-            homeStop = stop;
-            waitPosition = position;
-            waitRotation = rotation;
-            transform.SetParent(stop != null ? stop.transform : null, true);
-            transform.SetPositionAndRotation(position, rotation);
-            State = PassengerState.Waiting;
-            SetPose(false);
-            RefreshInteractable();
-            gameObject.SetActive(true);
-        }
-
         // Walk from a stop onto the bus. False when there is no free seat.
         public bool Board(BusCabin cabin, BusStop stop) {
             if (State != PassengerState.Waiting) {
@@ -262,11 +243,8 @@ namespace BusDriver.Gameplay.Passengers {
 
             yield return WalkWorld(() => away, null);
             State = PassengerState.Gone;
-            if (Shift != null && Shift.Riders != null) {
-                Shift.Riders.Despawn(this);
-            }else {
-                Destroy(gameObject);
-            }
+            // Nights reload their scenes, so nothing is pooled; kicked riders never come back (D50)
+            Destroy(gameObject);
         }
 
         IEnumerator WalkWorld(Func<Vector3> target, Func<bool> cancel) {

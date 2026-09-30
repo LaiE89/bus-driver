@@ -11,8 +11,7 @@ namespace BusDriver.Gameplay.World {
         [Tooltip("The RouteDefinition stop id (§3.2); set when the route scene is built")]
         [SerializeField] string stopId = "";
         [SerializeField] List<Passenger> waiting = new List<Passenger>();
-        [Header("Spawning")]
-        [SerializeField] int spawnCount = 2;
+        [Header("Where riders wait, stop-local")]
         [SerializeField] Vector3 firstWaitLocal = new Vector3(5.2f, 0f, -1.2f);
         [SerializeField] Vector3 waitLocalStep = new Vector3(0.3f, 0f, 1.2f);
 
@@ -24,7 +23,6 @@ namespace BusDriver.Gameplay.World {
 
         public string StopId { get { return stopId; } }
         public int WaitingCount { get { return waiting.Count; } }
-        public int SpawnCount { get { return Mathf.Max(0, spawnCount); } }
 
         public Vector3 WaitLocalPosition(int slot) {
             return firstWaitLocal + waitLocalStep * slot;

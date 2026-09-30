@@ -94,7 +94,7 @@ A few details:
 - **`build` runs the player's self-test headless** (`-batchmode -nographics --selftest`). To check a build by hand, run the executable with `--selftest -logFile -`. It prints `[SELFTEST] OK <label>` and exits 0.
 - **Log scanning ignores two things:** the Editor's own `UnityEditor.Search` indexer exception at startup, which is an Editor bug and not ours, and exceptions that a test expects.
 - **macOS builds are Apple silicon only** until someone makes the Editor's `llvm-lipo` executable (D52). The build log prints the exact `chmod +x` command.
-- **The smoke test fixes `UnityEngine.Random`'s seed** before boarding, so seating is the same on every run.
+- **The smoke test starts its run with a fixed seed** (`RunFlow.NewRun(seed)`, D69), so seating is the same on every run.
 
 ### Smoke-test baseline
 
@@ -105,3 +105,11 @@ The legacy smoke test's drive numbers on 2026-09-29 (M0), used by T-M1-07 to che
 | 0–50 km/h | 12.4 s |
 | Stop from about 55 km/h | 4.2 s |
 | Turn in 3 s of full right lock at about 46 km/h | 66.2° |
+
+Since T-M2-07 the smoke test drives Route 1 instead of the MVP's flat loop, with a lane keeper steering during the drive phases (D77). Its numbers changed with the road, and these are the new reference:
+
+| Measure | Value |
+|---|---|
+| 0–50 km/h (lane keeping, +1 % grade from 150 m) | 13.1 s |
+| Stop from about 50 km/h | 4.2 s |
+| Turn in 1.2 s of full right lock at about 50 km/h (Route 1 is walled; 3 s would hit the wall) | 24.0° |

@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using BusDriver.Core.Data;
+using BusDriver.Core.Rules;
 using BusDriver.Editor.Builders;
 using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Bus;
@@ -20,9 +21,11 @@ namespace BusDriver.Editor.Smoke {
     // Play mode smoke test of the generated scenes, meant for batch mode:
     //   Unity -batchmode -projectPath BusDriver -executeMethod BusDriver.Editor.Smoke.SmokeTest.Run -logFile -
     // (no -quit, the test exits the editor itself). It plays the Menu scene, reboots GameRoot on a
-    // throwaway save root and starts a New Run through RunFlow (T-M1-16), then drives the bus
-    // through BusController.SetInput, logs "[SMOKE]" lines, writes camera captures to Logs/smoke
-    // and exits 0 on pass, 1 on fail.
+    // throwaway save root and starts a New Run through RunFlow (T-M1-16), then drives the bus on
+    // Route 1 (T-M2-07) through BusController.SetInput, with a simple lane keeper on the RoutePath,
+    // boards the riders the debug rider hook put at farm_gate, kicks the Weeping Angel, logs
+    // "[SMOKE]" lines, writes camera captures (driver, CCTV, a stop, the cliff, the tunnel) to
+    // Logs/smoke and exits 0 on pass, 1 on fail.
     [InitializeOnLoad]
     public static class SmokeTest {
         const string RunningKey = "BusDriver.SmokeTest.Running";
@@ -70,6 +73,26 @@ namespace BusDriver.Editor.Smoke {
         static float idlePitch;
         static readonly List<string> failures = new List<string>();
         const int RunSeed = 20260929;
+        // The stop the test boards at, and the riders waiting there (the angel first, as the MVP had it)
+        const string TestStopId = "farm_gate";
+        const int TestRiders = 2;
+        // The right lane's centre, and the left one (room for the hard-right check)
+        const float RightLane = 1.75f;
+        const float LeftLane = -1.75f;
+
+        static RoutePath path;
+        static float laneTarget = RightLane;
+        static float trackedDistance;
+
+        // Route captures after the CCTV cycle (T-M2-07): a teleport, then a capture once it settles
+        static readonly (string name, float distance)[] RouteShots = {
+            ("route_stop_farm_gate", 322f),
+            ("route_road_arc", 575f),
+            ("route_cliff_approach", 1420f),
+            ("route_tunnel", 2030f),
+        };
+        static int routeShot;
+        static bool routeShotPending;
 
         // Boot phases before the bus exists
         static GameServices game;
@@ -141,21 +164,20 @@ namespace BusDriver.Editor.Smoke {
                 mode = UnityEngine.Object.FindAnyObjectByType<PlayerModeController>();
                 cabin = bus.GetComponent<BusCabin>();
                 doors = bus.GetComponent<BusDoors>();
-                // Stops also spawn extra angels at random (weight 1 in 11), so the test monster is
-                // the one waiting at the busiest stop that has one, not just any angel in the scene
-                WeepingAngel[] angels = UnityEngine.Object.FindObjectsByType<WeepingAngel>();
-                foreach (BusStop candidate in UnityEngine.Object.FindObjectsByType<BusStop>()) {
-                    WeepingAngel waitingAngel = null;
-                    foreach (WeepingAngel angel in angels) {
-                        if (angel.transform.parent == candidate.transform) {
-                            waitingAngel = angel;
-                        }
-                    }
-                    if (waitingAngel != null && (stop == null || candidate.WaitingCount > stop.WaitingCount)) {
-                        stop = candidate;
-                        monster = waitingAngel;
-                    }
+                path = new RoutePath(night.Route.Route);
+                // No manifest yet (M3): the debug rider hook puts the angel and two riders at the stop
+                stop = night.Route.Stop(TestStopId);
+                Check(stop != null, "Route01_World has no stop '" + TestStopId + "'");
+                Check(night.Route.Stops.Count == night.Route.Route.stops.Length, "the route root doesn't list every stop");
+                monster = night.Shift.DebugRiders.SpawnWaiting(stop, true) as WeepingAngel;
+                for (int i = 0; i < TestRiders; i++) {
+                    night.Shift.DebugRiders.SpawnWaiting(stop, false);
                 }
+                Check(monster != null && stop.WaitingCount == TestRiders + 1, "the debug rider hook did not put the riders at the stop");
+                RoutePose spawnPose = path.Evaluate(night.Route.Route.depotSpawnDistance);
+                Check(Vector3.Distance(bus.transform.position, night.Route.BusSpawn.position) < 0.5f
+                    && Vector3.Distance(night.Route.BusSpawn.position, spawnPose.Offset(RightLane, 0.05f)) < 0.1f,
+                    "the bus did not start at the route's spawn marker");
                 cabin.OnPassengerBoarded += p => boardedEvents++;
                 cabin.OnPassengerSeated += p => seatedEvents++;
                 cabin.OnPassengerKicked += p => kickedWasMonster = p is Monster;
@@ -192,7 +214,9 @@ namespace BusDriver.Editor.Smoke {
                         stepDone = true;
                         idlePitch = bus.GetComponent<BusEngineSound>().EnginePitch;
                     }
-                    bus.SetInput(0f, 1f, false);
+                    // The last seconds in the left lane, leaving room for the hard right
+                    laneTarget = t >= 14f ? LeftLane : RightLane;
+                    bus.SetInput(LaneSteer(), 1f, false);
                     if (timeTo50 < 0f && bus.SpeedKmh >= 50f) {
                         timeTo50 = t - 3f;
                     }
@@ -230,12 +254,12 @@ namespace BusDriver.Editor.Smoke {
                     }
                     break;
 
-                case 2: // hard right at speed
+                case 2: // hard right at speed. Route 1 is a road between walls, so 1.2 s, not the MVP's 3 s
                     bus.SetInput(1f, 0.3f, false);
-                    if (t >= 22f) {
+                    if (t >= 20.2f) {
                         float turned = Mathf.DeltaAngle(startHeading, bus.transform.eulerAngles.y);
                         float upDot = Vector3.Dot(bus.transform.up, Vector3.up);
-                        Log($"after 3 s of full right lock: turned {turned:F1} deg, upDot={upDot:F3}, steer={bus.SteerAngle:F1}, speed={bus.SpeedKmh:F1} km/h");
+                        Log($"after 1.2 s of full right lock: turned {turned:F1} deg, upDot={upDot:F3}, steer={bus.SteerAngle:F1}, speed={bus.SpeedKmh:F1} km/h");
                         Check(turned > 8f, "bus did not turn right");
                         Check(upDot > 0.9f, "bus rolled over while steering");
                         Next();
@@ -243,12 +267,13 @@ namespace BusDriver.Editor.Smoke {
                     break;
 
                 case 3: // brake to a stop, then reverse
-                    bus.SetInput(0f, -1f, false);
+                    laneTarget = RightLane;
+                    bus.SetInput(bus.CurrentGear == BusController.Gear.Reverse ? 0f : LaneSteer(), -1f, false);
                     if (stoppedAt < 0f && bus.SpeedKmh < 1f) {
-                        stoppedAt = t - 22f;
+                        stoppedAt = t - 20.2f;
                         Log($"stopped after {stoppedAt:F1} s of braking");
                     }
-                    if (t >= 34f) {
+                    if (t >= 32.2f) {
                         Log($"holding S: gear {bus.CurrentGear}, forward speed {bus.ForwardSpeed:F2} m/s");
                         Check(stoppedAt > 0f, "bus never stopped under braking");
                         Check(bus.CurrentGear == BusController.Gear.Reverse, "gear should be Reverse after holding brake at a standstill");
@@ -259,8 +284,8 @@ namespace BusDriver.Editor.Smoke {
                     break;
 
                 case 4: // W while reversing brakes first, then drives
-                    bus.SetInput(0f, 1f, false);
-                    if (t >= 38f) {
+                    bus.SetInput(bus.ForwardSpeed > 0.5f ? LaneSteer() : 0f, 1f, false);
+                    if (t >= 36.2f) {
                         Log($"W after reversing: gear {bus.CurrentGear}, forward speed {bus.ForwardSpeed:F2} m/s");
                         Check(bus.CurrentGear == BusController.Gear.Drive, "gear should return to Drive");
                         Check(bus.ForwardSpeed > 0.5f, "bus is not moving forward again");
@@ -269,8 +294,8 @@ namespace BusDriver.Editor.Smoke {
                     break;
 
                 case 5: // release, auto-hold
-                    bus.SetInput(0f, 0f, false);
-                    if (t >= 40f) {
+                    bus.SetInput(LaneSteer(), 0f, false);
+                    if (t >= 38.2f) {
                         Log($"released: speed {bus.SpeedKmh:F2} km/h");
                         Next();
                     }
@@ -279,14 +304,9 @@ namespace BusDriver.Editor.Smoke {
                 case 6: // park at the stop with the door lined up
                     if (!stepDone) {
                         stepDone = true;
-                        Rigidbody body = rb;
-                        Vector3 pose = stop.transform.TransformPoint(new Vector3(2f, 0.05f, -4.8f));
-                        bus.transform.SetPositionAndRotation(pose, stop.transform.rotation);
-                        body.position = pose;
-                        body.rotation = stop.transform.rotation;
-                        body.linearVelocity = Vector3.zero;
-                        body.angularVelocity = Vector3.zero;
-                        Physics.SyncTransforms();
+                        // The door (4.8 m ahead of the bus's centre) level with the stop, 2 m right of the centreline
+                        RoutePose pose = path.Evaluate(night.Route.Route.stops[night.Route.Route.IndexOfStop(TestStopId)].distance - 4.8f);
+                        Teleport(pose.Offset(2f, 0.05f), Quaternion.LookRotation(pose.Tangent, Vector3.up));
                     }
                     bus.SetInput(0f, 0f, false);
                     if (pt >= 2f && bus.IsStopped) {
@@ -507,7 +527,7 @@ namespace BusDriver.Editor.Smoke {
                         Check(moved < 0.01f && turned < 0.1f, "bus pose shifted across the on-foot period");
                         Check(peakSpeed < 0.1f, "bus jolted when it unfroze");
                     }else if (pt < 5f) {
-                        bus.SetInput(0f, 1f, false);
+                        bus.SetInput(LaneSteer(), 1f, false);
                     }else {
                         float upDot = Vector3.Dot(bus.transform.up, Vector3.up);
                         Log($"driving off: {bus.SpeedKmh:F1} km/h, gear {bus.CurrentGear}, upDot {upDot:F3}");
@@ -534,6 +554,28 @@ namespace BusDriver.Editor.Smoke {
                     Check(!cctv.IsViewingCCTV, "cycling through every camera should end on the driver view");
                     Check(UnityEngine.Object.FindObjectsByType<AudioListener>().Length == 1, "there must be exactly one AudioListener");
                     Capture("4_driver_view_end", BusCamera("DriverCamera"));
+                    Next();
+                    break;
+
+                case 14: // the route's landmarks from the driver's seat, then the cliff from the fall camera's anchor
+                    bus.SetInput(0f, 0f, false);
+                    if (t < nextCycleTime) {
+                        break;
+                    }
+                    nextCycleTime = t + 0.8f;
+                    if (routeShotPending) {
+                        routeShotPending = false;
+                        Capture(RouteShots[routeShot].name, BusCamera("DriverCamera"));
+                        routeShot++;
+                        break;
+                    }
+                    if (routeShot < RouteShots.Length) {
+                        RoutePose shot = path.Evaluate(RouteShots[routeShot].distance);
+                        Teleport(shot.Offset(RightLane, 0.3f), Quaternion.LookRotation(shot.Tangent, Vector3.up));
+                        routeShotPending = true;
+                        break;
+                    }
+                    CaptureFromAnchor("route_cliff_edge", night.Route.FallCamAnchor);
                     Log($"errors logged during play: {errorCount}");
                     Check(errorCount == 0, "errors or exceptions were logged during play");
                     Finish();
@@ -580,6 +622,50 @@ namespace BusDriver.Editor.Smoke {
                 return false;
             }
             return Time.time - nightReadyAt >= 0.3f;
+        }
+
+        // Pure pursuit toward the target lane, a speed-scaled 8–14 m ahead; forward only
+        static float LaneSteer() {
+            RouteProjection here = path.Project(bus.transform.position, trackedDistance);
+            trackedDistance = here.Distance;
+            float lookahead = Mathf.Clamp(bus.SpeedKmh / 3.6f * 0.8f, 8f, 14f);
+            Vector3 target = path.Evaluate(here.Distance + lookahead).Offset(laneTarget);
+            Vector3 to = target - bus.transform.position;
+            to.y = 0f;
+            float angle = Vector3.SignedAngle(Vector3.ProjectOnPlane(bus.transform.forward, Vector3.up), to, Vector3.up);
+            return Mathf.Clamp(angle / 12f, -1f, 1f);
+        }
+
+        static void Teleport(Vector3 position, Quaternion rotation) {
+            bus.transform.SetPositionAndRotation(position, rotation);
+            rb.position = position;
+            rb.rotation = rotation;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            Physics.SyncTransforms();
+        }
+
+        // Night_Systems' FallCamera, borrowed for one frame at the route's anchor
+        static void CaptureFromAnchor(string fileName, Transform anchor) {
+            Check(anchor != null, "Route01_World has no FallCamAnchor");
+            Camera cam = null;
+            foreach (Camera candidate in UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsInactive.Include)) {
+                if (candidate.transform.root.name == "FallCamera") {
+                    cam = candidate;
+                }
+            }
+            if (anchor == null || cam == null) {
+                Log("no fall camera to capture the cliff with");
+                return;
+            }
+            bool wasActive = cam.gameObject.activeSelf;
+            bool wasEnabled = cam.enabled;
+            cam.gameObject.SetActive(true);
+            cam.enabled = true;
+            cam.transform.SetPositionAndRotation(anchor.position, anchor.rotation);
+            Capture(fileName, cam);
+            cam.enabled = wasEnabled;
+            cam.gameObject.SetActive(wasActive);
         }
 
         static Camera BusCamera(string cameraName) {

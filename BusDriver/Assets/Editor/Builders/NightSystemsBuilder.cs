@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Flow;
+using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Shift;
 using BusDriver.UI.Screens;
@@ -17,8 +19,8 @@ using static BusDriver.Editor.Builders.BuilderUtil;
 namespace BusDriver.Editor.Builders {
     // BuildAll step 9 (§4.15): Generated/Scenes/Night_Systems.unity, the night's systems (§4.3):
     // ShiftContext on the scene root, the Bus, OnFootRig, FallCamera, HUD and Screens instances,
-    // the mode switch and interactor, the legacy Game Over overlay (until T-M4-06) and the
-    // EventSystem. The bus is saved inactive: this scene has no ground, so ShiftContext.AttachRoute
+    // the mode switch and interactor, the debug rider hook (T-M2-07), the legacy Game Over overlay
+    // (until T-M4-06) and the EventSystem. The bus is saved inactive: this scene has no ground, so ShiftContext.AttachRoute
     // moves it to the route's spawn point and switches it on.
     public static class NightSystemsBuilder {
         public const string ScenePath = SceneIds.GeneratedFolder + "/" + SceneIds.NightSystems + ".unity";
@@ -57,6 +59,9 @@ namespace BusDriver.Editor.Builders {
             GameObject systems = new GameObject("Game Systems");
             PlayerModeController mode = systems.AddComponent<PlayerModeController>();
             PlayerInteractor interactor = systems.AddComponent<PlayerInteractor>();
+            DebugRiders debugRiders = systems.AddComponent<DebugRiders>();
+            SetRef(debugRiders, "riderPrefab", LoadRider(PrefabBuilder.LegacyPassengerPath));
+            SetRef(debugRiders, "angelPrefab", LoadRider(PrefabBuilder.LegacyWeepingAngelPath));
             SetRef(mode, "busInput", bus.GetComponent<BusInput>());
             SetRef(mode, "driverLook", look);
             SetRef(mode, "cctv", bus.GetComponentInChildren<CCTVSystem>(true));
@@ -76,6 +81,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "interactor", interactor);
             SetRef(context, "gameOver", gameOver);
             SetRef(context, "director", director);
+            SetRef(context, "debugRiders", debugRiders);
             SetRefArray(context, "bindables", Bindables(scene).ToArray());
 
             bus.SetActive(false);
@@ -90,6 +96,15 @@ namespace BusDriver.Editor.Builders {
             GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
             instance.name = name;
             return instance;
+        }
+
+        static Passenger LoadRider(string prefabPath) {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            Passenger rider = prefab != null ? prefab.GetComponent<Passenger>() : null;
+            if (rider == null) {
+                throw new System.InvalidOperationException("no rider prefab at " + prefabPath + "; PrefabBuilder runs before NightSystemsBuilder");
+            }
+            return rider;
         }
 
         // Every component the scene root binds, in hierarchy order (D65)

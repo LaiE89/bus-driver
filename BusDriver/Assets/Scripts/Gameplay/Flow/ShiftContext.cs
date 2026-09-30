@@ -21,6 +21,8 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] PlayerInteractor interactor;
         [SerializeField] LegacyGameOver gameOver;
         [SerializeField] ShiftDirector director;
+        [Tooltip("Development and test riders (T-M2-07), until ManifestSpawner (T-M3-03)")]
+        [SerializeField] DebugRiders debugRiders;
         [Tooltip("UI and game-scoped components of this scene, bound in list order (§4.5 step 15)")]
         [SerializeField] MonoBehaviour[] bindables = new MonoBehaviour[0];
 
@@ -85,9 +87,9 @@ namespace BusDriver.Gameplay.Flow {
             if (shift.GameOver != null) {
                 shift.GameOver.Init(shift);
             }
-            // 14. ManifestSpawner: the legacy rider spawner until T-M2-07
-            if (shift.Riders != null) {
-                shift.Riders.Init(shift);
+            // 14. ManifestSpawner (T-M3-03); until then only the debug rider hook
+            if (shift.DebugRiders != null) {
+                shift.DebugRiders.Init(shift);
             }
             // 15. Every IShiftBindable (all UI)
             BindShift(bindables, shift);
@@ -117,7 +119,7 @@ namespace BusDriver.Gameplay.Flow {
                 DriverCamera = mode.DriverCamera,
                 OnFootCamera = mode.OnFootCamera,
                 GameOver = gameOver,
-                Riders = Route.Riders,
+                DebugRiders = debugRiders,
                 Director = director,
             };
             return shift;

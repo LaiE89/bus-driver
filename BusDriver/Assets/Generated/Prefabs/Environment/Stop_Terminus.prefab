@@ -151,7 +151,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.World.BusStop
   stopId: 
   waiting: []
-  spawnCount: 2
   firstWaitLocal: {x: 5.2, y: 0, z: -1.2}
   waitLocalStep: {x: 0.3, y: 0, z: 1.2}
   zoneMinX: 1.8

@@ -84,5 +84,11 @@ namespace BusDriver.Gameplay.Debug {
 #else
         public const bool Enabled = false;
 #endif
+
+        // The same answer as a call, so a branch on it doesn't warn about unreachable code in
+        // whichever kind of build makes it constant
+        public static bool IsEnabled() {
+            return Enabled;
+        }
     }
 }
