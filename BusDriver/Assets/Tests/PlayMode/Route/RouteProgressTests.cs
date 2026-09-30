@@ -77,6 +77,18 @@ namespace BusDriver.Tests.PlayMode.Route {
             Assert.AreEqual("church", progress.Next.StopId);
             Assert.AreEqual("church", night.Shift.Tracker.NextStop.stopId, "the tracker's next stop follows RouteProgress");
             Assert.IsFalse(progress.TerminusReached);
+
+            // M2 acceptance: the F1 overlay shows the stop states
+            System.Text.StringBuilder text = new System.Text.StringBuilder();
+            foreach (IDebugSection section in night.Shift.Debug.Sections) {
+                if (section.Title == "Stops") {
+                    section.Write(text);
+                }
+            }
+            string stops = text.ToString();
+            StringAssert.Contains("farm_gate Served", stops);
+            StringAssert.Contains("gas_station Missed", stops);
+            StringAssert.Contains("> church Pending", stops);
         }
     }
 }
