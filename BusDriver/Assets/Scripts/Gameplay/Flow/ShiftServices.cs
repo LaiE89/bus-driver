@@ -2,6 +2,7 @@ using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Economy;
 using BusDriver.Gameplay.Monsters;
@@ -74,8 +75,8 @@ namespace BusDriver.Gameplay.Flow {
         public CabinLights CabinLights;
         public ScareAnchors ScareAnchors;
 
-        // Legacy until DeathDirector (T-M4-06)
-        public LegacyGameOver GameOver;
+        // The death pipeline (§2.14, §4.6)
+        public DeathDirector Death;
         // Development and test riders, until ManifestSpawner (T-M3-03)
         public DebugRiders DebugRiders;
         // The development and test driver (§4.18)

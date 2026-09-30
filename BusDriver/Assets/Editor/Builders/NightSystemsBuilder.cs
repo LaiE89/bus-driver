@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Monsters;
@@ -24,8 +25,8 @@ using static BusDriver.Editor.Builders.BuilderUtil;
 namespace BusDriver.Editor.Builders {
     // BuildAll step 9 (§4.15): Generated/Scenes/Night_Systems.unity, the night's systems (§4.3):
     // ShiftContext on the scene root, the Bus, OnFootRig, FallCamera, HUD and Screens instances,
-    // the mode switch and interactor, the debug rider hook (T-M2-07), the legacy Game Over overlay
-    // (until T-M4-06) and the EventSystem. The bus is saved inactive: this scene has no ground, so ShiftContext.AttachRoute
+    // the mode switch and interactor, the debug rider hook (T-M2-07), the monster, scare and death
+    // systems (M4) and the EventSystem. The bus is saved inactive: this scene has no ground, so ShiftContext.AttachRoute
     // moves it to the route's spawn point and switches it on.
     public static class NightSystemsBuilder {
         public const string ScenePath = SceneIds.GeneratedFolder + "/" + SceneIds.NightSystems + ".unity";
@@ -41,7 +42,6 @@ namespace BusDriver.Editor.Builders {
 
             GameObject contextObject = new GameObject("Shift Context");
             ShiftContext context = contextObject.AddComponent<ShiftContext>();
-            LegacyGameOver gameOver = contextObject.AddComponent<LegacyGameOver>();
             ShiftDirector director = contextObject.AddComponent<ShiftDirector>();
             RouteTracker tracker = contextObject.AddComponent<RouteTracker>();
             RouteProgress progress = contextObject.AddComponent<RouteProgress>();
@@ -53,6 +53,10 @@ namespace BusDriver.Editor.Builders {
             MonsterSystem monsters = contextObject.AddComponent<MonsterSystem>();
             ScarePlayer scarePlayer = contextObject.AddComponent<ScarePlayer>();
             ScareDirector scares = contextObject.AddComponent<ScareDirector>();
+            DeathDirector death = contextObject.AddComponent<DeathDirector>();
+            MonsterKillPresenter killPresenter = contextObject.AddComponent<MonsterKillPresenter>();
+            BlackoutPresenter blackoutPresenter = contextObject.AddComponent<BlackoutPresenter>();
+            SetRefArray(death, "presenters", new Object[] { killPresenter, blackoutPresenter });
             SetRef(scarePlayer, "scareHeadPrefab", ScareFxBuilder.ScareHead());
             SetRef(scarePlayer, "defaultOverlay", ScareFxBuilder.FaceOverlayTexture());
             SetRef(manifest, "riderPrefab", LoadRider(PrefabBuilder.PassengerPath));
@@ -65,7 +69,6 @@ namespace BusDriver.Editor.Builders {
             Instantiate(UIPrefabBuilder.DashPath, "Dash");
             Instantiate(UIPrefabBuilder.ScreensPath, "Screens");
             Instantiate(UIPrefabBuilder.DebugOverlayPath, "DebugOverlay");
-            BuildGameOver();
             UIInputModuleSetup.Configure(new GameObject("EventSystem"));
 
             Transform head = bus.transform.Find(PrefabBuilder.DriverHeadName);
@@ -98,7 +101,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "mode", mode);
             SetRef(context, "onFoot", onFoot);
             SetRef(context, "interactor", interactor);
-            SetRef(context, "gameOver", gameOver);
+            SetRef(context, "death", death);
             SetRef(context, "director", director);
             SetRef(context, "debugRiders", debugRiders);
             SetRef(context, "tracker", tracker);
@@ -157,22 +160,6 @@ namespace BusDriver.Editor.Builders {
                 }
             }
             return bindables;
-        }
-
-        // The PR #5 overlay: New Run / Main Menu over a dim screen (GameOverScreen replaces it, T-M4-06)
-        static void BuildGameOver() {
-            Canvas canvas = UIBuild.CreateCanvas("Game Over", null, UIPrefabBuilder.GameOverOrder);
-            GameOverMenu menu = canvas.gameObject.AddComponent<GameOverMenu>();
-            RectTransform panel = UIBuild.Panel("GameOverPanel", canvas.transform);
-            UIBuild.Fill("Dim", panel, new Color(0f, 0f, 0f, 0.6f), true);
-            Vector2 center = new Vector2(0.5f, 0.5f);
-            UIBuild.Label("GameOverTitle", panel, "GAME OVER", ThemeRole.Title, TextAlignmentOptions.Center, center, new Vector2(0f, 220f), new Vector2(1220f, 200f));
-            Button retry = UIBuild.CreateButton("Retry Button", panel, "NEW RUN", center, new Vector2(0f, 40f), new Vector2(520f, 80f));
-            Button mainMenu = UIBuild.CreateButton("Main Menu Button", panel, "MAIN MENU", center, new Vector2(0f, -70f), new Vector2(520f, 80f));
-            panel.gameObject.SetActive(false);
-            SetRef(menu, "gameOverRoot", panel.gameObject);
-            SetRef(menu, "retryButton", retry);
-            SetRef(menu, "mainMenuButton", mainMenu);
         }
     }
 }

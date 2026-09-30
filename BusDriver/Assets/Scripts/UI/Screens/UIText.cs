@@ -37,6 +37,19 @@ namespace BusDriver.UI.Screens {
         public const string RatingMissed = "○ MISSED";
         public const string SummaryCounts = "MONSTERS KICKED {0}    INNOCENTS KICKED {1}    RIDERS DELIVERED {2}";
 
+        // Game Over (§2.21). The monster's name comes from its MonsterDefinition.displayName.
+        public const string GameOverTitle = "GAME OVER";
+        public const string GameOverMonster = "{0} GOT YOU";
+        public const string SomethingName = "Something";
+        public const string GameOverSanity = "YOUR MIND WENT DARK";
+        public const string GameOverFall = "YOU WENT OVER THE EDGE";
+        public const string GameOverAbandoned = "YOU LEFT YOUR SHIFT";
+        public const string HintFall = "Keep your eyes on the road at Dead Man's Bend.";
+        public const string HintSanity = "The dark gets in. Coffee helps.";
+        public const string GameOverStats = "NIGHTS SURVIVED  {0}\nFARES COLLECTED  {1}\nMONSTERS KICKED  {2}\nINNOCENTS KICKED  {3}";
+        public const string NewRun = "NEW RUN";
+        public const string MainMenu = "MAIN MENU";
+
         // Confirmations (§2.21, §2.22)
         public const string LeaveEndsRun = "Leaving now ends your run.";
         public const string Leave = "LEAVE";

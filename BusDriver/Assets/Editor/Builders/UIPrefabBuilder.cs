@@ -24,7 +24,6 @@ namespace BusDriver.Editor.Builders {
         // Over the HUD, under the screens, so the pause menu stays readable in a fade
         public const int FadeOrder = 15;
         public const int ScreensOrder = 20;
-        public const int GameOverOrder = 30;
         public const int DebugOrder = 40;
 
         static readonly Vector2 Center = new Vector2(0.5f, 0.5f);
@@ -144,6 +143,7 @@ namespace BusDriver.Editor.Builders {
             PauseScreen pause = BuildPause(canvas.transform, router, options, controls);
             BuildConfirm(canvas.transform);
             BuildSummary(canvas.transform, router);
+            BuildGameOver(canvas.transform, router);
             IntroCardScreen intro = BuildIntro(canvas.transform);
             // The intro card and the pause screen are drawn under the screens the pause screen opens
             intro.transform.SetAsFirstSibling();
@@ -324,6 +324,27 @@ namespace BusDriver.Editor.Builders {
             SetRef(summary, "countsText", counts);
             SetRef(summary, "continueButton", next);
             return summary;
+        }
+
+        // §2.21 (T-M4-06): the cause over its hint, the run's totals, New Run and Main Menu
+        static GameOverScreen BuildGameOver(Transform parent, ScreenRouter router) {
+            GameOverScreen screen;
+            RectTransform root = ScreenRoot("GameOverScreen", parent, ScreenBackground, out screen);
+            TMP_Text cause = UIBuild.Label("Cause", root, UIText.GameOverTitle, ThemeRole.Title, TextAlignmentOptions.Center, Center, new Vector2(0f, 300f), new Vector2(1700f, 160f));
+            UIBuild.Theme(cause, ThemeRole.Title).SetPaletteColor(ThemeColor.Danger);
+            TMP_Text hint = UIBuild.Label("Hint", root, "", ThemeRole.Body, TextAlignmentOptions.Center, Center, new Vector2(0f, 170f), new Vector2(1400f, 80f));
+            hint.textWrappingMode = TextWrappingModes.Normal;
+            TMP_Text stats = UIBuild.Label("Stats", root, "", ThemeRole.Body, TextAlignmentOptions.Center, Center, new Vector2(0f, -20f), new Vector2(900f, 220f));
+            Button newRun = UIBuild.CreateButton("New Run Button", root, UIText.NewRun, Center, new Vector2(0f, -240f), new Vector2(420f, 80f));
+            Button mainMenu = UIBuild.CreateButton("Main Menu Button", root, UIText.MainMenu, Center, new Vector2(0f, -340f), new Vector2(420f, 80f));
+            SetRef(screen, "firstSelected", newRun);
+            SetRef(screen, "router", router);
+            SetRef(screen, "causeText", cause);
+            SetRef(screen, "hintText", hint);
+            SetRef(screen, "statsText", stats);
+            SetRef(screen, "newRunButton", newRun);
+            SetRef(screen, "mainMenuButton", mainMenu);
+            return screen;
         }
 
         // A top-aligned, unwrapped text column of the Summary, centred at x

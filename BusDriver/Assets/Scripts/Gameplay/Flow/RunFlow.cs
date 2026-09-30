@@ -3,6 +3,7 @@ using BusDriver.Core.Data;
 using BusDriver.Core.Rules;
 using BusDriver.Core.Save;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.Shift;
 using UnityEngine;
@@ -13,8 +14,8 @@ namespace BusDriver.Gameplay.Flow {
     public enum RunFlowState : int { Boot = 0, FirstLaunch = 1, Menu = 2, LoadingNight = 3, InNight = 4 }
 
     // The run state machine (§4.4), plain C# owned by GameRoot: Boot, Menu, LoadingNight, InNight,
-    // New Run, the editor debug run, and the night results (T-M3-06). Continue, abandoned detection
-    // and deaths arrive with their tickets (T-M4-06, T-M7-02).
+    // New Run, the editor debug run, the night results (T-M3-06) and deaths (T-M4-06). Continue and
+    // abandoned detection arrive with T-M7-02.
     public sealed class RunFlow {
         public const string DebugSeedPref = "BusDriver.DebugSeed";
         public const string DebugNightPref = "BusDriver.DebugNight";
@@ -170,6 +171,10 @@ namespace BusDriver.Gameplay.Flow {
                 director.OnSummaryConfirmed += HandleSummaryConfirmed;
                 director.OnRunWon += HandleRunWon;
             }
+            DeathDirector death = currentNight.Death;
+            if (death != null) {
+                death.OnDeathStarted += EndRunDeath;
+            }
             currentNight.AttachRoute(route);
             currentNight.Begin(setup);
         }
@@ -191,6 +196,21 @@ namespace BusDriver.Gameplay.Flow {
             Run.nightIndex = result.nightIndex + 1;
             Run.nightInProgress = false;
             Log.Info(LogCat.Flow, $"night {result.nightIndex} complete: wallet {Money.Format(Run.walletCents)}, next night {Run.nightIndex}");
+        }
+
+        // §4.4: a death wipes the run at once, before its presenter plays (D21), and the meta save
+        // records the loss (runs lost, deaths by cause, the journal's killedBy). Debug runs never
+        // write. The run stays in memory for the Game Over screen's totals.
+        public void EndRunDeath(DeathReport report) {
+            if (Run == null || report == null) {
+                return;
+            }
+            Run.nightInProgress = false;
+            if (!IsDebugRun) {
+                game.Saves.Delete(SaveSlot.Run);
+                game.Meta.RecordRunLost(report.Cause, report.SourceId);
+            }
+            Log.Info(LogCat.Flow, $"run lost: {report}, night {report.NightIndex}");
         }
 
         // Summary Continue on nights 1–4: save the run, then the next night (§4.4). Debug runs

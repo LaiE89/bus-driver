@@ -1,4 +1,5 @@
 using BusDriver.Core.Save;
+using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.Shift;
 
@@ -15,6 +16,8 @@ namespace BusDriver.Gameplay.Flow {
         bool HasBegun { get; }
         // The night's state machine; RunFlow follows its results (§4.4)
         ShiftDirector Director { get; }
+        // The night's deaths; RunFlow wipes the run the moment one starts (§4.4, D21)
+        DeathDirector Death { get; }
         void AttachRoute(RouteSceneRoot route);
         void Begin(NightSetup setup);
     }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
@@ -70,7 +71,7 @@ namespace BusDriver.Gameplay.Monsters {
         }
 
         bool IsGameOver {
-            get { return Shift.GameOver != null && Shift.GameOver.IsGameOver; }
+            get { return Shift.Death != null && Shift.Death.IsDying; }
         }
 
         void Move(float deltaTime) {
@@ -99,7 +100,7 @@ namespace BusDriver.Gameplay.Monsters {
         }
 
         void TryKillPlayer() {
-            if (!hunting || Shift == null || IsGameOver || Shift.GameOver == null) {
+            if (!hunting || Shift == null || IsGameOver || Shift.Death == null) {
                 return;
             }
             Vector3 current = transform.localPosition;
@@ -107,7 +108,7 @@ namespace BusDriver.Gameplay.Monsters {
             Vector3 flat = target - current;
             flat.y = 0f;
             if (flat.magnitude <= killDistance) {
-                Shift.GameOver.TriggerGameOver();
+                Shift.Death.Die(DeathCause.MonsterKill, "weeping_angel");
             }
         }
 

@@ -94,7 +94,11 @@ namespace BusDriver.Tests.PlayMode.Flow {
             Assert.AreEqual(1f, Time.timeScale);
 
             yield return StartNight(game);
-            Object.FindAnyObjectByType<LegacyGameOver>().TriggerGameOver();
+            ShiftContext night = Object.FindAnyObjectByType<ShiftContext>();
+            Assert.IsTrue(night.Death.Die(DeathCause.Fall));
+            Assert.IsTrue(game.Pause.TrySetPaused(true), "dying can be paused (§4.11)");
+            Assert.IsTrue(game.Pause.TrySetPaused(false));
+            yield return FlowTestUtil.WaitFor(() => night.Director.State == ShiftState.GameOver, 20f, "Game Over");
             Assert.IsFalse(game.Pause.TrySetPaused(true), "Game Over can't be paused");
             Assert.AreEqual(InputContext.Screen, game.Input.EffectiveContext);
         }

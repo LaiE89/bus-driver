@@ -20,7 +20,8 @@ namespace BusDriver.Gameplay.Shift {
     // The night's state machine (§2.1, §4.6): Depot (nights 2–5) → Intro → Driving → Summary, or
     // Driving → Dying → GameOver; night 5's Summary leads to RunWon. It owns DriveLock.Scripted (the
     // bus only moves in Driving), decides when pausing is allowed (§4.11) and pushes the input
-    // context for its states. The legacy Game Over overlay (until T-M4-06) moves it to GameOver.
+    // context for its states. DeathDirector moves it to Dying, then to GameOver once the death
+    // presenter is done.
     public sealed class ShiftDirector : MonoBehaviour {
         public const int LastNight = 5;
 
@@ -31,7 +32,6 @@ namespace BusDriver.Gameplay.Shift {
         GameServices game;
         BusController bus;
         PlayerModeController mode;
-        LegacyGameOver gameOver;
         RouteProgress progress;
         float stateTime;
 
@@ -62,20 +62,13 @@ namespace BusDriver.Gameplay.Shift {
             game = services.Game;
             bus = services.Bus;
             mode = services.Mode;
-            gameOver = services.GameOver;
             progress = services.Progress;
             NightIndex = services.Setup.NightIndex;
             bus.SetDriveLock(DriveLock.Scripted, true);
             game.Pause.CanPause = CanPause;
-            if (gameOver != null) {
-                gameOver.OnGameOver += HandleGameOver;
-            }
         }
 
         void OnDestroy() {
-            if (gameOver != null) {
-                gameOver.OnGameOver -= HandleGameOver;
-            }
             if (progress != null) {
                 progress.OnTerminus -= HandleTerminus;
             }
@@ -137,9 +130,6 @@ namespace BusDriver.Gameplay.Shift {
 
         // §4.11: pausing is allowed in Driving (which includes on foot), Depot and Dying
         public bool CanPause() {
-            if (gameOver != null && gameOver.IsGameOver) {
-                return false;
-            }
             return State == ShiftState.Driving || State == ShiftState.Depot || State == ShiftState.Dying;
         }
 
@@ -157,10 +147,6 @@ namespace BusDriver.Gameplay.Shift {
                 // The depot shop arrives in T-M7-05; until then the depot is passed straight through
                 ConfirmDepot();
             }
-        }
-
-        void HandleGameOver() {
-            SetState(ShiftState.GameOver);
         }
 
         // §2.1: the doors are fully open at the night's end stop, so the night is won
@@ -249,8 +235,7 @@ namespace BusDriver.Gameplay.Shift {
         }
 
         // §4.10: screens take UI input; driving hands the context to the mode switch's body; the
-        // dying presenter only listens for Pause. The legacy Game Over overlay sets its own (Screen)
-        // context.
+        // dying presenter only listens for Pause; Game Over is a screen.
         void ApplyInputContext(ShiftState state) {
             switch (state) {
                 case ShiftState.Driving:
@@ -258,8 +243,6 @@ namespace BusDriver.Gameplay.Shift {
                     break;
                 case ShiftState.Dying:
                     game.Input.SetContext(InputContext.Cinematic);
-                    break;
-                case ShiftState.GameOver:
                     break;
                 default:
                     game.Input.SetContext(InputContext.Screen);

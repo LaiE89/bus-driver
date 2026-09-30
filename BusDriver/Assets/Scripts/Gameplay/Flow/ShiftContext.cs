@@ -4,6 +4,7 @@ using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Economy;
 using BusDriver.Gameplay.Monsters;
@@ -26,7 +27,8 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] PlayerModeController mode;
         [SerializeField] OnFootController onFoot;
         [SerializeField] PlayerInteractor interactor;
-        [SerializeField] LegacyGameOver gameOver;
+        [Tooltip("The death pipeline and its presenters (§2.14)")]
+        [SerializeField] DeathDirector death;
         [SerializeField] ShiftDirector director;
         [SerializeField] RouteTracker tracker;
         [SerializeField] RouteProgress progress;
@@ -59,6 +61,7 @@ namespace BusDriver.Gameplay.Flow {
         public bool HasBegun { get { return Shift != null; } }
         public BusController Bus { get { return bus; } }
         public ShiftDirector Director { get { return director; } }
+        public DeathDirector Death { get { return death; } }
 
         // Game-scoped components (the screens, the menus) get the services now, before any Start
         public void Initialize(GameServices game) {
@@ -128,10 +131,8 @@ namespace BusDriver.Gameplay.Flow {
             // 8. ScarePlayer, ScareDirector
             shift.ScarePlayer.Init(shift);
             shift.Scares.Init(shift);
-            // 9. The legacy game over stands in for DeathDirector until T-M4-06
-            if (shift.GameOver != null) {
-                shift.GameOver.Init(shift);
-            }
+            // 9. DeathDirector and its presenters
+            shift.Death.Init(shift);
             // 10. MonsterSystem
             shift.Monsters.Init(shift);
             // 11–13. Hallucinations, items and journal/hints arrive with M5–M7
@@ -169,7 +170,7 @@ namespace BusDriver.Gameplay.Flow {
                 DriverCamera = mode.DriverCamera,
                 OnFootCamera = mode.OnFootCamera,
                 Shake = mode.DriverCamera != null ? mode.DriverCamera.GetComponent<CameraShake>() : null,
-                GameOver = gameOver,
+                Death = death,
                 DebugRiders = debugRiders,
                 Director = director,
                 Tracker = tracker,

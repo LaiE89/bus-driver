@@ -10,7 +10,8 @@ namespace BusDriver.Gameplay.Player {
 
     // The Driving ⇄ OnFoot switch, and nothing else (§4.6, D46). Pause, cursor, game over and NPC
     // spawning used to live here too (as SceneController); they moved to PauseService,
-    // CursorService, LegacyGameOver and a rider spawner on the route (T-M1-15; removed in T-M2-07).
+    // CursorService, a legacy game over (T-M1-15; DeathDirector since T-M4-06) and a rider spawner
+    // on the route (T-M1-15; removed in T-M2-07).
     public class PlayerModeController : MonoBehaviour {
         [Header("Driving")]
         [SerializeField] BusInput busInput;
