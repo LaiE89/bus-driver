@@ -41,6 +41,8 @@ namespace BusDriver.Gameplay.Flow {
         public LegacyGameOver GameOver;
         // Development and test riders, until ManifestSpawner (T-M3-03)
         public DebugRiders DebugRiders;
+        // The development and test driver (§4.18)
+        public AutoPilot AutoPilot;
     }
 
     // UI and other components that ShiftContext binds without knowing their types (§4.5 step 15)

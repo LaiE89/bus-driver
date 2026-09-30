@@ -22,7 +22,7 @@ namespace BusDriver.Editor.Smoke {
     //   Unity -batchmode -projectPath BusDriver -executeMethod BusDriver.Editor.Smoke.SmokeTest.Run -logFile -
     // (no -quit, the test exits the editor itself). It plays the Menu scene, reboots GameRoot on a
     // throwaway save root and starts a New Run through RunFlow (T-M1-16), then drives the bus on
-    // Route 1 (T-M2-07) through BusController.SetInput, with a simple lane keeper on the RoutePath,
+    // Route 1 (T-M2-07) through BusController.SetInput, keeping its lane with AutoPilot's steering,
     // boards the riders the debug rider hook put at farm_gate, kicks the Weeping Angel, logs
     // "[SMOKE]" lines, writes camera captures (driver, CCTV, a stop, the cliff, the tunnel) to
     // Logs/smoke and exits 0 on pass, 1 on fail.
@@ -82,7 +82,6 @@ namespace BusDriver.Editor.Smoke {
 
         static RoutePath path;
         static float laneTarget = RightLane;
-        static float trackedDistance;
 
         // Route captures after the CCTV cycle (T-M2-07): a teleport, then a capture once it settles
         static readonly (string name, float distance)[] RouteShots = {
@@ -624,16 +623,9 @@ namespace BusDriver.Editor.Smoke {
             return Time.time - nightReadyAt >= 0.3f;
         }
 
-        // Pure pursuit toward the target lane, a speed-scaled 8–14 m ahead; forward only
+        // AutoPilot's pure pursuit toward the target lane (T-M2-10); the test drives the pedals itself
         static float LaneSteer() {
-            RouteProjection here = path.Project(bus.transform.position, trackedDistance);
-            trackedDistance = here.Distance;
-            float lookahead = Mathf.Clamp(bus.SpeedKmh / 3.6f * 0.8f, 8f, 14f);
-            Vector3 target = path.Evaluate(here.Distance + lookahead).Offset(laneTarget);
-            Vector3 to = target - bus.transform.position;
-            to.y = 0f;
-            float angle = Vector3.SignedAngle(Vector3.ProjectOnPlane(bus.transform.forward, Vector3.up), to, Vector3.up);
-            return Mathf.Clamp(angle / 12f, -1f, 1f);
+            return night.Shift.AutoPilot.SteerInput(laneTarget);
         }
 
         static void Teleport(Vector3 position, Quaternion rotation) {

@@ -62,6 +62,7 @@ namespace BusDriver.Editor.Builders {
             PlayerModeController mode = systems.AddComponent<PlayerModeController>();
             PlayerInteractor interactor = systems.AddComponent<PlayerInteractor>();
             DebugRiders debugRiders = systems.AddComponent<DebugRiders>();
+            AutoPilot autoPilot = systems.AddComponent<AutoPilot>();
             SetRef(debugRiders, "riderPrefab", LoadRider(PrefabBuilder.LegacyPassengerPath));
             SetRef(debugRiders, "angelPrefab", LoadRider(PrefabBuilder.LegacyWeepingAngelPath));
             SetRef(mode, "busInput", bus.GetComponent<BusInput>());
@@ -85,6 +86,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "director", director);
             SetRef(context, "debugRiders", debugRiders);
             SetRef(context, "tracker", tracker);
+            SetRef(context, "autoPilot", autoPilot);
             SetRefArray(context, "bindables", Bindables(scene).ToArray());
 
             bus.SetActive(false);

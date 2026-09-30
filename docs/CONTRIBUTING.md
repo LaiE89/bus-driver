@@ -106,10 +106,10 @@ The legacy smoke test's drive numbers on 2026-09-29 (M0), used by T-M1-07 to che
 | Stop from about 55 km/h | 4.2 s |
 | Turn in 3 s of full right lock at about 46 km/h | 66.2° |
 
-Since T-M2-07 the smoke test drives Route 1 instead of the MVP's flat loop, with a lane keeper steering during the drive phases (D77). Its numbers changed with the road, and these are the new reference:
+Since T-M2-07 the smoke test drives Route 1 instead of the MVP's flat loop, with AutoPilot's steering keeping the lane during the drive phases (D77, D80). Its numbers changed with the road, and these are the new reference:
 
 | Measure | Value |
 |---|---|
-| 0–50 km/h (lane keeping, +1 % grade from 150 m) | 13.1 s |
-| Stop from about 50 km/h | 4.2 s |
-| Turn in 1.2 s of full right lock at about 50 km/h (Route 1 is walled; 3 s would hit the wall) | 24.0° |
+| 0–50 km/h (lane keeping, +1 % grade from 150 m) | 12.8 s |
+| Stop from about 50 km/h | 4.3 s |
+| Turn in 1.2 s of full right lock at about 50 km/h (Route 1 is walled; 3 s would hit the wall) | 23.7° |

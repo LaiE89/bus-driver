@@ -22,6 +22,8 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] LegacyGameOver gameOver;
         [SerializeField] ShiftDirector director;
         [SerializeField] RouteTracker tracker;
+        [Tooltip("The development and test driver (§4.18)")]
+        [SerializeField] AutoPilot autoPilot;
         [Tooltip("Development and test riders (T-M2-07), until ManifestSpawner (T-M3-03)")]
         [SerializeField] DebugRiders debugRiders;
         [Tooltip("UI and game-scoped components of this scene, bound in list order (§4.5 step 15)")]
@@ -83,6 +85,9 @@ namespace BusDriver.Gameplay.Flow {
             shift.OnFoot.Init(shift);
             shift.Interactor.Init(shift);
             shift.EngineSound.Init(shift);
+            if (shift.AutoPilot != null) {
+                shift.AutoPilot.Init(shift);
+            }
             // 4–13. PlayerAttention, PassengerRegistry/ViewFactory, the ledger, sanity, scares,
             // death, monsters, hallucinations, items, journal/hints arrive with M3–M7; the legacy
             // game over stands in for DeathDirector until T-M4-06
@@ -125,6 +130,7 @@ namespace BusDriver.Gameplay.Flow {
                 DebugRiders = debugRiders,
                 Director = director,
                 Tracker = tracker,
+                AutoPilot = autoPilot,
             };
             return shift;
         }

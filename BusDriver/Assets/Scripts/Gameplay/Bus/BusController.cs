@@ -62,6 +62,8 @@ namespace BusDriver.Gameplay.Bus {
             ApplyTuning();
             CachePoses(frontWheels, frontLocalPos, frontLocalRot);
             CachePoses(rearWheels, rearLocalPos, rearLocalRot);
+            RearAxleLocalZ = AxleLocalZ(rearWheels);
+            Wheelbase = AxleLocalZ(frontWheels) - RearAxleLocalZ;
             cachedInertiaTensor = rb.inertiaTensor;
             cachedInertiaRotation = rb.inertiaTensorRotation;
             if (initialLocks != DriveLock.None) {
@@ -71,6 +73,18 @@ namespace BusDriver.Gameplay.Bus {
 
         public BusViewBase View { get { return view; } }
         public DriveLock Locks { get { return locks; } }
+        // Front axle to rear axle, and where the rear axle is along the bus, for steering geometry
+        // (AutoPilot's pure pursuit)
+        public float Wheelbase { get; private set; }
+        public float RearAxleLocalZ { get; private set; }
+
+        // Full lock at the current speed: the steering narrows as the bus speeds up
+        public float MaxSteerAngle {
+            get {
+                float speedFactor = Mathf.InverseLerp(tuning.steerLowKmh, tuning.steerHighKmh, SpeedKmh);
+                return Mathf.Lerp(tuning.lowSpeedSteerAngle, tuning.highSpeedSteerAngle, speedFactor);
+            }
+        }
 
         public void SetInput(float steer, float accel, bool handbrake) {
             steerInput = Mathf.Clamp(steer, -1f, 1f);
@@ -319,9 +333,16 @@ namespace BusDriver.Gameplay.Bus {
             }
         }
 
+        float AxleLocalZ(WheelCollider[] axle) {
+            float sum = 0f;
+            for (int i = 0; i < axle.Length; i++) {
+                sum += transform.InverseTransformPoint(axle[i].transform.position).z;
+            }
+            return axle.Length > 0 ? sum / axle.Length : 0f;
+        }
+
         void ApplySteering() {
-            float speedFactor = Mathf.InverseLerp(tuning.steerLowKmh, tuning.steerHighKmh, SpeedKmh);
-            float maxAngle = Mathf.Lerp(tuning.lowSpeedSteerAngle, tuning.highSpeedSteerAngle, speedFactor);
+            float maxAngle = MaxSteerAngle;
             float target = (IsParked ? 0f : steerInput) * maxAngle;
             bool returning = Mathf.Abs(target) < Mathf.Abs(SteerAngle) || Mathf.Sign(target) != Mathf.Sign(SteerAngle);
             float rate = returning ? tuning.steerReturnRate : tuning.steerRate;
