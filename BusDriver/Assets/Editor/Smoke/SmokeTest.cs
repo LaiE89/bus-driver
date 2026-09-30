@@ -576,6 +576,9 @@ namespace BusDriver.Editor.Smoke {
                         gpsCaptured = true;
                         GpsState("gps");
                         CaptureDash("gps", DashScreen.Gps);
+                        // The fare box's night total after the boarding (T-M3-07)
+                        Log($"fare box: night total {Core.Util.Money.Format(night.Shift.Ledger.Totals.NetCents)}, {night.Shift.Ledger.Entries.Count} ledger entries");
+                        CaptureDash("farebox", DashScreen.FareBox);
                         break;
                     }
                     if (routeShotPending) {

@@ -15,6 +15,8 @@ namespace BusDriver.Editor.Builders {
 
         // Resolutions: the theme's sizes are in these pixels, so they set how big text reads
         public static readonly Vector2 ClockPixels = new Vector2(200f, 75f);
+        // The fare box anchor is 0.18 × 0.10 m
+        public static readonly Vector2 FareBoxPixels = new Vector2(216f, 120f);
         public static readonly Vector2 GpsPixels = new Vector2(800f, 500f);
         // The square map on the GPS's left; the text column fills the rest
         public const float GpsMapSize = 500f;
@@ -24,6 +26,7 @@ namespace BusDriver.Editor.Builders {
         public static void Build() {
             GameObject root = new GameObject("Dash");
             BuildClock(root.transform);
+            BuildFareBox(root.transform);
             BuildGps(root.transform);
             SaveOrOverwritePrefab(root, Path);
             Object.DestroyImmediate(root);
@@ -50,6 +53,24 @@ namespace BusDriver.Editor.Builders {
             SetInt(view, "screen", (int)DashScreen.Clock);
             SetRef(view, "canvas", canvas);
             SetRef(view, "timeText", time);
+        }
+
+        // The fare box (§2.7, T-M3-07): the night's total on top, the ±delta pop under it
+        static void BuildFareBox(Transform parent) {
+            UITheme theme = UIBuild.ThemeAsset;
+            RectTransform canvas = ScreenCanvas("Dash_FareBox", parent, FareBoxPixels);
+            FareBoxView view = canvas.gameObject.AddComponent<FareBoxView>();
+            Vector2 center = new Vector2(0.5f, 0.5f);
+            TMP_Text total = UIBuild.Label("Total", canvas, "$0.00", ThemeRole.Screen, TextAlignmentOptions.Center,
+                center, new Vector2(0f, 24f), new Vector2(FareBoxPixels.x, 60f));
+            TMP_Text delta = UIBuild.Label("Delta", canvas, "", ThemeRole.Hud, TextAlignmentOptions.Center,
+                center, new Vector2(0f, -30f), new Vector2(FareBoxPixels.x, 50f));
+            SetInt(view, "screen", (int)DashScreen.FareBox);
+            SetRef(view, "canvas", canvas);
+            SetRef(view, "totalText", total);
+            SetRef(view, "deltaText", delta);
+            SetColor(view, "upColor", theme.Palette(ThemeColor.Positive));
+            SetColor(view, "downColor", theme.Palette(ThemeColor.Danger));
         }
 
         // The GPS (§4.13, T-M2-13): a 500 px square map on the left, the next stop, distance, ETA,
