@@ -230,6 +230,7 @@ Decisions are never edited once made. To change one, add a new row that supersed
 | D52 (agent) | **macOS builds fall back to Apple silicon only while the editor's `llvm-lipo` isn't executable.** Unity 6000.6.0f1 installs `Unity.app/Contents/Resources/Burst/Client/bcl/hostmac/llvm-lipo` without the execute bit, so Burst can't merge the Intel and Apple-silicon slices and the Universal build fails (§4.20 fallback). `BuildScripts` checks the bit before each macOS build and logs the `chmod +x` a person can run **[HUMAN]** to get Universal builds back. The version starts at `0.0.1` (§4.20: `0.<milestone>.<patch>`) | 2026-09-29 | agent (T-M0-07) |
 | D53 (agent) | **Content ids may be dotted.** Sound, scare and hallucination ids are namespaced (`scare.starer.lens`, `mon.whisper_feed_loop`), so `Ids.IsValid` accepts lower_snake_case segments joined by dots; `Ids.IsSnakeCase` is the strict single-segment check for stop, route, look, monster and item ids (§4.1.11) | 2026-09-29 | agent (T-M1-01) |
 | D54 (agent) | **Save-model details §4.9 leaves open.** Three enums join §4.8: `ArrivalRating` (saved by name, e.g. `Early`, `OnTime`), `ScareIntensity` and `WindowMode` (the values of `UnityEngine.FullScreenMode`, since save models hold no Unity types). `qualityLevel` is an index (Low 0, Medium 1, High 2). A zero `resolutionWidth/Height` or `refreshRate` means the display's current mode. `targetFpsIndex` defaults to 3 (unlimited), the existing options menu's default. All §4.8 enums live in `Core/Data/Enums.cs` | 2026-09-29 | agent (T-M1-03) |
+| D55 (agent) | **Run-flow skeleton choices (T-M1-04).** (1) Until the first-launch warning screen exists (T-M8-02), Boot never enters FirstLaunch; it goes straight to Menu. (2) `SceneLoader` wires every scene in `SceneManager.sceneLoaded` (after Awake, before Start), including scenes legacy code still loads directly (the MVP pause and Game Over menus), and `RunFlow` decides its state from the wired root: a night root at boot, or outside its own load, starts or continues a run (an editor debug run when there is none). (3) Tests replace the running root with `GameRoot.RebootForTests(saveRoot)` so they never write to the real persistentDataPath. (4) Flow code lives in `Scripts/Flow/` until T-M1-21 moves it to `Scripts/Gameplay/Flow/`. (5) `BuildLabel` is gone: the label lives in `GameRootConfig.buildLabel`, written by `BuildScripts` for the build and restored afterwards, and reaches the menu through `GameServices.Build` | 2026-09-30 | agent (T-M1-04) |
 
 ---
 
@@ -3823,7 +3824,7 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 | `T-M1-01` | Core utilities: ids, RNG streams, money and clock formatting | S | Done (2026-09-29) |
 | `T-M1-02` | Save store: envelopes, atomic writes, migrations | M | Done (2026-09-29) |
 | `T-M1-03` | Save models and v1 fixtures | S | Done (2026-09-29) |
-| `T-M1-04` | GameRoot, GameServices, SceneLoader, RunFlow skeleton | L | Todo |
+| `T-M1-04` | GameRoot, GameServices, SceneLoader, RunFlow skeleton | L | Done (2026-09-30) |
 | `T-M1-05` | SettingsService; options screen bound to it | M | Todo |
 | `T-M1-06` | Input actions asset, InputService, contexts | M | Todo |
 | `T-M1-07` | Migrate gameplay and menus off legacy input | M | Todo |

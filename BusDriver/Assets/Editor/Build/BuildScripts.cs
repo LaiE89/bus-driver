@@ -6,15 +6,14 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
-using BusDriver.Core.Util;
+using BusDriver.Core.Data;
 using Debug = UnityEngine.Debug;
 
 namespace BusDriver.Editor.Build {
     // Standalone builds (§4.20). Output goes to <repo>/Builds/<platform>/<version>/, and the label
-    // "<bundleVersion> (<git short hash>)" is written to Resources/build_label.txt first.
+    // "<bundleVersion> (<git short hash>)" is written into GameRootConfig.buildLabel for the build.
     // Batch mode:  -executeMethod BusDriver.Editor.Build.BuildScripts.BuildCurrent [-dev]
     public static class BuildScripts {
-        public const string LabelAssetPath = "Assets/Resources/" + BuildLabel.ResourceName + ".txt";
         public const string DevDefine = "BUSDRIVER_DEV";
         public const string ProductFileName = "BusDriver";
 
@@ -100,7 +99,8 @@ namespace BusDriver.Editor.Build {
                 Debug.LogError("[BUILD] FAIL: the build settings list no scenes");
                 return false;
             }
-            string label = WriteLabel();
+            string label = $"{PlayerSettings.bundleVersion} ({GitShortHash()})";
+            string previousLabel = SetConfigLabel(label);
 
             NamedBuildTarget named = NamedBuildTarget.Standalone;
             PlayerSettings.SetScriptingBackend(named, ScriptingImplementation.Mono2x);
@@ -122,7 +122,7 @@ namespace BusDriver.Editor.Build {
             try {
                 report = BuildPipeline.BuildPlayer(options);
             }finally {
-                RemoveLabel();
+                SetConfigLabel(previousLabel);
             }
             BuildSummary summary = report.summary;
             bool ok = summary.result == BuildResult.Succeeded;
@@ -134,15 +134,6 @@ namespace BusDriver.Editor.Build {
                 Debug.LogError("[BUILD] FAIL " + line);
             }
             return ok;
-        }
-
-        static string WriteLabel() {
-            string label = $"{PlayerSettings.bundleVersion} ({GitShortHash()})";
-            string fullPath = Path.Combine(Application.dataPath, "..", LabelAssetPath);
-            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
-            File.WriteAllText(fullPath, label);
-            AssetDatabase.ImportAsset(LabelAssetPath, ImportAssetOptions.ForceUpdate);
-            return label;
         }
 
         // Universal (Intel + Apple silicon) per §4.20. Burst merges its two slices with the editor's
@@ -172,14 +163,19 @@ namespace BusDriver.Editor.Build {
             }
         }
 
-        // The label only has to exist inside the player; the editor falls back to "<version> (dev)".
-        // Removing it keeps Resources/ out of the working tree until GameRootConfig lives there.
-        static void RemoveLabel() {
-            AssetDatabase.DeleteAsset(LabelAssetPath);
-            string folder = Path.GetDirectoryName(LabelAssetPath).Replace('\\', '/');
-            if (AssetDatabase.IsValidFolder(folder) && AssetDatabase.FindAssets("", new[] { folder }).Length == 0) {
-                AssetDatabase.DeleteAsset(folder);
+        // The label only has to be in the player; the asset goes back to its committed value
+        // afterwards, so a build never leaves the working tree dirty. Returns the previous value.
+        static string SetConfigLabel(string label) {
+            GameRootConfig config = AssetDatabase.LoadAssetAtPath<GameRootConfig>(GameRootConfig.AssetPath);
+            if (config == null) {
+                Debug.LogError("[BUILD] " + GameRootConfig.AssetPath + " is missing; the build shows the dev label");
+                return "";
             }
+            string previous = config.buildLabel;
+            config.buildLabel = label;
+            EditorUtility.SetDirty(config);
+            AssetDatabase.SaveAssetIfDirty(config);
+            return previous;
         }
 
         static string GitShortHash() {

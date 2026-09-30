@@ -1,24 +1,30 @@
-using System.Collections;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Audio;
+using BusDriver.Gameplay.Flow;
 using BusDriver.UI.Screens;
 
 namespace BusDriver.UI.Menu {
     public class MainMenu : MonoBehaviour {
         [SerializeField] public OptionsMenu options;
-        [SerializeField] public GameObject loadingScreen; 
+        [SerializeField] public GameObject loadingScreen;
         [SerializeField] public Slider slider;
         [SerializeField] public TextMeshProUGUI progressText;
-        [SerializeField] int sceneIndex = 1;
 
         public static SoundController soundController;
 
+        GameServices game;
+        bool loading;
+
         private void Awake() {
             soundController = GameObject.Find("Sound Controller").GetComponent<SoundController>();
+        }
+
+        // From MenuContext.Initialize, before Start
+        public void Bind(GameServices services) {
+            game = services;
         }
 
         private void Start() {
@@ -28,23 +34,23 @@ namespace BusDriver.UI.Menu {
 
         public void PlayGame() {
             soundController.Play("UI Click");
-            StartCoroutine(LoadAsyncronously(sceneIndex));
+            if (game == null) {
+                Log.Error(LogCat.Flow, "MainMenu was never bound to the game services; the Menu scene needs its MenuContext");
+                return;
+            }
+            loading = true;
+            loadingScreen.SetActive(true);
+            slider.value = 0f;
+            game.Flow.NewRun();
         }
 
-        IEnumerator LoadAsyncronously (int sceneIndex) {
-            AsyncOperation operation = SceneManager.LoadSceneAsync(sceneIndex);
-            loadingScreen.SetActive(true);
-            slider.value = 0;
-            float time = 0;
-            operation.allowSceneActivation = false;
-            while (slider.value < 1f || time < 1f) {
-                float progress = Mathf.Clamp01(operation.progress / .9f);
-                slider.value = Mathf.Lerp(slider.value, progress, time);
-                time += Time.unscaledDeltaTime;
-                progressText.SetText($"{(slider.value * 100).ToString("N2")}%");
-                yield return null;
+        // The load itself runs on GameRoot, so this object can be destroyed by it at any time
+        void Update() {
+            if (!loading || game == null) {
+                return;
             }
-            operation.allowSceneActivation = true;
+            slider.value = game.Scenes.Progress;
+            progressText.SetText($"{(slider.value * 100).ToString("N2")}%");
         }
 
         public void QuitGame() {

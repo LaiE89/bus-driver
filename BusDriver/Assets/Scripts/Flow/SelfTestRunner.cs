@@ -5,20 +5,21 @@ using UnityEngine;
 namespace BusDriver.Gameplay.Flow {
     // `--selftest` smoke check for built players (§4.20, T-M0-07): once the first scene is up,
     // wait 3 s, then quit with 0 and "[SELFTEST] OK <label>". Any exception logged before that
-    // quits with 1 and "[SELFTEST] FAIL <message>". Does nothing without the flag.
+    // quits with 1 and "[SELFTEST] FAIL <message>". GameRoot adds it only when the flag is given.
     public sealed class SelfTestRunner : MonoBehaviour {
         public const string Flag = "--selftest";
         const float WaitSeconds = 3f;
 
+        string label;
         float elapsed;
         bool finished;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        static void StartIfRequested() {
-            if (Array.IndexOf(Environment.GetCommandLineArgs(), Flag) < 0) {
-                return;
-            }
-            new GameObject("SelfTestRunner").AddComponent<SelfTestRunner>();
+        public static bool Requested(string[] commandLine) {
+            return Array.IndexOf(commandLine, Flag) >= 0;
+        }
+
+        public void Begin(string buildLabel) {
+            label = buildLabel;
         }
 
         void Awake() {
@@ -39,7 +40,7 @@ namespace BusDriver.Gameplay.Flow {
             // Unscaled, so a paused or slowed game can't stall the check
             elapsed += Time.unscaledDeltaTime;
             if (elapsed >= WaitSeconds) {
-                Finish(true, BuildLabel.Current);
+                Finish(true, label);
             }
         }
 

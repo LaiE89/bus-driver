@@ -11,6 +11,7 @@ using UnityEngine.UI;
 using TMPro;
 using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
@@ -1077,6 +1078,9 @@ namespace BusDriver.Editor.Builders {
             SetRef(hud, "cabin", cabin);
             SetRef(hud, "bus", bus.GetComponent<BusController>());
             SetRef(hud, "cctv", cctv);
+
+            // The scene root GameRoot wires this scene through (T-M1-04, until ShiftContext)
+            new GameObject("Night Root").AddComponent<LegacyNightRoot>();
 
             GameObject systems = new GameObject("Game Systems");
             SceneController mode = systems.AddComponent<SceneController>();

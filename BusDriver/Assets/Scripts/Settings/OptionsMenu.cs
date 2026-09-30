@@ -72,6 +72,10 @@ namespace BusDriver.UI.Screens {
 
         public void SetResolution(int newResolutionIndex) {
             resolutionIndex = newResolutionIndex;
+            // With no settings file the default index is one past the end (and batch mode lists none)
+            if (resolutions == null || newResolutionIndex < 0 || newResolutionIndex >= resolutions.Length) {
+                return;
+            }
             Resolution resolution = resolutions[newResolutionIndex];
             Screen.SetResolution(resolution.width, resolution.height, Screen.fullScreen);
         }

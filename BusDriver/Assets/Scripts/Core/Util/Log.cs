@@ -61,15 +61,10 @@ namespace BusDriver.Core.Util {
             Info(cat, message, context);
         }
 
-        // Session header so every Player.log starts with what produced it (§4.18).
-        // Moves into GameRoot in T-M1-04.
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void LogSessionHeader() {
-            Info(LogCat.Build, SessionHeader());
-        }
-
-        public static string SessionHeader() {
-            return $"session: {Application.productName} {BuildLabel.Current} | Unity {Application.unityVersion} | "
+        // Session header so every Player.log starts with what produced it (§4.18). GameRoot logs it
+        // at bootstrap.
+        public static string SessionHeader(string buildLabel) {
+            return $"session: {Application.productName} {buildLabel} | Unity {Application.unityVersion} | "
                 + $"{SystemInfo.operatingSystem} | {Application.platform}{(UnityEngine.Debug.isDebugBuild ? " (development)" : "")}";
         }
     }

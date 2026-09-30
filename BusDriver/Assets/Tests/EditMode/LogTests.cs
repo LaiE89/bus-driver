@@ -48,7 +48,9 @@ namespace BusDriver.Tests.EditMode {
 
         [Test]
         public void SessionHeaderNamesTheUnityVersion() {
-            StringAssert.Contains(Application.unityVersion, Log.SessionHeader());
+            string header = Log.SessionHeader("0.1.0 (abc1234)");
+            StringAssert.Contains(Application.unityVersion, header);
+            StringAssert.Contains("0.1.0 (abc1234)", header);
         }
     }
 }

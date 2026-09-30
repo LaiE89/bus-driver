@@ -25,9 +25,10 @@ namespace BusDriver.Tests.EditMode {
         // Runtime files allowed to break a rule by design, not as legacy debt
         static readonly string[] Exempt = { "Core/Util/Log.cs|DebugLog" };
 
-        // The allowed statics of §4.1.5: GameRoot's bootstrap field (from T-M1-04) and Log's filter
+        // The allowed statics of §4.1.5: GameRoot's bootstrap field and Log's filter
         static readonly string[] AllowedStatics = {
             "BusDriver.Core.Util.Log.enabledMask",
+            "BusDriver.Gameplay.Flow.GameRoot.bootstrapped",
         };
 
         static string ScriptsRoot {
