@@ -1,33 +1,36 @@
+using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
+using BusDriver.Gameplay.Shift;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace BusDriver.UI.Hud {
     // The CCTV canvas (§4.13, was half of DrivingHUD): camera label, blinking REC, timestamp and
-    // scanlines, shown only while a feed is on screen. The timestamp is still the MVP's cosmetic
-    // clock; T-M2-12 points it at ShiftClock.
+    // scanlines, shown only while a feed is on screen. The timestamp is the shift clock (§2.5),
+    // the same one the dash shows.
     public sealed class CctvOverlayView : MonoBehaviour, IShiftBindable {
         [SerializeField] GameObject panel;
         [SerializeField] TMP_Text camLabelText;
         [SerializeField] TMP_Text timestampText;
         [SerializeField] TMP_Text recText;
         [SerializeField] RawImage scanlines;
-        // Seconds since midnight; the shift starts a little after 2 AM
-        [SerializeField] float clockStart = 2 * 3600 + 13 * 60;
 
         CCTVSystem cctv;
-        float clock;
+        ShiftClockDriver clock;
+        long shownSecond = long.MinValue;
+
+        public string Timestamp { get { return timestampText != null ? timestampText.text : ""; } }
 
         void Awake() {
-            clock = clockStart;
             scanlines.texture = CreateScanlineTexture();
             panel.SetActive(false);
         }
 
         public void Bind(ShiftServices shift) {
             cctv = shift.Cctv;
+            clock = shift.Clock;
             cctv.OnViewChanged += HandleViewChanged;
             HandleViewChanged(cctv.ActiveIndex);
         }
@@ -47,14 +50,15 @@ namespace BusDriver.UI.Hud {
             if (cctv == null) {
                 return;
             }
-            clock += Time.deltaTime;
             if (!panel.activeSelf) {
                 return;
             }
-            int total = (int)clock % 86400;
-            int hours = total / 3600;
-            int hours12 = hours % 12 == 0 ? 12 : hours % 12;
-            timestampText.text = $"{hours12:00}:{total / 60 % 60:00}:{total % 60:00} {(hours < 12 ? "AM" : "PM")}";
+            // Rewritten only when the second changes, so a feed allocates nothing most frames
+            long second = clock != null ? (long)System.Math.Floor(clock.NowGameSeconds) : 0L;
+            if (second != shownSecond && clock != null) {
+                shownSecond = second;
+                timestampText.text = clock.Format(ClockFormat.Cctv);
+            }
             recText.enabled = Time.unscaledTime % 1f < 0.5f;
             // One texture repeat per 4 screen pixels
             scanlines.uvRect = new Rect(0f, 0f, 1f, Screen.height / 4f);

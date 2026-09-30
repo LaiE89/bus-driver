@@ -979,7 +979,6 @@ MonoBehaviour:
   timestampText: {fileID: 8034522294764435279}
   recText: {fileID: 5031638064128304069}
   scanlines: {fileID: 6882815998706333733}
-  clockStart: 7980
 --- !u!1 &6639694963550823406
 GameObject:
   m_ObjectHideFlags: 0

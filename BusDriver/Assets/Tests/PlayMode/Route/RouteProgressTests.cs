@@ -69,6 +69,11 @@ namespace BusDriver.Tests.PlayMode.Route {
             Assert.AreEqual(StopState.Missed, progress.Find("gas_station").State);
             Assert.AreEqual(ArrivalRating.Missed, progress.Find("gas_station").Rating);
             Assert.AreEqual(StopState.Served, progress.Find("campground").State);
+            // Arrivals are game-seconds on the shift clock (T-M2-12)
+            StopRecord farm = progress.Find("farm_gate");
+            Assert.Greater(farm.ArrivalGameSeconds, night.Route.Route.schedule.shiftStartGameSeconds);
+            Assert.LessOrEqual(farm.ArrivalGameSeconds, night.Shift.Clock.NowGameSeconds);
+            Assert.AreNotEqual(ArrivalRating.None, farm.Rating);
             Assert.AreEqual("church", progress.Next.StopId);
             Assert.AreEqual("church", night.Shift.Tracker.NextStop.stopId, "the tracker's next stop follows RouteProgress");
             Assert.IsFalse(progress.TerminusReached);

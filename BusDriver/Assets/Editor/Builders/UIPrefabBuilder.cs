@@ -14,6 +14,7 @@ namespace BusDriver.Editor.Builders {
         public const string HudPath = PrefabBuilder.Folder + "/HUD.prefab";
         public const string ScreensPath = PrefabBuilder.Folder + "/Screens.prefab";
         public const string DebugOverlayPath = PrefabBuilder.Folder + "/DebugOverlay.prefab";
+        public const string DashPath = DashPrefabBuilder.Path;
 
         // Canvas order (§4.13): CCTV under the HUD, screens over both, debug on top
         public const int CctvOrder = 5;
@@ -32,6 +33,7 @@ namespace BusDriver.Editor.Builders {
             BuildHud();
             BuildScreens();
             BuildDebugOverlay();
+            DashPrefabBuilder.Build();
         }
 
         // ================================================================== HUD

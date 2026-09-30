@@ -87,9 +87,9 @@ namespace BusDriver.Gameplay.Route {
             }
         }
 
-        // Game time comes from ShiftClock (T-M2-12)
+        // Arrival times are game-seconds on the shift clock (§2.5)
         double NowGameSeconds() {
-            return double.NaN;
+            return shift.Clock != null ? shift.Clock.NowGameSeconds : double.NaN;
         }
 
         void WriteDebug(StringBuilder text) {

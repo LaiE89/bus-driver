@@ -41,11 +41,13 @@ namespace BusDriver.Editor.Builders {
             ShiftDirector director = contextObject.AddComponent<ShiftDirector>();
             RouteTracker tracker = contextObject.AddComponent<RouteTracker>();
             RouteProgress progress = contextObject.AddComponent<RouteProgress>();
+            ShiftClockDriver clock = contextObject.AddComponent<ShiftClockDriver>();
 
             GameObject bus = Instantiate(PrefabBuilder.BusPath, "Bus");
             GameObject rig = Instantiate(PrefabBuilder.OnFootRigPath, "OnFootRig");
             Instantiate(PrefabBuilder.FallCameraPath, "FallCamera");
             Instantiate(UIPrefabBuilder.HudPath, "HUD");
+            Instantiate(UIPrefabBuilder.DashPath, "Dash");
             Instantiate(UIPrefabBuilder.ScreensPath, "Screens");
             Instantiate(UIPrefabBuilder.DebugOverlayPath, "DebugOverlay");
             BuildGameOver();
@@ -88,6 +90,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "debugRiders", debugRiders);
             SetRef(context, "tracker", tracker);
             SetRef(context, "progress", progress);
+            SetRef(context, "clock", clock);
             SetRef(context, "autoPilot", autoPilot);
             SetRefArray(context, "bindables", Bindables(scene).ToArray());
 

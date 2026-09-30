@@ -23,6 +23,7 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] ShiftDirector director;
         [SerializeField] RouteTracker tracker;
         [SerializeField] RouteProgress progress;
+        [SerializeField] ShiftClockDriver clock;
         [Tooltip("The development and test driver (§4.18)")]
         [SerializeField] AutoPilot autoPilot;
         [Tooltip("Development and test riders (T-M2-07), until ManifestSpawner (T-M3-03)")]
@@ -77,7 +78,8 @@ namespace BusDriver.Gameplay.Flow {
             // 1. RouteTracker, RouteProgress
             shift.Tracker.Init(shift);
             shift.Progress.Init(shift);
-            // 2. ShiftClockDriver (T-M2-12)
+            // 2. ShiftClockDriver
+            shift.Clock.Init(shift);
             // 3. The bus, CCTV, the mode switch and the input adapters
             shift.Cabin.Init(shift);
             shift.Cctv.Init(shift);
@@ -133,13 +135,14 @@ namespace BusDriver.Gameplay.Flow {
                 Director = director,
                 Tracker = tracker,
                 Progress = progress,
+                Clock = clock,
                 AutoPilot = autoPilot,
             };
             return shift;
         }
 
-        // The first F1 sections (T-M1-18). The clock is a placeholder until ShiftClockDriver
-        // (T-M2-12) registers its own; RouteTracker registers "Route" (T-M2-09).
+        // The first F1 section (T-M1-18). ShiftClockDriver registers "Clock", RouteTracker "Route"
+        // and RouteProgress "Stops".
         void RegisterDebugSections(ShiftServices shift) {
             shift.Debug.Register("Run", text => {
                 text.Append("seed ").Append(shift.Setup.Run.seed)
@@ -147,9 +150,6 @@ namespace BusDriver.Gameplay.Flow {
                     .Append("  wallet ").Append(Money.Format(shift.Setup.Run.walletCents))
                     .Append(shift.Setup.IsDebugRun ? "  (debug run)" : "").Append('\n');
                 text.Append("shift ").Append(shift.Director.State).Append('\n');
-            });
-            shift.Debug.Register("Clock", text => {
-                text.Append("clock —  (ShiftClock, T-M2-12)\n");
             });
         }
 

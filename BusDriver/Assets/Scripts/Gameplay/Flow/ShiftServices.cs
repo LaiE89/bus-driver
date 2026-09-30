@@ -23,6 +23,7 @@ namespace BusDriver.Gameplay.Flow {
         public ShiftDirector Director;
         public RouteTracker Tracker;
         public RouteProgress Progress;
+        public ShiftClockDriver Clock;
 
         public BusController Bus;
         public BusDoors Doors;

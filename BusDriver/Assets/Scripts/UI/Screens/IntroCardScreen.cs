@@ -10,9 +10,6 @@ namespace BusDriver.UI.Screens {
     // it is an overlay on the Screens canvas rather than a ScreenView on the router's stack; Esc
     // does nothing during it because pausing isn't allowed in Intro (§4.11).
     public sealed class IntroCardScreen : MonoBehaviour, IShiftBindable {
-        // 00:30 (§2.4). RouteDefinition.shiftStartGameSeconds replaces it once routes are data (T-M2-12).
-        public const double DefaultShiftStartGameSeconds = 1800.0;
-
         [SerializeField] CanvasGroup group;
         [SerializeField] TMP_Text nightText;
         [SerializeField] TMP_Text clockText;
@@ -21,6 +18,7 @@ namespace BusDriver.UI.Screens {
         [SerializeField] float fadeOutSeconds = 0.6f;
 
         ShiftDirector director;
+        ShiftClockDriver clock;
         bool fading;
 
         public bool IsShowing { get { return group != null && group.alpha > 0f; } }
@@ -31,6 +29,7 @@ namespace BusDriver.UI.Screens {
 
         public void Bind(ShiftServices shift) {
             director = shift.Director;
+            clock = shift.Clock;
             director.OnStateChanged += HandleStateChanged;
             HandleStateChanged(director.State);
         }
@@ -44,7 +43,8 @@ namespace BusDriver.UI.Screens {
         void HandleStateChanged(ShiftState state) {
             if (state == ShiftState.Intro) {
                 nightText.text = string.Format(UIText.IntroNight, director.NightIndex);
-                clockText.text = ClockText.Format(DefaultShiftStartGameSeconds, ClockFormat.Dash);
+                // The shift clock holds at the route's shift start until Driving (§2.5)
+                clockText.text = clock != null ? clock.Format(ClockFormat.Dash) : "";
                 routeText.text = UIText.RouteName;
                 fading = false;
                 SetAlpha(1f);
