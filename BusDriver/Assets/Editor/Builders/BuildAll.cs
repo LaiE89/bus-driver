@@ -22,7 +22,7 @@ namespace BusDriver.Editor.Builders {
                 return new[] {
                     new Step { Name = "ProjectSettingsBuilder", Run = ProjectSettingsBuilder.Build },
                     new Step { Name = "MaterialLibraryBuilder", Run = MaterialLibraryBuilder.Build },
-                    new Step { Name = "MeshBuilder", SkippedUntil = "T-M2-03 / T-M2-06" },
+                    new Step { Name = "MeshBuilder", SkippedUntil = "T-M2-06 (shared tree, rock and chevron meshes; the route's own road and profile meshes are written by RouteBuilder, T-M2-07)" },
                     new Step { Name = "DataSeeder", Run = () => DataSeeder.SeedMissing() },
                     new Step { Name = "PlaceholderAudioBuilder", Run = PlaceholderAudioBuilder.Build },
                     new Step { Name = "IconBuilder", SkippedUntil = "M7 (item and journal icons)" },

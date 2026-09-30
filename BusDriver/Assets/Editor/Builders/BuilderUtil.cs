@@ -72,6 +72,24 @@ namespace BusDriver.Editor.Builders {
             return mat;
         }
 
+        // Writes a generated mesh to its asset path, overwriting the existing asset's data in place so
+        // its GUID (and every MeshFilter/MeshCollider pointing at it) survives the rebuild. Returns
+        // the asset to reference.
+        public static Mesh SaveMesh(Mesh mesh, string path) {
+            EnsureFolder(Path.GetDirectoryName(path));
+            Mesh existing = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            if (existing == null) {
+                AssetDatabase.CreateAsset(mesh, path);
+                return mesh;
+            }
+            string name = existing.name;
+            EditorUtility.CopySerialized(mesh, existing);
+            existing.name = name;
+            EditorUtility.SetDirty(existing);
+            Object.DestroyImmediate(mesh);
+            return existing;
+        }
+
         public static T GetOrCreateAsset<T>(string path) where T : ScriptableObject {
             T asset = AssetDatabase.LoadAssetAtPath<T>(path);
             if (asset == null) {

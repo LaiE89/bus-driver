@@ -41,6 +41,11 @@ namespace BusDriver.Editor.Builders {
             New("Face", new Color(0.04f, 0.04f, 0.04f)),
             // The PR #5 angel's face, kept for its greybox AngelWeep tell (§4.14)
             New("Face2", new Color(0.934f, 0f, 0f)),
+            // Route 1 profiles (§3.4, T-M2-03)
+            New("Gravel", new Color(0.3f, 0.29f, 0.27f)),
+            New("Rock", new Color(0.24f, 0.23f, 0.22f)),
+            New("Water", new Color(0.03f, 0.05f, 0.08f)),
+            New("GuardRail", new Color(0.55f, 0.56f, 0.58f)),
         };
 
         static Spec New(string name, Color baseColor, Color? emission = null) {
