@@ -229,6 +229,7 @@ Decisions are never edited once made. To change one, add a new row that supersed
 | D51 (agent) | **Namespaces for the legacy scripts (T-M0-04)**, where §4.2 leaves the home open: `CCTVSystem` → `BusDriver.Gameplay.Bus` (its cameras live on the bus prefab); `Monster`, `StaringMonster`, `WeepingAngel` → `BusDriver.Gameplay.Monsters`; `SceneController` (the future `PlayerModeController`), `GameKeys` → `BusDriver.Gameplay.Player`; `ObjectPooling` → `BusDriver.Gameplay.World`; `Dialogue/*`, `OptionsSaveSystem`, `OptionsData` → `BusDriver.UI.Screens`; `ToolMethods` → `BusDriver.Core.Util` (still compiled in `BusDriver.Runtime`). **Gotcha:** once a namespace such as `BusDriver.Gameplay.Debug` or `BusDriver.Gameplay.Input` exists, the simple names `Debug` and `Input` inside any `BusDriver.Gameplay.*` namespace resolve to it, so write `UnityEngine.Debug`/`UnityEngine.Input` (or avoid those names until the legacy reads are gone) | 2026-09-29 | agent (T-M0-04) |
 | D52 (agent) | **macOS builds fall back to Apple silicon only while the editor's `llvm-lipo` isn't executable.** Unity 6000.6.0f1 installs `Unity.app/Contents/Resources/Burst/Client/bcl/hostmac/llvm-lipo` without the execute bit, so Burst can't merge the Intel and Apple-silicon slices and the Universal build fails (§4.20 fallback). `BuildScripts` checks the bit before each macOS build and logs the `chmod +x` a person can run **[HUMAN]** to get Universal builds back. The version starts at `0.0.1` (§4.20: `0.<milestone>.<patch>`) | 2026-09-29 | agent (T-M0-07) |
 | D53 (agent) | **Content ids may be dotted.** Sound, scare and hallucination ids are namespaced (`scare.starer.lens`, `mon.whisper_feed_loop`), so `Ids.IsValid` accepts lower_snake_case segments joined by dots; `Ids.IsSnakeCase` is the strict single-segment check for stop, route, look, monster and item ids (§4.1.11) | 2026-09-29 | agent (T-M1-01) |
+| D54 (agent) | **Save-model details §4.9 leaves open.** Three enums join §4.8: `ArrivalRating` (saved by name, e.g. `Early`, `OnTime`), `ScareIntensity` and `WindowMode` (the values of `UnityEngine.FullScreenMode`, since save models hold no Unity types). `qualityLevel` is an index (Low 0, Medium 1, High 2). A zero `resolutionWidth/Height` or `refreshRate` means the display's current mode. `targetFpsIndex` defaults to 3 (unlimited), the existing options menu's default. All §4.8 enums live in `Core/Data/Enums.cs` | 2026-09-29 | agent (T-M1-03) |
 
 ---
 
@@ -1107,6 +1108,9 @@ enum BlockerKind : int { FallenTree = 0, FenceRoadClosed = 1, ConcreteBarriers =
 enum AudioGroup : int { Music = 0, Ambience = 1, SfxBus = 2, SfxCabin = 3, SfxWorld = 4, Voice = 5, Scares = 6, Ui = 7 }
 enum AudioSnapshot : int { Default = 0, Earplugs = 1, Tunnel = 2, Blackout = 3 }
 enum InputContext : int { None = 0, Menu = 1, Driving = 2, OnFoot = 3, Screen = 4, Cinematic = 5 }
+enum ArrivalRating : int { None = 0, Early = 1, OnTime = 2, Late = 3, Missed = 4 }        // D54
+enum ScareIntensity : int { Full = 0, Reduced = 1 }                                           // D54
+enum WindowMode : int { ExclusiveFullScreen = 0, FullScreenWindow = 1, MaximizedWindow = 2, Windowed = 3 }  // D54, = UnityEngine.FullScreenMode
 ```
 **Scare anchors** (the strings used by `ScareStep.anchor`) are named transforms on the bus logic prefab:
 - `DriverShoulder`: 0.35 m right of and 0.25 m behind the driver head
@@ -3818,7 +3822,7 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 | `T-M0-10` | `tools/verify.sh` and `tools/unity.sh` | S | Done (2026-09-29) |
 | `T-M1-01` | Core utilities: ids, RNG streams, money and clock formatting | S | Done (2026-09-29) |
 | `T-M1-02` | Save store: envelopes, atomic writes, migrations | M | Done (2026-09-29) |
-| `T-M1-03` | Save models and v1 fixtures | S | Todo |
+| `T-M1-03` | Save models and v1 fixtures | S | Done (2026-09-29) |
 | `T-M1-04` | GameRoot, GameServices, SceneLoader, RunFlow skeleton | L | Todo |
 | `T-M1-05` | SettingsService; options screen bound to it | M | Todo |
 | `T-M1-06` | Input actions asset, InputService, contexts | M | Todo |

@@ -1,0 +1,36 @@
+{
+  "saveVersion": 1,
+  "kind": "run",
+  "writtenUtc": "2026-10-01T20:15:00Z",
+  "build": "0.3.0 (a1b2c3d)",
+  "data": {
+    "seed": 123456789,
+    "nightIndex": 2,
+    "nightInProgress": false,
+    "walletCents": 3150,
+    "sanity": 78.5,
+    "slots": ["coffee", null, "salt"],
+    "owned": ["flashlight"],
+    "stats": {
+      "faresCents": 2800,
+      "tipsCents": 525,
+      "refundsCents": 350,
+      "lostCents": 0,
+      "bountiesCents": 500,
+      "monstersKicked": 1,
+      "innocentsKicked": 1,
+      "passengersLost": 0,
+      "ridersDelivered": 7
+    },
+    "nights": [
+      {
+        "night": 1,
+        "walletDeltaCents": 3150,
+        "sanityEnd": 48.5,
+        "stops": [
+          { "stopId": "farm_gate", "rating": "Early", "arrivalGameSeconds": 1950.0 }
+        ]
+      }
+    ]
+  }
+}

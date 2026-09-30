@@ -1,0 +1,16 @@
+{
+  "saveVersion": 1,
+  "kind": "meta",
+  "writtenUtc": "2026-10-01T20:15:00Z",
+  "build": "0.3.0 (a1b2c3d)",
+  "data": {
+    "journal": {
+      "starer": { "seen": true, "timesKicked": 2, "timesKilledBy": 1 }
+    },
+    "runsStarted": 4,
+    "runsWon": 0,
+    "runsLost": 4,
+    "bestNight": 3,
+    "deathsByCause": { "MonsterKill": 2, "Fall": 1, "Abandoned": 1 }
+  }
+}

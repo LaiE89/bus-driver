@@ -1,0 +1,27 @@
+{
+  "saveVersion": 1,
+  "kind": "settings",
+  "writtenUtc": "2026-10-01T20:15:00Z",
+  "build": "0.3.0 (a1b2c3d)",
+  "data": {
+    "masterVolume": 0.7,
+    "musicVolume": 0.5,
+    "ambienceVolume": 0.8,
+    "sfxVolume": 0.9,
+    "voiceVolume": 1.0,
+    "mouseSensitivity": 85.0,
+    "invertY": true,
+    "bindingOverridesJson": "{\"bindings\":[{\"action\":\"Driving/CycleCamera\",\"id\":\"00000000-0000-0000-0000-000000000000\",\"path\":\"<Keyboard>/c\",\"interactions\":\"\",\"processors\":\"\"}]}",
+    "qualityLevel": 2,
+    "resolutionWidth": 2560,
+    "resolutionHeight": 1440,
+    "refreshRate": 144,
+    "fullscreenMode": "Windowed",
+    "targetFpsIndex": 4,
+    "brightness": 0.15,
+    "scareIntensity": "Reduced",
+    "hintsEnabled": false,
+    "captionsEnabled": true,
+    "warningAcknowledged": true
+  }
+}
