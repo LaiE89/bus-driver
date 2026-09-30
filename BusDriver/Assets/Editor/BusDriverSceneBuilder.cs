@@ -147,24 +147,29 @@ public static class BusDriverSceneBuilder {
         EnsurePlayerHeadLayer();
     }
 
+    // D49: the avatar layer has a fixed slot (19) so the physics matrix and the camera masks
+    // are stable. Older projects had it as PlayerHead in the first free slot; clear that.
     static void EnsurePlayerHeadLayer() {
-        const string layerName = PlayerAvatarVisuals.HeadLayerName;
-        if (LayerMask.NameToLayer(layerName) >= 0) {
-            return;
-        }
         SerializedObject tagManager = new SerializedObject(
             AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
         SerializedProperty layers = tagManager.FindProperty("layers");
+        bool changed = false;
         for (int i = 8; i < layers.arraySize; i++) {
             SerializedProperty layer = layers.GetArrayElementAtIndex(i);
-            if (!string.IsNullOrEmpty(layer.stringValue)) {
-                continue;
+            if (i != PlayerAvatarVisuals.AvatarLayerIndex
+                && (layer.stringValue == "PlayerHead" || layer.stringValue == PlayerAvatarVisuals.HeadLayerName)) {
+                layer.stringValue = "";
+                changed = true;
             }
-            layer.stringValue = layerName;
-            tagManager.ApplyModifiedPropertiesWithoutUndo();
-            return;
         }
-        Debug.LogWarning("BusDriverSceneBuilder: no free user layer slot for " + layerName);
+        SerializedProperty avatar = layers.GetArrayElementAtIndex(PlayerAvatarVisuals.AvatarLayerIndex);
+        if (avatar.stringValue != PlayerAvatarVisuals.HeadLayerName) {
+            avatar.stringValue = PlayerAvatarVisuals.HeadLayerName;
+            changed = true;
+        }
+        if (changed) {
+            tagManager.ApplyModifiedPropertiesWithoutUndo();
+        }
     }
 
     static void CreateMaterials() {
@@ -952,7 +957,7 @@ public static class BusDriverSceneBuilder {
         dash.shadows = LightShadows.None;
     }
 
-    // Player body under the on-foot rig. Avatar uses PlayerHead layer (hidden from FP cams).
+    // Player body under the on-foot rig. Avatar uses the PlayerAvatar layer (hidden from FP cams).
     // Player body under the on-foot / driver rig. Built only by the scene builder.
     static Transform BuildPlayerAvatar(Transform rig, Transform head, bool seated) {
         Material bodyMat = mats.ContainsKey("Player") ? mats["Player"] : null;
@@ -1068,7 +1073,6 @@ public static class BusDriverSceneBuilder {
         SceneController mode = systems.AddComponent<SceneController>();
         PlayerInteractor interactor = systems.AddComponent<PlayerInteractor>();
         SetRef(interactor, "onFootCamera", onFootCamera);
-        SetRef(interactor, "driverCamera", driverCamera);
         SetRef(hud, "interactor", interactor);
         ObjectPooling npcPool = systems.AddComponent<ObjectPooling>();
         ConfigureNpcPools(npcPool, passengerPrefab, monsterPrefab);

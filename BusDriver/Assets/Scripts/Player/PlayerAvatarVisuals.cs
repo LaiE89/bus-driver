@@ -4,7 +4,8 @@ using UnityEngine;
 // runtime only applies culling layers / camera masks to existing scene objects.
 public static class PlayerAvatarVisuals {
     // Whole avatar (body + head) lives on this layer so FP cams can cull it; CCTV keeps it.
-    public const string HeadLayerName = "PlayerHead";
+    public const string HeadLayerName = "PlayerAvatar";
+    public const int AvatarLayerIndex = 19;
 
     public static int AvatarLayer {
         get {

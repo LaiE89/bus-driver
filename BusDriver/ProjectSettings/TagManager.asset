@@ -13,7 +13,6 @@ TagManager:
   - UI
   - 
   - 
-  - PlayerHead
   - 
   - 
   - 
@@ -25,6 +24,7 @@ TagManager:
   - 
   - 
   - 
+  - PlayerAvatar
   - 
   - 
   - 

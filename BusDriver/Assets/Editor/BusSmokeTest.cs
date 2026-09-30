@@ -313,6 +313,20 @@ public static class BusSmokeTest {
                         Check(rider.Seat != null && rider.Seat.Occupant == rider, rider.name + " does not own its seat");
                     }
                     Check(monster.IsAboard && monster is Monster && monster is Passenger, "monster is not aboard as a passenger");
+                    // Kicking is on foot only (D46): nothing is offered from the driver's seat
+                    PlayerInteractor seatedInteractor = UnityEngine.Object.FindAnyObjectByType<PlayerInteractor>();
+                    Check(seatedInteractor != null && seatedInteractor.Current == null, "seated player is offered an interaction");
+                    // D49: the avatar layer is culled by the first-person cameras and drawn by CCTV
+                    int avatarBit = 1 << PlayerAvatarVisuals.AvatarLayerIndex;
+                    Check(LayerMask.NameToLayer("PlayerAvatar") == PlayerAvatarVisuals.AvatarLayerIndex && string.IsNullOrEmpty(LayerMask.LayerToName(8)),
+                        "PlayerAvatar is not layer 19, or layer 8 is still named");
+                    Check((mode.DriverCamera.cullingMask & avatarBit) == 0 && (mode.OnFootCamera.cullingMask & avatarBit) == 0,
+                        "a first-person camera renders the avatar layer");
+                    for (int c = 0; c < cctv.ViewCount - 1; c++) {
+                        cctv.Cycle();
+                        Check((cctv.ActiveCamera.cullingMask & avatarBit) != 0, "CCTV camera " + c + " does not render the avatar layer");
+                    }
+                    cctv.ShowHome();
                     // Front camera: every seat is ahead of it, inside the monster's neck limits
                     cctv.Cycle();
                     Next();
@@ -398,7 +412,7 @@ public static class BusSmokeTest {
                     stepDone = true;
                     stepDone2 = false;
                     phaseStart = Time.time;
-                    PlayerInteractor interactor = onFoot.GetComponent<PlayerInteractor>();
+                    PlayerInteractor interactor = UnityEngine.Object.FindAnyObjectByType<PlayerInteractor>();
                     IInteractable target = interactor.Current;
                     Log($"looking at: {(target as Component != null ? ((Component)target).name : "nothing")}, prompt '{interactor.CurrentPrompt}'");
                     Check(ReferenceEquals(target, monster), "the interaction ray did not pick up the passenger being looked at");

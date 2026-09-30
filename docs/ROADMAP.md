@@ -223,6 +223,7 @@ Decisions are never edited once made. To change one, add a new row that supersed
 | D47 | **The Weeping Angel is a fourth monster** (from PR #5), separate from the Starer (§2.12b). It amends D8's roster to four. It moves only while no observer sees it, and watching it **pauses** it but never pushes it back, so only a kick (or the Salt charm) ends it. Escaping its kill sequence means holding it in view for 2.0 s (amends D31). The Starer is unchanged | 2026-09-29 | user |
 | D48 | **Key bindings from PR #5 are the defaults:** Interact (on foot) = right mouse button, Doors = Q, Leave seat = E. Mouse **buttons** can be bound; mouse axes can't. Gamepad bindings are unchanged | 2026-09-29 | this doc |
 | D49 | **The player has a visible body** (from PR #5): a seated body at the wheel and a standing body on foot, on the `PlayerAvatar` layer (19). CCTV and the Mirror render it; the driver and on-foot cameras cull it. The greybox capsule body is replaced by an art view in Phase B (Appendix A.1) | 2026-09-29 | this doc |
+| D50 (agent) | **Kicked riders are destroyed, never pooled.** PR #5 returned every departing rider to the NPC pool, so a kicked rider was only deactivated and could be respawned at a stop, which breaks §2.13 ("kicked riders never come back") and the smoke test. `SceneController.DespawnNpc` now destroys kicked riders; others still recycle until the pool is deleted in T-M2-07 | 2026-09-29 | agent (T-M0-11) |
 
 ---
 
@@ -3799,7 +3800,7 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 
 | Ticket | Title | Size | Status |
 |---|---|---|---|
-| `T-M0-11` | Reconcile PR #5 with the roadmap (crash death, seated kick, avatar layer) | S | Todo |
+| `T-M0-11` | Reconcile PR #5 with the roadmap (crash death, seated kick, avatar layer) | S | Done (2026-09-29) |
 | `T-M0-01` | Repo size rules and the file-size guard (no Git LFS) | S | Todo |
 | `T-M0-02` | Git attributes, ignore rules and the contributing guide | S | Todo |
 | `T-M0-03` | Domain reload back on; remove dead assets | S | Todo |

@@ -53,11 +53,6 @@ public class SceneController : MonoBehaviour {
     [SerializeField] PauseMenu pauseMenu;
     [SerializeField] GameOverMenu gameOverMenu;
 
-    [Header("Game Over")]
-    [SerializeField] float fatalCrashSpeedKmh = 50f;
-
-    CrashDetector crashDetector;
-
     public PlayerMode Mode { get; private set; }
     public bool IsGameOver { get; private set; }
     public event Action<PlayerMode> OnModeChanged;
@@ -112,31 +107,6 @@ public class SceneController : MonoBehaviour {
         }
         if (pauseMenu == null || gameOverMenu == null) {
             Debug.LogWarning("SceneController: Pause/Game Over UI missing from scene. Run Tools/Bus Driver/Bake Overlay Menus Into Scene.");
-        }
-        WireCrashDetector();
-    }
-
-    void WireCrashDetector() {
-        if (bus == null) {
-            return;
-        }
-        crashDetector = bus.GetComponent<CrashDetector>();
-        if (crashDetector == null) {
-            crashDetector = bus.gameObject.AddComponent<CrashDetector>();
-        }
-        crashDetector.OnCrash -= HandleCrash;
-        crashDetector.OnCrash += HandleCrash;
-    }
-
-    void HandleCrash(float deltaV, bool isMajor, Collision collision) {
-        if (IsGameOver) {
-            return;
-        }
-        float impactSpeed = crashDetector != null
-            ? crashDetector.PreCollisionSpeedKmh
-            : (bus != null ? bus.SpeedKmh : 0f);
-        if (impactSpeed > fatalCrashSpeedKmh) {
-            TriggerGameOver();
         }
     }
 
@@ -239,6 +209,11 @@ public class SceneController : MonoBehaviour {
 
     public void DespawnNpc(Passenger passenger) {
         if (passenger == null) {
+            return;
+        }
+        // Kicked riders never come back (§2.13), so they are not returned to the pool
+        if (passenger.WasKicked) {
+            Destroy(passenger.gameObject);
             return;
         }
         if (npcPool != null && npcPool.Despawn(passenger.gameObject)) {
@@ -445,9 +420,6 @@ public class SceneController : MonoBehaviour {
     }
 
     void OnDestroy() {
-        if (crashDetector != null) {
-            crashDetector.OnCrash -= HandleCrash;
-        }
         if (Instance == this) {
             Instance = null;
         }

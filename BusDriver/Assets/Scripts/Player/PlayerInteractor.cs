@@ -1,13 +1,11 @@
 using UnityEngine;
 
-// Looks along the active camera for something to interact with. Works seated (driver
-// camera) and on foot. Lives on an always-active object so leaving the seat does not
-// destroy it.
+// Looks along the on-foot camera for something to interact with. Kicking is on foot only
+// (D46), so nothing is offered while seated. Lives on an always-active object so leaving
+// the seat does not destroy it.
 public class PlayerInteractor : MonoBehaviour {
     [SerializeField] Camera onFootCamera;
-    [SerializeField] Camera driverCamera;
     [SerializeField] float onFootReach = 2.2f;
-    [SerializeField] float seatedReach = 5f;
 
     public IInteractable Current { get; private set; }
     public string CurrentPrompt { get { return Current != null ? Current.Prompt : ""; } }
@@ -26,12 +24,9 @@ public class PlayerInteractor : MonoBehaviour {
         WireCamerasFromScene();
     }
 
-    public void WireCameras(Camera onFoot, Camera driver) {
+    public void WireCameras(Camera onFoot) {
         if (onFoot != null) {
             onFootCamera = onFoot;
-        }
-        if (driver != null) {
-            driverCamera = driver;
         }
     }
 
@@ -44,9 +39,6 @@ public class PlayerInteractor : MonoBehaviour {
         }
         if (onFootCamera == null) {
             onFootCamera = mode.OnFootCamera;
-        }
-        if (driverCamera == null) {
-            driverCamera = mode.DriverCamera;
         }
     }
 
@@ -61,33 +53,16 @@ public class PlayerInteractor : MonoBehaviour {
             return;
         }
 
-        if (onFootCamera == null || driverCamera == null) {
+        if (onFootCamera == null) {
             WireCamerasFromScene();
         }
 
-        Camera cam;
-        float reach;
-        if (mode.Mode == PlayerMode.OnFoot) {
-            cam = onFootCamera;
-            reach = onFootReach;
-        }else if (mode.Mode == PlayerMode.Driving) {
-            if (mode.IsViewingCCTV) {
-                SetCurrent(null);
-                return;
-            }
-            cam = driverCamera;
-            reach = seatedReach;
-        }else {
+        if (mode.Mode != PlayerMode.OnFoot || onFootCamera == null) {
             SetCurrent(null);
             return;
         }
 
-        if (cam == null) {
-            SetCurrent(null);
-            return;
-        }
-
-        SetCurrent(FindTarget(cam, reach));
+        SetCurrent(FindTarget(onFootCamera, onFootReach));
         if (Current != null && Input.GetKeyDown(GameKeys.interact)) {
             Current.Interact();
         }
