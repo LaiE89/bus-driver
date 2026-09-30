@@ -101,7 +101,7 @@ namespace BusDriver.UI.Screens {
             if (input != null) {
                 input.ResetAll();
             }
-            SetStatus("All controls reset");
+            SetStatus(UIText.AllControlsReset);
         }
 
         // The prefab's Back button calls this by name. Rebinds are already saved as they happen.
@@ -158,7 +158,7 @@ namespace BusDriver.UI.Screens {
             row.KeyButton.onClick.AddListener(() => StartRebind(row));
 
             row.ResetButton = CloneButton(buttonTemplate, binding.ActionId + " reset", new Vector2(x + 215f, y), new Vector2(110f, 30f));
-            row.ResetButton.GetComponentInChildren<TMP_Text>(true).text = "RESET";
+            row.ResetButton.GetComponentInChildren<TMP_Text>(true).text = UIText.Reset;
             row.ResetButton.onClick.AddListener(() => ResetRow(row));
             return row;
         }
@@ -202,7 +202,7 @@ namespace BusDriver.UI.Screens {
             }
             PlayUISound();
             row.KeyText.text = "...";
-            SetStatus($"Press a key or mouse button for {row.Binding.Label}. Esc cancels.");
+            SetStatus(string.Format(UIText.PressAKey, row.Binding.Label));
             input.StartRebind(row.Binding.ActionId, row.Binding.BindingIndex, result => {
                 if (result.Success) {
                     SetStatus("");

@@ -24,5 +24,8 @@ namespace BusDriver.Core.Data {
         public SoundLibrary soundLibrary;
         [Tooltip("Group, snapshot and parameter routing into the mixer (Data/Audio/AudioConfig)")]
         public AudioConfig audioConfig;
+
+        [Tooltip("Data/UI/Theme.asset (a BusDriver.UI.Theme.UITheme; typed loosely because Core can't see UI, D61)")]
+        public ScriptableObject uiTheme;
     }
 }
