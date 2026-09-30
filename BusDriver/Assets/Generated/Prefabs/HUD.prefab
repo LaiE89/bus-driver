@@ -149,7 +149,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbc25dda10f8e40a791ff7f024dba23b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Theme.ThemedText
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Theme.ThemedText
   theme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}
   role: 4
   usePaletteColor: 0
@@ -303,7 +303,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbc25dda10f8e40a791ff7f024dba23b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Theme.ThemedText
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Theme.ThemedText
   theme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}
   role: 3
   usePaletteColor: 0
@@ -532,7 +532,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbc25dda10f8e40a791ff7f024dba23b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Theme.ThemedText
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Theme.ThemedText
   theme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}
   role: 6
   usePaletteColor: 1
@@ -758,7 +758,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbc25dda10f8e40a791ff7f024dba23b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Theme.ThemedText
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Theme.ThemedText
   theme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}
   role: 3
   usePaletteColor: 1
@@ -898,7 +898,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bd7f8a5c668834371868d12241575fac, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Hud.CctvOverlayView
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Hud.CctvOverlayView
   panel: {fileID: 8329072740821874063}
   camLabelText: {fileID: 7947454386550589747}
   timestampText: {fileID: 8034522294764435279}
@@ -1059,7 +1059,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2c215f374f82a49c78f8e5c23e50ebf7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Hud.HudView
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Hud.HudView
   driverPanel: {fileID: 6128408771183379237}
   onFootPanel: {fileID: 6639694963550823406}
   promptText: {fileID: 423665057604330499}
@@ -1216,7 +1216,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbc25dda10f8e40a791ff7f024dba23b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Theme.ThemedText
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Theme.ThemedText
   theme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}
   role: 4
   usePaletteColor: 0
@@ -1409,7 +1409,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbc25dda10f8e40a791ff7f024dba23b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Theme.ThemedText
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Theme.ThemedText
   theme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}
   role: 4
   usePaletteColor: 1
@@ -1563,7 +1563,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbc25dda10f8e40a791ff7f024dba23b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Theme.ThemedText
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Theme.ThemedText
   theme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}
   role: 4
   usePaletteColor: 0
@@ -1717,7 +1717,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbc25dda10f8e40a791ff7f024dba23b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Theme.ThemedText
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Theme.ThemedText
   theme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}
   role: 4
   usePaletteColor: 0

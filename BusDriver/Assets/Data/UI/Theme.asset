@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7220e44306ee443cd9bc51a36ea3ae5b, type: 3}
   m_Name: Theme
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Theme.UITheme
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Theme.UITheme
   roles:
   - role: 0
     font: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

@@ -149,7 +149,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbc25dda10f8e40a791ff7f024dba23b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Theme.ThemedText
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Theme.ThemedText
   theme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}
   role: 6
   usePaletteColor: 0
@@ -479,7 +479,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbc25dda10f8e40a791ff7f024dba23b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Theme.ThemedText
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Theme.ThemedText
   theme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}
   role: 6
   usePaletteColor: 0
@@ -599,7 +599,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 84e7f952ab8f6444f93ceb474bfb732a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.UI.Debug.DebugOverlay
+  m_EditorClassIdentifier: BusDriver.UI::BusDriver.UI.Debug.DebugOverlay
   panel: {fileID: 1487058214259550832}
   body: {fileID: 8061980872941850325}
   cheatList: {fileID: 4600003183138370424}

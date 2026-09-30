@@ -1,20 +1,14 @@
 {
-    "name": "BusDriver.Editor",
-    "rootNamespace": "BusDriver.Editor",
+    "name": "BusDriver.Gameplay",
+    "rootNamespace": "BusDriver.Gameplay",
     "references": [
         "BusDriver.Core",
-        "BusDriver.Gameplay",
-        "BusDriver.UI",
         "Unity.InputSystem",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime",
-        "Unity.TextMeshPro",
-        "UnityEngine.UI",
         "Unity.Timeline"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

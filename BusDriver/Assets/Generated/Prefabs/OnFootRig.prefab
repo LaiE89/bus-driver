@@ -77,7 +77,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 32a917f23e8d3495492b020d924ed02a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Views.GreyboxPlayerAvatarView
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Views.GreyboxPlayerAvatarView
   body: {fileID: 5580895300093106915}
   head: {fileID: 80538625034203886}
   pose: 0
@@ -551,7 +551,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bef2016dda1c14a89b0b13a1175f1686, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Player.OnFootController
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Player.OnFootController
   head: {fileID: 7544308235726191593}
   avatarRoot: {fileID: 497953062604194422}
   ignoredColliders: []

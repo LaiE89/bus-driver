@@ -227,7 +227,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 07174bce71ec64e1f989bf4f3222e855, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BusDriver.Runtime::BusDriver.Gameplay.Passengers.Passenger
+  m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Passengers.Passenger
   head: {fileID: 1963018008750805877}
   body: {fileID: 8528196432888738908}
   interactCollider: {fileID: 8118878280717727983}
