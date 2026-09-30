@@ -74,7 +74,7 @@ namespace BusDriver.Editor.Builders {
         }
 
         // The GPS (§4.13, T-M2-13): a 500 px square map on the left, the next stop, distance, ETA,
-        // rating and clock in the column on the right, and NO SIGNAL over everything in the tunnel
+        // scheduled time and clock in the column on the right, and NO SIGNAL over everything in the tunnel
         static void BuildGps(Transform parent) {
             UITheme theme = UIBuild.ThemeAsset;
             RectTransform canvas = ScreenCanvas("Dash_Gps", parent, GpsPixels);
@@ -106,7 +106,8 @@ namespace BusDriver.Editor.Builders {
             next.textWrappingMode = TextWrappingModes.Normal;
             TMP_Text detail = UIBuild.Label("Detail", group, "", ThemeRole.Caption, TextAlignmentOptions.TopLeft, topLeft, new Vector2(x, -170f), new Vector2(width, 80f));
             detail.textWrappingMode = TextWrappingModes.Normal;
-            TMP_Text rating = UIBuild.Label("Rating", group, "", ThemeRole.Screen, TextAlignmentOptions.TopLeft, topLeft, new Vector2(x, -262f), new Vector2(width, 60f));
+            // Caption, like the ETA above it: "SCHED 12:42 AM" doesn't fit the 268 px column at Screen size
+            TMP_Text schedule = UIBuild.Label("Schedule", group, "", ThemeRole.Caption, TextAlignmentOptions.TopLeft, topLeft, new Vector2(x, -254f), new Vector2(width, 40f));
             TMP_Text clock = UIBuild.Label("Clock", canvas, "", ThemeRole.Screen, TextAlignmentOptions.BottomLeft, Vector2.zero, new Vector2(x, 24f), new Vector2(width, 60f));
             UIBuild.Theme(clock, ThemeRole.Screen).SetPaletteColor(ThemeColor.Positive);
             TMP_Text noSignal = UIBuild.Label("No Signal", canvas, "NO SIGNAL", ThemeRole.Screen, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), new Vector2(0f, 30f), new Vector2(GpsPixels.x, 80f));
@@ -125,7 +126,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(view, "nextLabel", nextLabel);
             SetRef(view, "nextText", next);
             SetRef(view, "detailText", detail);
-            SetRef(view, "ratingText", rating);
+            SetRef(view, "scheduleText", schedule);
             SetRef(view, "clockText", clock);
             SetRef(view, "noSignalText", noSignal);
             Color disabled = theme.Palette(ThemeColor.Disabled);
@@ -135,9 +136,6 @@ namespace BusDriver.Editor.Builders {
             SetColor(view, "nextColor", theme.Palette(ThemeColor.Highlight));
             SetColor(view, "upcomingColor", theme.Palette(ThemeColor.Text));
             SetColor(view, "missedColor", disabled);
-            SetColor(view, "earlyColor", theme.Palette(ThemeColor.Positive));
-            SetColor(view, "lateColor", theme.Palette(ThemeColor.Danger));
-            SetColor(view, "onTimeColor", theme.Palette(ThemeColor.Text));
         }
 
         // Stretched over its parent with the origin at the bottom-left, so child points are pixels

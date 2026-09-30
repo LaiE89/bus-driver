@@ -282,6 +282,7 @@ Decisions are never edited once made. To change one, add a new row that supersed
 | D104 (agent) | **Monster and death cheats (T-M4-10).** They live in `Gameplay.Debug.DevCheats`, a file wrapped whole in `#if UNITY_EDITOR || BUSDRIVER_DEV`, registered by `ShiftContext.Begin` inside the same gate after the IShiftBindables, so a release build compiles none of them (`BuildScriptsTests.DevCheats_OnlyCompileWithTheDevDefine` checks both gates). Groups: **Monsters** — "Spawn <name> seated" for every MonsterDefinition (a free Rear, else Mid, else any seat; monsters whose ability arrives in M5/M6 spawn with their definition and no ability), "Threat 0/25/50/75/99 (all)" (every monster except one in a kill sequence), "Force Lethal" (the riding monster with the most threat); **Death** — "God mode on/off" (a `DevCheats.GodMode` preventer: every death but Abandoned is ignored, and a telegraph that runs out spares the monster instead of expelling it, `ExpelsMonster = false`), "Kill me: monster / sanity / fall" (Abandoned waits for T-M7-08); **Night** — "Win the night" (`ShiftDirector.WinNightForDebug`: the Summary, as if the doors had opened at the end stop, without delivering the riders still aboard) | 2026-09-30 | agent |
 | D105 (agent) | **Night 1 with the Starer, end to end (T-M4-11).** A kick's sanity effect is the pure `Core.Rules.KickRules.SanityDelta(isMonster, balance)` (+10 monster, −8 innocent, from BalanceConfig). There is no SanitySystem before T-M5-02, so `Starer_Kicked_BountyAndSanity` asserts the seam: the rider's status turns Kicked, the ledger gets the 500 ¢ bounty for that rider id (no refund), and `KickRules` gives +10 for it; T-M5-02 applies `KickRules` when a rider's status turns Kicked. The test kicks as a player does (`OnFootKick`: leave the seat at a complete stop, walk down the aisle with `OnFootController.ExternalControl`, a scripted turn toward the rider, then Interact on what `PlayerInteractor` offers). `Night1_DemoRun_WithKick` makes its one kick stop at campground, where the Starer boards: the doors close after boarding, the player walks back and kicks it, sits down, and AutoPilot drives on to the church; it reaches the Summary with one monster kicked, a 500 ¢ bounty, five riders delivered and no errors, and logs the night's length (about 304 s of game time; informational). `docs/playtest.md` is started with the M4 manual checks (readability of the telegraph, the fall cam, scare timing) and the Player.log locations (§4.18) | 2026-09-30 | agent |
 | D106 | **The Starer is faster, and watching only freezes it.** (1) Night 1's scripted Starer boards at `gas_station`, one stop earlier than `campground`. (2) Its rules are `Observed → 0/s`, then `Always → +10/s`: about 10 s of being unwatched takes it from 0 to Lethal. (3) Being observed (any observer kind it counts: Cctv, Driver, OnFoot, Mirror) no longer lowers its threat; it only stops the rise, so its meter never decreases, except the kill-sequence escape, which still sets it to 60 (without that reset the kill would restart at once). Counting only the cameras is a one-field edit in `Starer.asset` (`Observed` → `ObservedByCctv`). This supersedes the Starer rules in §2.10 and D43's "the Starer boards at `campground`… still in its grace period or Dormant at the bend… reaches Lethal around the church". An ignored Starer now kills about 26 s after it sits down, well before the cliff, and each escape buys only 4 s of looking away. `Night1_DemoRun_WithKick` now makes its kick stop at `gas_station` (amends D105) | 2026-09-30 | user |
+| D107 | **The GPS shows the next stop's scheduled time, not an Early/On time/Late label.** The text column reads the next stop, its distance, `ETA 12:41 AM`, `SCHED 12:42 AM` and the clock; the player compares ETA and schedule themselves. `RouteMapView.ratingText` became `scheduleText` (`FormerlySerializedAs`, so Dash.prefab needs no rebuild) and the early/late/on-time colours were removed. Amends §4.13 and §2.23; arrival ratings still exist for tips and the Summary (§2.4, §2.21) | 2026-09-30 | user |
 
 ---
 
@@ -791,7 +792,7 @@ While a CCTV feed is showing, driving input still works: the bus keeps moving an
 
 - **Captions:** when a `SoundDefinition` with a non-empty `caption` plays (whispers, knocks, the horn), a caption line appears if Captions is on. For example: `[whisper] driver…`.
 - **Colour is never the only cue:**
-  - early/late text labels on the GPS
+  - the GPS shows ETA and scheduled times as text (D107)
   - the cliff drawn dashed as well as red
   - `+`/`−` signs on money deltas.
 
@@ -1345,7 +1346,7 @@ Master (MasterVolume)
   - The bus is an arrow.
   - Stops are shown as ✓ (served), a ring (next) or a dot (upcoming).
   - Stubs are grey 8-pixel dead ends, and the cliff is red **and dashed**.
-  - Text: the next stop's name, distance, ETA and `EARLY`/`LATE` as text, plus the clock.
+  - Text: the next stop's name, distance, ETA and its scheduled time (`SCHED 12:42 AM`, D107), plus the clock.
   - In the tunnel it shows "NO SIGNAL".
 - **Text source:** strings live in data assets (display names, journal text) or in `UIText` constants. English only.
 

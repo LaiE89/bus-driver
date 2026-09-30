@@ -58,13 +58,11 @@ namespace BusDriver.UI.Screens {
         public const string Confirm = "YES";
         public const string Cancel = "NO";
 
-        // The dash GPS (§4.13). Early/late are words as well as colours (§2.23).
+        // The dash GPS (§4.13)
         public const string GpsNext = "NEXT";
         public const string GpsEta = "ETA {0}";
         public const string GpsEtaUnknown = "ETA --:--";
-        public const string GpsEarly = "EARLY";
-        public const string GpsOnTime = "ON TIME";
-        public const string GpsLate = "LATE";
+        public const string GpsScheduled = "SCHED {0}";
         public const string GpsNoSignal = "NO SIGNAL";
         public const string GpsEndOfLine = "END OF LINE";
 

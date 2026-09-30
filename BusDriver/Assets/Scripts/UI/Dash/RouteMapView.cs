@@ -9,13 +9,14 @@ using BusDriver.Gameplay.World;
 using BusDriver.UI.Screens;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace BusDriver.UI.Dash {
     // The dash GPS (§4.13, D12: glance only). The whole route, north-up, fitted with a 6 % margin;
     // the travelled part dimmed; the bus as an arrow; stops as ✓ (served), a ring (next) or a dot
     // (upcoming), in shape as well as colour; stubs as short grey dead ends; the cliff red and
-    // dashed. Beside it: the next stop, its distance, the ETA with EARLY / ON TIME / LATE as text,
-    // and the clock. SetSignal(false) (the tunnel, T-M2-14) swaps it all for NO SIGNAL.
+    // dashed. Beside it: the next stop, its distance, the ETA, the stop's scheduled time (D107) and
+    // the clock. SetSignal(false) (the tunnel, T-M2-14) swaps it all for NO SIGNAL.
     public sealed class RouteMapView : DashScreenView {
         // Pixels (§4.13)
         const float MapMargin = 0.06f;
@@ -33,7 +34,8 @@ namespace BusDriver.UI.Dash {
         [SerializeField] TMP_Text nextLabel;
         [SerializeField] TMP_Text nextText;
         [SerializeField] TMP_Text detailText;
-        [SerializeField] TMP_Text ratingText;
+        [FormerlySerializedAs("ratingText")]
+        [SerializeField] TMP_Text scheduleText;
         [SerializeField] TMP_Text clockText;
         [SerializeField] TMP_Text noSignalText;
 
@@ -44,9 +46,6 @@ namespace BusDriver.UI.Dash {
         [SerializeField] Color nextColor = Color.yellow;
         [SerializeField] Color upcomingColor = Color.white;
         [SerializeField] Color missedColor = Color.gray;
-        [SerializeField] Color earlyColor = Color.green;
-        [SerializeField] Color lateColor = Color.red;
-        [SerializeField] Color onTimeColor = Color.white;
         [Tooltip("The route past a night's early end (D43)")]
         [SerializeField] Color closedColor = new Color(0.45f, 0.45f, 0.45f, 0.3f);
 
@@ -66,7 +65,7 @@ namespace BusDriver.UI.Dash {
         public UILineRenderer RouteLine { get { return routeLine; } }
         public UILineRenderer CliffLine { get { return cliffLine; } }
         public RectTransform BusArrow { get { return busArrow; } }
-        public string RatingText { get { return ratingText != null ? ratingText.text : ""; } }
+        public string ScheduleText { get { return scheduleText != null ? scheduleText.text : ""; } }
 
         protected override void OnBind(ShiftServices shift) {
             tracker = shift.Tracker;
@@ -219,33 +218,22 @@ namespace BusDriver.UI.Dash {
                 nextLabel.text = "";
                 nextText.text = UIText.GpsEndOfLine;
                 detailText.text = "";
-                ratingText.text = "";
+                scheduleText.text = "";
                 return;
             }
             nextLabel.text = UIText.GpsNext;
             nextText.text = next.DisplayName;
+            // The player judges early or late themselves from the ETA against the timetable (D107)
+            scheduleText.text = string.Format(UIText.GpsScheduled, ClockText.Format(next.ScheduledGameSeconds, ClockFormat.Dash));
             double now = clock != null ? clock.NowGameSeconds : double.NaN;
             float eta = tracker.EtaGameSeconds;
             string distance = FormatDistance(Mathf.Max(0f, next.Distance - tracker.DistanceAlong));
             if (float.IsInfinity(eta) || double.IsNaN(now)) {
                 detailText.text = distance + "\n" + UIText.GpsEtaUnknown;
-                // Standing still can still be already late
-                bool late = !double.IsNaN(now) && now - next.ScheduledGameSeconds > route.schedule.lateThresholdGameSeconds;
-                SetRating(late ? ArrivalRating.Late : ArrivalRating.None);
                 return;
             }
             double arrival = now + eta;
             detailText.text = distance + "\n" + string.Format(UIText.GpsEta, ClockText.Format(arrival, ClockFormat.Dash));
-            SetRating(ScheduleMath.Rate(route.schedule, arrival, next.ScheduledGameSeconds));
-        }
-
-        void SetRating(ArrivalRating rating) {
-            switch (rating) {
-                case ArrivalRating.Early: ratingText.text = UIText.GpsEarly; ratingText.color = earlyColor; break;
-                case ArrivalRating.Late: ratingText.text = UIText.GpsLate; ratingText.color = lateColor; break;
-                case ArrivalRating.OnTime: ratingText.text = UIText.GpsOnTime; ratingText.color = onTimeColor; break;
-                default: ratingText.text = ""; break;
-            }
         }
 
         static string FormatDistance(float metres) {

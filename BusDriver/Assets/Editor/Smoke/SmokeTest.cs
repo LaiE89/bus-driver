@@ -748,7 +748,7 @@ namespace BusDriver.Editor.Smoke {
             }
             Gameplay.Route.RouteProgress progress = night.Shift.Progress;
             Core.Rules.StopRecord farm = progress.Find(TestStopId);
-            Log($"{label}: signal {gps.HasSignal}, {TestStopId} {farm.State} ({farm.Rating}), next {(progress.Next != null ? progress.Next.StopId : "—")}, rating '{gps.RatingText}'");
+            Log($"{label}: signal {gps.HasSignal}, {TestStopId} {farm.State} ({farm.Rating}), next {(progress.Next != null ? progress.Next.StopId : "—")}, schedule '{gps.ScheduleText}'");
             Check(farm.State == Core.Data.StopState.Served, TestStopId + " should be Served after boarding there");
         }
 
