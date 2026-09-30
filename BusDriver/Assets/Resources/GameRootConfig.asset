@@ -11,6 +11,6 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b2f4d1c8e9a4f3b9c0d7e5a1f2b3c4d, type: 3}
   m_Name: GameRootConfig
-  m_EditorClassIdentifier:
-  buildLabel:
+  m_EditorClassIdentifier: 
+  buildLabel: 
   mixer: {fileID: 24100000, guid: f47922c61f176ea40b87b83231abdcde, type: 2}
