@@ -113,9 +113,11 @@ run_playmode() {
     check_log "$LOGS/playmode.log"
 }
 
-# Legacy content (until T-M1-13's BuildAll): hand edits to generated files would be lost, so
-# refuse while they have uncommitted changes (VERIFY_ALLOW_DIRTY=1 overrides)
+# Generated content: BuildAll's output plus the legacy scene it still builds beside it (until
+# T-M1-16). Hand edits to generated files would be lost, so refuse while they have uncommitted
+# changes (VERIFY_ALLOW_DIRTY=1 overrides)
 LEGACY_GENERATED=(
+    "BusDriver/Assets/Generated"
     "BusDriver/Assets/Scenes/BusRoute.unity"
     "BusDriver/Assets/Prefabs/NPCs"
 )
@@ -147,8 +149,11 @@ run_content() {
             fail "generated files have uncommitted changes that no content run produced; commit or discard them first (a rebuild would overwrite them), or set VERIFY_ALLOW_DIRTY=1"
         fi
     fi
+    # BuildAll (§4.15) first; the legacy BusRoute scene is still the playable night until
+    # T-M1-16, so its builder and the overlay baker run after it
     local method
     for method in \
+        BusDriver.Editor.Builders.BuildAll.Run \
         BusDriver.Editor.Builders.BusDriverSceneBuilder.BuildScene \
         BusDriver.Editor.Builders.OverlayMenusSceneBaker.BakeIntoBusRoute; do
         local name="${method##*.}"
@@ -184,7 +189,13 @@ run_build() {
     local version exe
     version=$(sed -n 's/^  bundleVersion: //p' "$PROJECT/ProjectSettings/ProjectSettings.asset" | head -1)
     case "$(uname -s)" in
-        Darwin) exe="$ROOT/Builds/mac/$version/BusDriver.app/Contents/MacOS/BusDriver" ;;
+        Darwin)
+            # The executable inside the bundle is named after the product, which has a space
+            local app="$ROOT/Builds/mac/$version/BusDriver.app"
+            local name
+            name=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$app/Contents/Info.plist" 2>/dev/null)
+            exe="$app/Contents/MacOS/${name:-BusDriver}"
+            ;;
         *) exe="$ROOT/Builds/windows/$version/BusDriver.exe" ;;
     esac
     [ -x "$exe" ] || fail "no player at $exe"

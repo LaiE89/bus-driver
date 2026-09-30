@@ -28,6 +28,7 @@ STATUS = {
     "T-M1-09": "Done (2026-09-30)",
     "T-M1-10": "Blocked ([HUMAN] mixer groups, snapshots and exposed parameters; AudioMixerValidatorTests reports Inconclusive)",
     "T-M1-12": "Done (2026-09-30)",
+    "T-M1-13": "Done (2026-09-30)",
 }
 def M(mid, title, phase, goal, acceptance, note=""):
     MILESTONES.append(dict(id=mid, title=title, phase=phase, goal=goal, acceptance=acceptance, note=note, tickets=[]))
@@ -71,7 +72,7 @@ T("T-M0-02", "Git attributes, ignore rules and the contributing guide", "S", "to
   ["`git check-attr -a` on a `.unity` file reports `merge: unityyamlmerge`, and on a `.png` reports `text: unset`.",
    "`CONTRIBUTING.md` covers every bullet above."])
 T("T-M0-03", "Domain reload back on; remove dead assets", "S", "code", [], "none", "D24, §1.5",
-  ["Turn **Enter Play Mode Options off** (`EditorSettings.asset: m_EnterPlayModeOptionsEnabled: 0`).",
+  ["Turn **Enter Play Mode Options off** (`EditorSettings.enterPlayModeOptionsEnabled = false`; Unity 6.6 stores that as `m_EnterPlayModeOptionsEnabled: 1` with `m_EnterPlayModeOptions: 0`, D62).",
    "Delete:",
    "- `Assets/TutorialInfo/`, plus any asset only it uses (check by GUID search first)",
    "- `Assets/Scenes/SampleScene.unity`",
@@ -273,7 +274,7 @@ T("T-M1-13", "Builder framework: BuildAll, BuilderUtil, ProjectSettingsBuilder, 
    "- player settings",
    "- the build list from `SceneIds`.",
    "Add `MaterialLibraryBuilder`: the greybox materials go to `Generated/Materials`.",
-   "Add the `DataSeeder` framework (create-if-missing, plus a separate confirmed Reseed menu item). It adopts `UIThemeSeed.CreateIfMissing` (T-M1-12, D61).",
+   "Add the `DataSeeder` framework (create-if-missing, plus a separate confirmed Reseed menu item). The UI theme's seed is `UIThemeSeed.Fill` (T-M1-12, D61).",
    "Add the `ContentValidator` framework: exit code 1 on failure in batch mode.",
    "`verify.sh content` now runs `BuildAll`."],
   ["`BuildAll` succeeds twice in a row starting from a deleted `Generated/`.",

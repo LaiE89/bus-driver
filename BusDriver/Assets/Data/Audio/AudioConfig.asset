@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207562cca9db248a396cf1d1e8f8dff0, type: 3}
+  m_Name: AudioConfig
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.AudioConfig
+  masterVolumeParameter: MasterVolume
+  groups:
+  - group: 0
+    mixerGroup: {fileID: 0}
+    volumeParameter: MusicVolume
+  - group: 1
+    mixerGroup: {fileID: 0}
+    volumeParameter: AmbienceVolume
+  - group: 2
+    mixerGroup: {fileID: 0}
+    volumeParameter: SfxVolume
+  - group: 3
+    mixerGroup: {fileID: 0}
+    volumeParameter: SfxVolume
+  - group: 4
+    mixerGroup: {fileID: 0}
+    volumeParameter: SfxVolume
+  - group: 5
+    mixerGroup: {fileID: 0}
+    volumeParameter: VoiceVolume
+  - group: 6
+    mixerGroup: {fileID: 0}
+    volumeParameter: SfxVolume
+  - group: 7
+    mixerGroup: {fileID: 0}
+    volumeParameter: 
+  snapshots:
+  - snapshot: 0
+    snapshotName: Default
+  - snapshot: 1
+    snapshotName: Earplugs
+  - snapshot: 2
+    snapshotName: Tunnel
+  - snapshot: 3
+    snapshotName: Blackout

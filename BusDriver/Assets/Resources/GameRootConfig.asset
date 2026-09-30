@@ -15,6 +15,6 @@ MonoBehaviour:
   buildLabel: 
   mixer: {fileID: 24100000, guid: f47922c61f176ea40b87b83231abdcde, type: 2}
   inputActions: {fileID: -944628639613478452, guid: 5c1e9b7a2d4f4e8a9b3c6d0e1f2a7b84, type: 3}
-  soundLibrary: {fileID: 0}
-  audioConfig: {fileID: 0}
+  soundLibrary: {fileID: 11400000, guid: 26dc90fd214144fa0b258cd7e9beefbd, type: 2}
+  audioConfig: {fileID: 11400000, guid: 4e5151e53fe56441698bab482fc9ab81, type: 2}
   uiTheme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}

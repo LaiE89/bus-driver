@@ -345,8 +345,9 @@ namespace BusDriver.Editor.Smoke {
                         Check(seatedInteractor != null && seatedInteractor.Current == null, "seated player is offered an interaction");
                         // D49: the avatar layer is culled by the first-person cameras and drawn by CCTV
                         int avatarBit = 1 << PlayerAvatarVisuals.AvatarLayerIndex;
-                        Check(LayerMask.NameToLayer("PlayerAvatar") == PlayerAvatarVisuals.AvatarLayerIndex && string.IsNullOrEmpty(LayerMask.LayerToName(8)),
-                            "PlayerAvatar is not layer 19, or layer 8 is still named");
+                        // Layer 8 is Bus now (§4.16); the old PlayerHead layer must be gone
+                        Check(LayerMask.NameToLayer("PlayerAvatar") == PlayerAvatarVisuals.AvatarLayerIndex && LayerMask.NameToLayer("PlayerHead") < 0,
+                            "PlayerAvatar is not layer 19, or the old PlayerHead layer still exists");
                         Check((mode.DriverCamera.cullingMask & avatarBit) == 0 && (mode.OnFootCamera.cullingMask & avatarBit) == 0,
                             "a first-person camera renders the avatar layer");
                         for (int c = 0; c < cctv.ViewCount - 1; c++) {

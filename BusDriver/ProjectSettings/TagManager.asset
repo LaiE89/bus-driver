@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - Containment
   layers:
   - Default
   - TransparentFX
@@ -13,17 +14,17 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Bus
+  - BusInterior
+  - Passenger
+  - World
+  - Occluder
+  - Zone
+  - Player
+  - ScareFx
+  - MimicHideCam1
+  - MimicHideCam2
+  - MimicHideCam3
   - PlayerAvatar
   - 
   - 

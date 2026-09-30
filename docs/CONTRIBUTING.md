@@ -80,7 +80,7 @@ Run it from the repo root. Batch mode needs the Editor to be **closed** for this
 | Command | Runs |
 |---|---|
 | `tools/verify.sh quick` | compile, then the EditMode tests |
-| `tools/verify.sh content` | the content builders, then the EditMode tests |
+| `tools/verify.sh content` | `BuildAll` (every content builder, §4.15), then the legacy `BusRoute` builder and overlay baker (until T-M1-16), then the EditMode tests |
 | `tools/verify.sh playmode` | the PlayMode tests |
 | `tools/verify.sh smoke` | the smoke test (captures go to `BusDriver/Logs/smoke/*.png`) |
 | `tools/verify.sh build` | a standalone build for the current OS, plus its `--selftest` |
@@ -90,7 +90,7 @@ It exits non-zero with a one-line reason on any failure. Logs are in `BusDriver/
 
 A few details:
 
-- **`content` refuses to run while generated files have hand edits**, because a rebuild overwrites them. Today those files are `BusRoute.unity`, `Controls Menu.prefab` and `Prefabs/NPCs/`. A file that is dirty only because the previous `content` run rebuilt it is fine: the script records its hash in `BusDriver/Logs/content.stamp`. Commit or discard hand edits first, or set `VERIFY_ALLOW_DIRTY=1`.
+- **`content` refuses to run while generated files have hand edits**, because a rebuild overwrites them. Today those files are everything under `Assets/Generated/`, plus the legacy `BusRoute.unity` and `Prefabs/NPCs/`. A file that is dirty only because the previous `content` run rebuilt it is fine: the script records its hash in `BusDriver/Logs/content.stamp`. Commit or discard hand edits first, or set `VERIFY_ALLOW_DIRTY=1`.
 - **`build` runs the player's self-test headless** (`-batchmode -nographics --selftest`). To check a build by hand, run the executable with `--selftest -logFile -`. It prints `[SELFTEST] OK <label>` and exits 0.
 - **Log scanning ignores two things:** the Editor's own `UnityEditor.Search` indexer exception at startup, which is an Editor bug and not ours, and exceptions that a test expects.
 - **macOS builds are Apple silicon only** until someone makes the Editor's `llvm-lipo` executable (D52). The build log prints the exact `chmod +x` command.
