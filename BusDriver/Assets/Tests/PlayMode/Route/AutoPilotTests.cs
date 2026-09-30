@@ -34,7 +34,9 @@ namespace BusDriver.Tests.PlayMode.Route {
         [UnityTest, Timeout(900000)]
         public IEnumerator AutoPilot_DrivesFullRoute() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
-            game.Flow.NewRun(20260930);
+            // Night 1 ends at the church behind a ROAD CLOSED barrier (D43); night 2 runs to the
+            // lodge. No riders get in the way: the manifest's riders only wait at their stops.
+            game.Flow.NewDebugRun(20260930, 2);
             yield return FlowTestUtil.WaitForDriving(game);
             ShiftContext night = Object.FindAnyObjectByType<ShiftContext>();
             RouteTracker tracker = night.Shift.Tracker;
