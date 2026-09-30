@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -10,8 +11,8 @@ namespace BusDriver.Gameplay.Bus {
     // the cabin hides the road completely while the bus keeps moving.
     public class CCTVSystem : MonoBehaviour, IGameBindable {
         [SerializeField] Camera homeCamera;
-        [SerializeField] Camera[] cctvCameras;
-        [SerializeField] string[] cameraLabels;
+        [Tooltip("Cycle order: Home → CAM 1 → CAM 2 → CAM 3 → Home (§2.2)")]
+        [SerializeField] CctvCamera[] cameras = new CctvCamera[0];
 
         // -1 is the home (driver) view
         public int ActiveIndex { get; private set; } = -1;
@@ -21,13 +22,15 @@ namespace BusDriver.Gameplay.Bus {
                 if (!IsViewingCCTV) {
                     return "";
                 }
-                return ActiveIndex < cameraLabels.Length ? cameraLabels[ActiveIndex] : "CAM " + (ActiveIndex + 1);
+                return cameras[ActiveIndex].Label;
             }
         }
         // Whichever camera is rendering right now
-        public Camera ActiveCamera { get { return IsViewingCCTV ? cctvCameras[ActiveIndex] : homeCamera; } }
+        public Camera ActiveCamera { get { return IsViewingCCTV ? cameras[ActiveIndex].Camera : homeCamera; } }
+        public CctvCamera ActiveCctv { get { return IsViewingCCTV ? cameras[ActiveIndex] : null; } }
+        public IReadOnlyList<CctvCamera> Cameras { get { return cameras; } }
         // CCTV cameras plus the home view, one full cycle
-        public int ViewCount { get { return cctvCameras.Length + 1; } }
+        public int ViewCount { get { return cameras.Length + 1; } }
         public event Action<int> OnViewChanged;
 
         Volume cctvVolume;
@@ -57,7 +60,7 @@ namespace BusDriver.Gameplay.Bus {
 
         public void Cycle() {
             ActiveIndex++;
-            if (ActiveIndex >= cctvCameras.Length) {
+            if (ActiveIndex >= cameras.Length) {
                 ActiveIndex = -1;
             }
             if (game != null) {
@@ -87,10 +90,10 @@ namespace BusDriver.Gameplay.Bus {
             if (homeCamera != null) {
                 homeCamera.enabled = !IsViewingCCTV;
             }
-            for (int i = 0; i < cctvCameras.Length; i++) {
+            for (int i = 0; i < cameras.Length; i++) {
                 // Cameras can already be gone when this runs from OnDisable during scene unload
-                if (cctvCameras[i] != null) {
-                    cctvCameras[i].enabled = i == ActiveIndex;
+                if (cameras[i] != null && cameras[i].Camera != null) {
+                    cameras[i].Camera.enabled = i == ActiveIndex;
                 }
             }
             if (cctvVolume != null) {

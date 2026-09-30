@@ -32,7 +32,6 @@ namespace BusDriver.Editor.Builders {
         const string NpcMaterialFolder = "Assets/Materials/NPCs";
         const string NpcPrefabFolder = "Assets/Prefabs/NPCs";
         const string LevelPrefabFolder = "Assets/Prefabs/Level Essentials";
-        const string TuningPath = "Assets/Settings/BusTuning.asset";
         const int UILayer = 5;
 
         // Road
@@ -40,16 +39,6 @@ namespace BusDriver.Editor.Builders {
         const float KerbWidth = 0.3f;
         const float KerbHeight = 0.15f;
         const float ArcStepDegrees = 5f;
-
-        // Bus body, root origin is at ground level under the middle of the bus
-        const float BusWidth = 2.55f;
-        const float BusLength = 12f;
-        const float BusHeight = 3f;
-        const float HullBottom = 0.45f;
-        const float Panel = 0.08f;
-        const float FrontAxleZ = 3.3f;
-        const float RearAxleZ = -2.7f;
-        const float TrackHalf = 1.05f;
 
         static readonly Color FogColor = new Color(0.02f, 0.025f, 0.04f);
 
@@ -90,15 +79,13 @@ namespace BusDriver.Editor.Builders {
             EnsureFolder(NpcPrefabFolder);
             EnsureFolder(LevelPrefabFolder);
             DeleteGreyboxFolders();
-            EnsurePlayerHeadLayer();
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             CreateMaterials();
             BuildNpcPrefabs();
-            BusTuning tuning = GetOrCreateTuning();
 
             BuildEnvironment();
-            GameObject bus = BuildBus(tuning);
+            GameObject bus = InstantiateBus();
             BuildLighting();
             BuildHUDAndSystems(bus);
 
@@ -150,36 +137,6 @@ namespace BusDriver.Editor.Builders {
                 }
             }
             AssetDatabase.Refresh();
-        }
-
-        [InitializeOnLoadMethod]
-        static void EnsureLayersOnLoad() {
-            EnsurePlayerHeadLayer();
-        }
-
-        // D49: the avatar layer has a fixed slot (19) so the physics matrix and the camera masks
-        // are stable. Older projects had it as PlayerHead in the first free slot; clear that.
-        static void EnsurePlayerHeadLayer() {
-            SerializedObject tagManager = new SerializedObject(
-                AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
-            SerializedProperty layers = tagManager.FindProperty("layers");
-            bool changed = false;
-            for (int i = 8; i < layers.arraySize; i++) {
-                SerializedProperty layer = layers.GetArrayElementAtIndex(i);
-                if (i != PlayerAvatarVisuals.AvatarLayerIndex
-                    && (layer.stringValue == "PlayerHead" || layer.stringValue == PlayerAvatarVisuals.HeadLayerName)) {
-                    layer.stringValue = "";
-                    changed = true;
-                }
-            }
-            SerializedProperty avatar = layers.GetArrayElementAtIndex(PlayerAvatarVisuals.AvatarLayerIndex);
-            if (avatar.stringValue != PlayerAvatarVisuals.HeadLayerName) {
-                avatar.stringValue = PlayerAvatarVisuals.HeadLayerName;
-                changed = true;
-            }
-            if (changed) {
-                tagManager.ApplyModifiedPropertiesWithoutUndo();
-            }
         }
 
         static void CreateMaterials() {
@@ -281,31 +238,6 @@ namespace BusDriver.Editor.Builders {
             instance.transform.localPosition = localPos;
             instance.transform.localRotation = localRot;
             return instance;
-        }
-
-        static BusTuning GetOrCreateTuning() {
-            BusTuning tuning = AssetDatabase.LoadAssetAtPath<BusTuning>(TuningPath);
-            if (tuning == null) {
-                tuning = ScriptableObject.CreateInstance<BusTuning>();
-                AssetDatabase.CreateAsset(tuning, TuningPath);
-            }
-            return tuning;
-        }
-
-        static PhysicsMaterial GetOrCreateHullPhysicsMaterial() {
-            string path = MapMaterialFolder + "/BusHull.asset";
-            PhysicsMaterial material = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(path);
-            if (material == null) {
-                material = new PhysicsMaterial("BusHull");
-                AssetDatabase.CreateAsset(material, path);
-            }
-            // Slippery hull so the bus scrapes along walls instead of sticking to them
-            material.dynamicFriction = 0.25f;
-            material.staticFriction = 0.25f;
-            material.bounciness = 0f;
-            material.frictionCombine = PhysicsMaterialCombine.Minimum;
-            EditorUtility.SetDirty(material);
-            return material;
         }
 
         // --------------------------------------------------------------- helpers
@@ -666,327 +598,20 @@ namespace BusDriver.Editor.Builders {
 
         // ------------------------------------------------------------------- bus
 
-        static GameObject BuildBus(BusTuning tuning) {
-            GameObject bus = new GameObject("Bus");
-            Transform root = bus.transform;
-
-            Rigidbody rb = bus.AddComponent<Rigidbody>();
-            rb.mass = tuning.mass;
-            rb.interpolation = RigidbodyInterpolation.Interpolate;
-
-            // One hull collider. Interior and visual parts carry no colliders, they would
-            // join the compound collider and distort the inertia tensor.
-            BoxCollider hull = bus.AddComponent<BoxCollider>();
-            hull.center = new Vector3(0f, HullBottom + BusHeight * 0.5f, 0f);
-            hull.size = new Vector3(BusWidth, BusHeight, BusLength);
-            hull.sharedMaterial = GetOrCreateHullPhysicsMaterial();
-
-            BusController controller = bus.AddComponent<BusController>();
-            bus.AddComponent<CrashDetector>();
-            BusInput input = bus.AddComponent<BusInput>();
-            BusEngineSound engineSound = bus.AddComponent<BusEngineSound>();
-            SetRef(engineSound, "bus", controller);
-
-            // Scaled primitives stay under Visuals, wheel colliders must not inherit any scale
-            Transform visuals = Group("Visuals", root).transform;
-            BuildShell(visuals);
-            BuildInterior(visuals);
-            BuildCabin(bus, controller);
-
-            Transform com = Group("COM", root).transform;
-            com.localPosition = new Vector3(0f, 0.9f, 0.2f);
-
-            BuildWheels(root, tuning, out WheelCollider[] front, out WheelCollider[] rear, out Transform[] frontVisuals, out Transform[] rearVisuals);
-            BuildBusLights(root);
-
-            SetRef(controller, "tuning", tuning);
-            SetRefArray(controller, "frontWheels", front);
-            SetRefArray(controller, "rearWheels", rear);
-            SetRefArray(controller, "frontWheelVisuals", frontVisuals);
-            SetRefArray(controller, "rearWheelVisuals", rearVisuals);
-            SetRef(controller, "centerOfMass", com);
-            SetRef(input, "bus", controller);
-
-            // Right hand lane at the start of the long straight
+        // The generated bus (PrefabBuilder, T-M1-14) in the right hand lane at the start of the
+        // long straight. BuildAll must have run first; verify.sh content runs it before this.
+        static GameObject InstantiateBus() {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabBuilder.BusPath);
+            if (prefab == null) {
+                throw new System.InvalidOperationException("no " + PrefabBuilder.BusPath + "; run Tools/Bus Driver/Build All first");
+            }
+            GameObject bus = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            bus.name = "Bus";
             RoadSample spawn = SampleAt(12f);
-            root.SetPositionAndRotation(RoadPoint(spawn, 2f, 0.05f), Quaternion.Euler(0f, spawn.heading, 0f));
+            bus.transform.SetPositionAndRotation(RoadPoint(spawn, 2f, 0.05f), Quaternion.Euler(0f, spawn.heading, 0f));
+            // The stops are this scene's; the prefab can't hold them
+            SetRefArray(bus.GetComponent<BusCabin>(), "stops", busStops.ToArray());
             return bus;
-        }
-
-        static void BuildShell(Transform visuals) {
-            Transform shell = Group("Shell", visuals).transform;
-            float halfW = BusWidth * 0.5f - Panel * 0.5f;
-            float halfL = BusLength * 0.5f;
-            float floorTop = HullBottom + 0.1f;
-            float top = HullBottom + BusHeight;
-
-            Box("Floor", shell, new Vector3(0f, HullBottom + 0.05f, 0f), new Vector3(BusWidth, 0.1f, BusLength), "BusInterior");
-            Box("Roof", shell, new Vector3(0f, top - 0.05f, 0f), new Vector3(BusWidth, 0.1f, BusLength), "BusBody");
-            Box("Rear Wall", shell, new Vector3(0f, (floorTop + top) * 0.5f, -halfL + Panel * 0.5f), new Vector3(BusWidth, top - floorTop, Panel), "BusBody");
-
-            // Window band runs from 1.45 to 2.65
-            const float lowerTop = 1.45f;
-            const float upperBottom = 2.65f;
-            float lowerH = lowerTop - floorTop;
-            float upperH = top - 0.1f - upperBottom;
-            float lowerY = floorTop + lowerH * 0.5f;
-            float upperY = upperBottom + upperH * 0.5f;
-
-            Box("Left Lower", shell, new Vector3(-halfW, lowerY, 0f), new Vector3(Panel, lowerH, BusLength), "BusBody");
-            Box("Left Upper", shell, new Vector3(-halfW, upperY, 0f), new Vector3(Panel, upperH, BusLength), "BusBody");
-            Box("Right Upper", shell, new Vector3(halfW, upperY, 0f), new Vector3(Panel, upperH, BusLength), "BusBody");
-
-            // Door opening on the kerb side, left open for the walk-around mechanic later
-            const float doorBack = 4.1f;
-            const float doorFront = 5.5f;
-            float rearLen = doorBack + halfL;
-            Box("Right Lower Rear", shell, new Vector3(halfW, lowerY, -halfL + rearLen * 0.5f), new Vector3(Panel, lowerH, rearLen), "BusBody");
-            float frontLen = halfL - doorFront;
-            Box("Right Lower Front", shell, new Vector3(halfW, lowerY, doorFront + frontLen * 0.5f), new Vector3(Panel, lowerH, frontLen), "BusBody");
-
-            float pillarH = upperBottom - lowerTop;
-            float pillarY = lowerTop + pillarH * 0.5f;
-            float[] pillars = { -halfL + 0.075f, -4f, -2f, 0f, 2f, doorBack - 0.05f, halfL - 0.075f };
-            foreach (float z in pillars) {
-                Box("Pillar L", shell, new Vector3(-halfW, pillarY, z), new Vector3(Panel, pillarH, 0.15f), "BusBody");
-                Box("Pillar R", shell, new Vector3(halfW, pillarY, z), new Vector3(Panel, pillarH, 0.15f), "BusBody");
-            }
-            Box("Pillar Door", shell, new Vector3(halfW, pillarY, doorFront + 0.05f), new Vector3(Panel, pillarH, 0.15f), "BusBody");
-
-            // Windscreen opening from 1.5 to 2.95
-            float frontZ = halfL - Panel * 0.5f;
-            Box("Front Lower", shell, new Vector3(0f, (floorTop + 1.5f) * 0.5f, frontZ), new Vector3(BusWidth, 1.5f - floorTop, Panel), "BusBody");
-            Box("Front Upper", shell, new Vector3(0f, (2.95f + top - 0.1f) * 0.5f, frontZ), new Vector3(BusWidth, top - 0.1f - 2.95f, Panel), "BusBody");
-
-            foreach (float side in new[] { -1f, 1f }) {
-                Box("Headlight", shell, new Vector3(side * 0.9f, 1f, halfL + 0.01f), new Vector3(0.35f, 0.18f, 0.02f), "LampWhite");
-                Box("Tail Light", shell, new Vector3(side * 0.9f, 1f, -halfL - 0.01f), new Vector3(0.3f, 0.15f, 0.02f), "LampRed");
-            }
-        }
-
-        static void BuildInterior(Transform visuals) {
-            Transform interior = Group("Interior", visuals).transform;
-
-            // Driver station, left hand side
-            const float driverX = -0.7f;
-            Box("Dashboard", interior, new Vector3(0f, 1.3f, 5.55f), new Vector3(BusWidth - 0.2f, 0.4f, 0.7f), "Dash");
-            Box("Binnacle", interior, new Vector3(driverX, 1.58f, 5.5f), new Vector3(0.6f, 0.16f, 0.3f), "Dash");
-            GameObject wheel = Prim(PrimitiveType.Cylinder, "Steering Wheel", interior, new Vector3(driverX, 1.42f, 5f), new Vector3(0.5f, 0.015f, 0.5f), "Dash");
-            wheel.transform.localRotation = Quaternion.Euler(-30f, 0f, 0f);
-            Box("Driver Seat Base", interior, new Vector3(driverX, 0.77f, 4.55f), new Vector3(0.4f, 0.45f, 0.4f), "Dash");
-            Box("Driver Seat", interior, new Vector3(driverX, 1.05f, 4.55f), new Vector3(0.55f, 0.12f, 0.55f), "Seat");
-            Box("Driver Seat Back", interior, new Vector3(driverX, 1.5f, 4.25f), new Vector3(0.55f, 0.9f, 0.1f), "Seat");
-
-            // Double benches either side of the aisle
-            Transform seats = Group("Seats", interior).transform;
-            for (float z = -5.2f; z <= 2.9f; z += 1f) {
-                foreach (float x in new[] { -0.8f, 0.8f }) {
-                    Box("Seat", seats, new Vector3(x, 1f, z), new Vector3(0.85f, 0.12f, 0.5f), "Seat");
-                    Box("Seat Back", seats, new Vector3(x, 1.4f, z - 0.27f), new Vector3(0.85f, 0.75f, 0.08f), "Seat");
-                    Box("Seat Leg", seats, new Vector3(x, 0.75f, z), new Vector3(0.1f, 0.4f, 0.1f), "Dash");
-                }
-            }
-
-            // Boxes over the wheels, which poke up through the floor line
-            foreach (float z in new[] { FrontAxleZ, RearAxleZ }) {
-                foreach (float side in new[] { -1f, 1f }) {
-                    Box("Wheel Arch", interior, new Vector3(side * TrackHalf, 0.875f, z), new Vector3(0.45f, 0.65f, 1.4f), "BusInterior");
-                }
-            }
-        }
-
-        // Seats, the path through the door, and the colliders the player walks on.
-        // The bus starts empty; passengers board from stops at runtime.
-        static BusCabin BuildCabin(GameObject bus, BusController controller) {
-            Transform root = bus.transform;
-            const float floorTop = HullBottom + 0.1f;
-            const float seatTop = 1.06f;
-            const float doorZ = 4.8f;
-
-            // Two seats per bench, matching the benches in BuildInterior
-            Transform seatRoot = Group("Seats", root).transform;
-            List<Object> seats = new List<Object>();
-            for (float z = -5.2f; z <= 2.9f; z += 1f) {
-                foreach (float x in new[] { -1f, -0.6f, 0.6f, 1f }) {
-                    Transform seat = Group("Seat", seatRoot).transform;
-                    seat.localPosition = new Vector3(x, seatTop, z);
-                    seats.Add(seat.gameObject.AddComponent<BusSeat>());
-                }
-            }
-
-            Transform nodes = Group("CabinNodes", root).transform;
-            Transform aisleAtDoor = Node(nodes, "AisleAtDoor", new Vector3(0f, floorTop, doorZ));
-            Transform doorStep = Node(nodes, "DoorStep", new Vector3(1f, floorTop, doorZ));
-            // Height is found with a raycast at run time: road or kerb
-            Transform doorOutside = Node(nodes, "DoorOutside", new Vector3(1.9f, 0f, doorZ));
-            Transform standPoint = Node(nodes, "StandPoint", new Vector3(0.15f, floorTop, 4.5f));
-
-            GameObject interior = BuildInteriorColliders(root);
-
-            GameObject doorPanel = Box("Door Panel", root, new Vector3(1.3f, 1.6f, doorZ), new Vector3(0.06f, 2.1f, 1.4f), "Door");
-            BusDoors doors = bus.AddComponent<BusDoors>();
-            SetRef(doors, "bus", controller);
-            SetRef(doors, "panel", doorPanel.transform);
-            SetVector(doors, "closedLocalPos", doorPanel.transform.localPosition);
-            // Slides back along the outside of the body
-            SetVector(doors, "openLocalPos", new Vector3(1.34f, 1.6f, doorZ - 1.4f));
-
-            Transform passengerRoot = Group("Passengers", root).transform;
-
-            BusCabin cabin = bus.AddComponent<BusCabin>();
-            SetRef(cabin, "bus", controller);
-            SetRef(cabin, "doors", doors);
-            SetRefArray(cabin, "seats", seats.ToArray());
-            SetRef(cabin, "passengerRoot", passengerRoot);
-            SetRef(cabin, "interiorColliders", interior);
-            SetRefArray(cabin, "stops", busStops.ToArray());
-            SetRefArray(cabin, "initialPassengers", new Object[0]);
-            SetRef(cabin, "aisleAtDoor", aisleAtDoor);
-            SetRef(cabin, "doorStep", doorStep);
-            SetRef(cabin, "doorOutside", doorOutside);
-            SetRef(cabin, "standPoint", standPoint);
-            return cabin;
-        }
-
-        static Transform Node(Transform parent, string name, Vector3 localPos) {
-            Transform node = Group(name, parent).transform;
-            node.localPosition = localPos;
-            return node;
-        }
-
-        // Saved inactive and only switched on while the bus is frozen for walking, so these
-        // never join the hull's compound collider or change the driving inertia tensor.
-        // Unscaled empties with sized BoxColliders, floor top at 0.55.
-        static GameObject BuildInteriorColliders(Transform root) {
-            Transform interior = Group("InteriorColliders", root).transform;
-            InteriorBox(interior, "Floor", new Vector3(0f, 0.35f, 0f), new Vector3(BusWidth, 0.4f, BusLength));
-            InteriorBox(interior, "Wall L", new Vector3(-1.29f, 1.95f, 0f), new Vector3(0.2f, 2.8f, BusLength));
-            InteriorBox(interior, "Wall R Rear", new Vector3(1.29f, 1.95f, -0.95f), new Vector3(0.2f, 2.8f, 10.1f));
-            InteriorBox(interior, "Wall R Front", new Vector3(1.29f, 1.95f, 5.75f), new Vector3(0.2f, 2.8f, 0.5f));
-            // Separate so a later step can let the player off the bus by disabling it
-            InteriorBox(interior, "Doorway Blocker", new Vector3(1.29f, 1.95f, 4.8f), new Vector3(0.2f, 2.8f, 1.4f));
-            InteriorBox(interior, "Rear", new Vector3(0f, 1.95f, -5.95f), new Vector3(BusWidth, 2.8f, 0.1f));
-            InteriorBox(interior, "Front Dash", new Vector3(0f, 1.95f, 5.6f), new Vector3(BusWidth, 2.8f, 0.8f));
-            // One long box per side, an 0.8 m aisle with no gaps between rows to snag on
-            InteriorBox(interior, "Bench L", new Vector3(-0.8175f, 1.175f, -1.425f), new Vector3(0.835f, 1.25f, 8.95f));
-            InteriorBox(interior, "Bench R", new Vector3(0.8175f, 1.175f, -1.425f), new Vector3(0.835f, 1.25f, 8.95f));
-            InteriorBox(interior, "Arch FL", new Vector3(-TrackHalf, 0.875f, FrontAxleZ), new Vector3(0.45f, 0.65f, 1.4f));
-            InteriorBox(interior, "Arch FR", new Vector3(TrackHalf, 0.875f, FrontAxleZ), new Vector3(0.45f, 0.65f, 1.4f));
-            InteriorBox(interior, "Driver Seat", new Vector3(-0.7f, 1.25f, 4.675f), new Vector3(0.6f, 1.4f, 1.05f)).AddComponent<DriverSeat>();
-            interior.gameObject.SetActive(false);
-            return interior.gameObject;
-        }
-
-        static GameObject InteriorBox(Transform parent, string name, Vector3 center, Vector3 size) {
-            GameObject go = Group(name, parent);
-            go.transform.localPosition = center;
-            go.AddComponent<BoxCollider>().size = size;
-            return go;
-        }
-
-        static void BuildWheels(Transform root, BusTuning tuning, out WheelCollider[] front, out WheelCollider[] rear, out Transform[] frontVisuals, out Transform[] rearVisuals) {
-            Transform wheels = Group("Wheels", root).transform;
-            Transform wheelVisuals = Group("WheelVisuals", root).transform;
-
-            // The collider sits at the top of the suspension travel. Placed so the tyre
-            // just touches y = 0 with the suspension resting at its target position.
-            float colliderY = tuning.wheelRadius + tuning.suspensionDistance * (1f - tuning.suspensionTarget);
-
-            front = new WheelCollider[2];
-            rear = new WheelCollider[2];
-            frontVisuals = new Transform[2];
-            rearVisuals = new Transform[2];
-            for (int i = 0; i < 2; i++) {
-                float x = i == 0 ? -TrackHalf : TrackHalf;
-                string sideName = i == 0 ? "L" : "R";
-                front[i] = Wheel(wheels, wheelVisuals, "F" + sideName, new Vector3(x, colliderY, FrontAxleZ), tuning, out frontVisuals[i]);
-                rear[i] = Wheel(wheels, wheelVisuals, "R" + sideName, new Vector3(x, colliderY, RearAxleZ), tuning, out rearVisuals[i]);
-            }
-        }
-
-        static WheelCollider Wheel(Transform wheels, Transform wheelVisuals, string suffix, Vector3 localPos, BusTuning tuning, out Transform visual) {
-            GameObject go = Group("WC_" + suffix, wheels);
-            go.transform.localPosition = localPos;
-            WheelCollider wheel = go.AddComponent<WheelCollider>();
-            // BusController.ApplyTuning sets everything again at runtime, these keep the editor gizmos honest
-            wheel.radius = tuning.wheelRadius;
-            wheel.mass = tuning.wheelMass;
-            wheel.suspensionDistance = tuning.suspensionDistance;
-            JointSpring spring = wheel.suspensionSpring;
-            spring.spring = tuning.suspensionSpring;
-            spring.damper = tuning.suspensionDamper;
-            spring.targetPosition = tuning.suspensionTarget;
-            wheel.suspensionSpring = spring;
-
-            visual = Group("Wheel_" + suffix, wheelVisuals).transform;
-            visual.localPosition = new Vector3(localPos.x, tuning.wheelRadius, localPos.z);
-            float diameter = tuning.wheelRadius * 2f;
-            // Cylinder axis is Y, lay it along the axle
-            GameObject tyre = Prim(PrimitiveType.Cylinder, "Tyre", visual, Vector3.zero, new Vector3(diameter, 0.175f, diameter), "Tyre");
-            tyre.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
-            // Off-centre block so wheel spin is visible
-            Box("Hub Mark", visual, new Vector3(0f, tuning.wheelRadius * 0.5f, 0f), new Vector3(0.37f, 0.2f, 0.12f), "Kerb");
-            return wheel;
-        }
-
-        static void BuildBusLights(Transform root) {
-            Transform lights = Group("Lights", root).transform;
-            float frontZ = BusLength * 0.5f + 0.1f;
-
-            for (int i = 0; i < 2; i++) {
-                Light headlight = Group(i == 0 ? "Headlight L" : "Headlight R", lights).AddComponent<Light>();
-                headlight.transform.localPosition = new Vector3(i == 0 ? -0.9f : 0.9f, 1.2f, frontZ);
-                headlight.transform.localRotation = Quaternion.Euler(6f, 0f, 0f);
-                headlight.type = LightType.Spot;
-                headlight.range = 60f;
-                headlight.spotAngle = 55f;
-                headlight.innerSpotAngle = 30f;
-                headlight.intensity = 1500f;
-                headlight.color = new Color(1f, 0.93f, 0.8f);
-                // One shadow caster is enough to give the road some depth
-                headlight.shadows = i == 0 ? LightShadows.Soft : LightShadows.None;
-            }
-
-            // Dim and sickly, but bright enough that the desaturated CCTV feed still reads
-            foreach (float z in new[] { -4f, 0f, 3.5f }) {
-                Light cabin = Group("Cabin Light", lights).AddComponent<Light>();
-                cabin.transform.localPosition = new Vector3(0f, 3.2f, z);
-                cabin.type = LightType.Point;
-                cabin.range = 5f;
-                cabin.intensity = 2.2f;
-                cabin.color = new Color(0.75f, 0.9f, 0.7f);
-                cabin.shadows = LightShadows.None;
-            }
-
-            Light dash = Group("Dash Light", lights).AddComponent<Light>();
-            dash.transform.localPosition = new Vector3(-0.7f, 1.7f, 5.35f);
-            dash.type = LightType.Point;
-            dash.range = 1.2f;
-            dash.intensity = 0.12f;
-            dash.color = new Color(1f, 0.6f, 0.25f);
-            dash.shadows = LightShadows.None;
-        }
-
-        // Player body under the on-foot rig. Avatar uses the PlayerAvatar layer (hidden from FP cams).
-        // Player body under the on-foot / driver rig. Built only by the scene builder.
-        static Transform BuildPlayerAvatar(Transform rig, Transform head, bool seated) {
-            Material bodyMat = mats.ContainsKey("Player") ? mats["Player"] : null;
-            Material faceMat = mats.ContainsKey("Face") ? mats["Face"] : bodyMat;
-            return PlayerAvatarVisuals.Create(rig, head, seated, bodyMat, faceMat, !seated);
-        }
-
-        static Camera CreateCamera(string name, Transform parent, Vector3 localPos, Vector3 localEuler, float fov) {
-            Camera cam = Group(name, parent).AddComponent<Camera>();
-            cam.transform.localPosition = localPos;
-            cam.transform.localRotation = Quaternion.Euler(localEuler);
-            cam.fieldOfView = fov;
-            cam.nearClipPlane = 0.05f;
-            cam.farClipPlane = 300f;
-            // No skybox at night, clear to the fog colour so the far plane never shows
-            cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = FogColor;
-            cam.GetUniversalAdditionalCameraData().renderPostProcessing = true;
-            return cam;
         }
 
         // -------------------------------------------------------------- lighting
@@ -1014,63 +639,20 @@ namespace BusDriver.Editor.Builders {
 
         static void BuildHUDAndSystems(GameObject bus) {
             Transform root = bus.transform;
-
-            // Seated eye point. The pivot turns, the camera rides on it.
-            Transform anchor = Group("DriverSeatAnchor", root).transform;
-            anchor.localPosition = new Vector3(-0.7f, 1.9f, 4.6f);
-            GameObject pivot = Group("DriverCamPivot", anchor);
-            DriverLook look = pivot.AddComponent<DriverLook>();
-            Camera driverCamera = CreateCamera("DriverCamera", pivot.transform, Vector3.zero, Vector3.zero, 70f);
-            driverCamera.tag = "MainCamera";
-
-            // The only AudioListener. Never on a camera, so switching views can't leave zero or two.
-            // SceneController moves it to the on-foot head and back.
-            Transform ears = Group("Driver Ears", anchor).transform;
-            ears.gameObject.AddComponent<AudioListener>();
-
-            GameObject driverAvatarRoot = Group("DriverAvatar", anchor);
-            driverAvatarRoot.transform.localPosition = new Vector3(0f, -0.85f, -0.05f);
-            BuildPlayerAvatar(driverAvatarRoot.transform, null, true);
-
-            GameObject cctvObject = Group("CCTV", root);
-            Camera[] cctvCameras = {
-                CreateCamera("CAM 1 Front", cctvObject.transform, new Vector3(0.3f, 3.2f, 5.3f), new Vector3(22f, 180f, 0f), 95f),
-                CreateCamera("CAM 2 Rear", cctvObject.transform, new Vector3(0f, 3.2f, -5.7f), new Vector3(22f, 0f, 0f), 95f)
-            };
-            foreach (Camera cam in cctvCameras) {
-                cam.enabled = false;
-            }
-            CCTVSystem cctv = cctvObject.AddComponent<CCTVSystem>();
-            SetRef(cctv, "homeCamera", driverCamera);
-            SetRefArray(cctv, "cctvCameras", cctvCameras);
-            SetStringArray(cctv, "cameraLabels", new[] { "CAM 1  FRONT", "CAM 2  REAR" });
-            SetRef(look, "cctv", cctv);
-
+            Transform anchor = root.Find(PrefabBuilder.DriverHeadName);
+            DriverLook look = anchor.Find(PrefabBuilder.DriverPivotName).GetComponent<DriverLook>();
+            Camera driverCamera = look.transform.Find(PrefabBuilder.DriverCameraName).GetComponent<Camera>();
+            Transform ears = anchor.Find(PrefabBuilder.EarsName);
+            GameObject driverAvatarRoot = anchor.Find(PrefabBuilder.DriverAvatarName).gameObject;
+            CCTVSystem cctv = bus.GetComponentInChildren<CCTVSystem>(true);
             BusCabin cabin = bus.GetComponent<BusCabin>();
-            SetRef(cabin, "cctv", cctv);
 
             // At the scene root rather than under the bus, see OnFootController
-            GameObject rig = new GameObject("OnFootRig");
-            CharacterController body = rig.AddComponent<CharacterController>();
-            body.height = 1.7f;
-            body.radius = 0.28f;
-            body.center = new Vector3(0f, 0.85f, 0f);
-            body.stepOffset = 0.2f;
-            body.skinWidth = 0.03f;
-            body.slopeLimit = 45f;
-            body.minMoveDistance = 0f;
-            OnFootController onFoot = rig.AddComponent<OnFootController>();
-            Transform footHead = Group("Head", rig.transform).transform;
-            footHead.localPosition = new Vector3(0f, 1.6f, 0f);
-            Camera onFootCamera = CreateCamera("OnFootCamera", footHead, Vector3.zero, Vector3.zero, 70f);
-            onFootCamera.tag = "MainCamera";
-            onFootCamera.enabled = false;
-            Transform avatar = BuildPlayerAvatar(rig.transform, footHead, false);
-            SetRef(onFoot, "head", footHead);
-            SetRef(onFoot, "avatarRoot", avatar);
+            GameObject rig = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(PrefabBuilder.OnFootRigPath));
+            rig.name = "OnFootRig";
+            OnFootController onFoot = rig.GetComponent<OnFootController>();
+            Camera onFootCamera = rig.GetComponentInChildren<Camera>(true);
             SetRefArray(onFoot, "ignoredColliders", new Object[] { bus.GetComponent<BoxCollider>() });
-            PlayerAvatarVisuals.HideAvatarFromCamera(onFootCamera);
-            PlayerAvatarVisuals.HideAvatarFromCamera(driverCamera);
             rig.SetActive(false);
 
             DrivingHUD hud = BuildHUD();
@@ -1079,8 +661,10 @@ namespace BusDriver.Editor.Builders {
             SetRef(hud, "bus", bus.GetComponent<BusController>());
             SetRef(hud, "cctv", cctv);
 
-            // The scene root GameRoot wires this scene through (T-M1-04, until ShiftContext)
-            new GameObject("Night Root").AddComponent<LegacyNightRoot>();
+            // The scene root GameRoot wires this scene through (T-M1-04, until ShiftContext); it
+            // releases the bus's DriveLock.Scripted until ShiftDirector exists (T-M1-17)
+            LegacyNightRoot nightRoot = new GameObject("Night Root").AddComponent<LegacyNightRoot>();
+            SetRef(nightRoot, "bus", bus.GetComponent<BusController>());
 
             GameObject systems = new GameObject("Game Systems");
             SceneController mode = systems.AddComponent<SceneController>();

@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Views;
 
 namespace BusDriver.Gameplay.Bus {
     // Why the bus refuses to drive. Separate reasons so getting back in the seat can
@@ -16,9 +17,11 @@ namespace BusDriver.Gameplay.Bus {
         // Left, right order per axle
         [SerializeField] WheelCollider[] frontWheels;
         [SerializeField] WheelCollider[] rearWheels;
-        [SerializeField] Transform[] frontWheelVisuals;
-        [SerializeField] Transform[] rearWheelVisuals;
         [SerializeField] Transform centerOfMass;
+        [Tooltip("Wheel poses and the steering wheel go through the view (§4.14)")]
+        [SerializeField] BusViewBase view;
+        [Tooltip("The prefab holds Scripted until ShiftDirector (or the legacy scene root) releases it (§2.3)")]
+        [SerializeField] DriveLock initialLocks = DriveLock.Scripted;
 
         public float ForwardSpeed { get; private set; }
         public float SpeedKmh { get { return Mathf.Abs(ForwardSpeed) * 3.6f; } }
@@ -61,7 +64,13 @@ namespace BusDriver.Gameplay.Bus {
             CachePoses(rearWheels, rearLocalPos, rearLocalRot);
             cachedInertiaTensor = rb.inertiaTensor;
             cachedInertiaRotation = rb.inertiaTensorRotation;
+            if (initialLocks != DriveLock.None) {
+                SetDriveLock(initialLocks, true);
+            }
         }
+
+        public BusViewBase View { get { return view; } }
+        public DriveLock Locks { get { return locks; } }
 
         public void SetInput(float steer, float accel, bool handbrake) {
             steerInput = Mathf.Clamp(steer, -1f, 1f);
@@ -345,17 +354,17 @@ namespace BusDriver.Gameplay.Bus {
         // Poses are cached relative to the body in FixedUpdate and applied against the
         // interpolated transform here, otherwise the wheels jitter against the bus
         void Update() {
-            ApplyPoses(frontWheelVisuals, frontLocalPos, frontLocalRot);
-            ApplyPoses(rearWheelVisuals, rearLocalPos, rearLocalRot);
-        }
-
-        void ApplyPoses(Transform[] visuals, Vector3[] localPos, Quaternion[] localRot) {
-            for (int i = 0; i < visuals.Length && i < localPos.Length; i++) {
-                if (visuals[i] == null) {
-                    continue;
-                }
-                visuals[i].SetPositionAndRotation(transform.TransformPoint(localPos[i]), transform.rotation * localRot[i]);
+            if (view == null) {
+                return;
             }
+            // Left, right per axle → FL, FR, RL, RR
+            for (int i = 0; i < frontLocalPos.Length && i < 2; i++) {
+                view.SetWheelPose(BusViewBase.WheelFL + i, frontLocalPos[i], frontLocalRot[i]);
+            }
+            for (int i = 0; i < rearLocalPos.Length && i < 2; i++) {
+                view.SetWheelPose(BusViewBase.WheelRL + i, rearLocalPos[i], rearLocalRot[i]);
+            }
+            view.SetSteering(SteerAngle);
         }
     }
 }

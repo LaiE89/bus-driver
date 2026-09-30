@@ -34,6 +34,8 @@ namespace BusDriver.Core.Data {
     public enum ScareIntensity : int { Full = 0, Reduced = 1 }
     // A SoundDefinition's spatial blend (T-M1-09, D60)
     public enum SoundSpatial : int { TwoD = 0, ThreeD = 1 }
+    // The dash's world-space screens (§4.14 BusViewBase.DashAnchor, D38; T-M1-14)
+    public enum DashScreen : int { Clock = 0, FareBox = 1, Gps = 2, Mirror = 3 }
     // Mirrors UnityEngine.FullScreenMode's values; save models hold no Unity types (§4.9)
     public enum WindowMode : int { ExclusiveFullScreen = 0, FullScreenWindow = 1, MaximizedWindow = 2, Windowed = 3 }
 }

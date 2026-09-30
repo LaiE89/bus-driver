@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using BusDriver.Gameplay.Passengers;
+using BusDriver.Gameplay.Views;
 
 namespace BusDriver.Gameplay.Bus {
     // The bus will not drive while the doors are open. They open for the driver (Q) or
@@ -9,15 +10,16 @@ namespace BusDriver.Gameplay.Bus {
     // the bus is at a complete stop. One passenger at a time gets the doorway.
     public class BusDoors : MonoBehaviour {
         [SerializeField] BusController bus;
-        [SerializeField] Transform panel;
-        [SerializeField] Vector3 closedLocalPos;
-        [SerializeField] Vector3 openLocalPos;
+        [Tooltip("The door panel moves through the view (§4.14)")]
+        [SerializeField] BusViewBase view;
         [SerializeField] float slideTime = 0.6f;
 
         public bool IsOpenWanted { get { return driverOpen || holds.Count > 0; } }
         public bool IsFullyOpen { get { return openAmount >= 1f; } }
         public bool IsClosed { get { return openAmount <= 0f && !lockHeld; } }
         public bool CanToggle { get { return bus != null && bus.IsStopped; } }
+        // 0 closed … 1 open, linear in time
+        public float OpenAmount { get { return openAmount; } }
         // true when they start to open, false once fully closed
         public event Action<bool> OnChanged;
 
@@ -81,8 +83,8 @@ namespace BusDriver.Gameplay.Bus {
             // Closing is deferred rather than refused, whoever is in the doorway finishes first
             bool open = lockHeld && (IsOpenWanted || doorwayUser != null);
             openAmount = Mathf.MoveTowards(openAmount, open ? 1f : 0f, Time.deltaTime / slideTime);
-            if (panel != null) {
-                panel.localPosition = Vector3.Lerp(closedLocalPos, openLocalPos, Mathf.SmoothStep(0f, 1f, openAmount));
+            if (view != null) {
+                view.SetDoorOpen(openAmount);
             }
 
             if (lockHeld && !open && openAmount <= 0f) {
