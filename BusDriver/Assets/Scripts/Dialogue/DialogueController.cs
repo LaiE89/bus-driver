@@ -10,18 +10,38 @@ public class DialogueController : MonoBehaviour {
     public TextMeshProUGUI dialogueText;
     public string textSound;
     public Animator animator;
+    // Shown and hidden directly when there is no Animator to drive the "isOpen" state
+    public GameObject panelRoot;
     public bool isPlaying;
     private Queue<string> sentences;
+    // Passengers talk one after another, so a second line waits its turn
+    private readonly Queue<Dialogue> pending = new Queue<Dialogue>();
 
     void Start() {
         sentences = new Queue<string>();
     }
 
+    public void QueueDialogue(Dialogue dialogue) {
+        if (dialogue == null) {
+            return;
+        }
+        if (isPlaying) {
+            pending.Enqueue(dialogue);
+            return;
+        }
+        StartDialogue(dialogue);
+    }
+
     public void StartDialogue(Dialogue dialogue) {
+        if (dialogueText == null) {
+            return;
+        }
         isPlaying = true;
         sentences = new Queue<string>();
-        animator.SetBool("isOpen", true);
-        nameText.text = dialogue.name;
+        SetOpen(true);
+        if (nameText != null) {
+            nameText.text = dialogue.name;
+        }
         if (dialogue.isCenter) {
             dialogueText.alignment = TextAlignmentOptions.Center;
             dialogueText.alignment = TextAlignmentOptions.Top;
@@ -68,6 +88,19 @@ public class DialogueController : MonoBehaviour {
 
     void EndDialogue() {
         isPlaying = false;
-        animator.SetBool("isOpen", false);
+        SetOpen(false);
+        if (pending.Count > 0) {
+            StartDialogue(pending.Dequeue());
+        }
+    }
+
+    void SetOpen(bool open) {
+        if (animator != null) {
+            animator.SetBool("isOpen", open);
+            return;
+        }
+        if (panelRoot != null) {
+            panelRoot.SetActive(open);
+        }
     }
 }

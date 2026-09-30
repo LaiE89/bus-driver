@@ -55,6 +55,10 @@ public static class ControlsMenuPrefabBuilder {
                 root, switchLabel, switchButton, menu,
                 "INTERACT", "Interact Button", "interactKey",
                 -RowSpacing * 4f, nameof(ControlsMenu.StartRebindInteract));
+            so.FindProperty("kickOutText").objectReferenceValue = EnsureBindRow(
+                root, switchLabel, switchButton, menu,
+                "KICK OUT", "Kick Out Button", "kickOutKey",
+                -RowSpacing * 5f, nameof(ControlsMenu.StartRebindKickOut));
             so.ApplyModifiedPropertiesWithoutUndo();
 
             PrefabUtility.SaveAsPrefabAsset(prefabRoot, PrefabPath);
@@ -80,8 +84,9 @@ public static class ControlsMenuPrefabBuilder {
             if (prefab == null) {
                 return;
             }
-            if (prefab.transform.Find("Doors Button") == null
-                || !prefab.transform.Find("Doors Button").gameObject.activeSelf) {
+            Transform doorsButton = prefab.transform.Find("Doors Button");
+            if (doorsButton == null || !doorsButton.gameObject.activeSelf
+                || prefab.transform.Find("Kick Out Button") == null) {
                 Upgrade();
             }
         };
@@ -152,6 +157,7 @@ public static class ControlsMenuPrefabBuilder {
             case nameof(ControlsMenu.StartRebindDoors): return menu.StartRebindDoors;
             case nameof(ControlsMenu.StartRebindLeaveSeat): return menu.StartRebindLeaveSeat;
             case nameof(ControlsMenu.StartRebindInteract): return menu.StartRebindInteract;
+            case nameof(ControlsMenu.StartRebindKickOut): return menu.StartRebindKickOut;
             default: return menu.StartRebindSwitchCamera;
         }
     }

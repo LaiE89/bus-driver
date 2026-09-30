@@ -44,14 +44,12 @@ public class SceneController : MonoBehaviour {
     [SerializeField] ObjectPooling npcPool;
     [Tooltip("Weighted list of NPCs that can appear at bus stops. Edit this to change who spawns.")]
     [SerializeField] NpcSpawnEntry[] spawnableNpcs;
-    [SerializeField] bool populateStopsOnStart = true;
-    [Tooltip("If set, the first waiter at the first empty stop uses this pool id (useful for testing monsters).")]
-    [SerializeField] string guaranteedFirstNpcId = "WeepingAngel";
 
     [Header("Input")]
     [SerializeField] KeyCode pauseKey = KeyCode.Escape;
     [SerializeField] PauseMenu pauseMenu;
     [SerializeField] GameOverMenu gameOverMenu;
+    [SerializeField] QuotaFulfilledMenu quotaFulfilledMenu;
 
     [Header("Game Over")]
     [SerializeField] float fatalCrashSpeedKmh = 50f;
@@ -60,6 +58,10 @@ public class SceneController : MonoBehaviour {
 
     public PlayerMode Mode { get; private set; }
     public bool IsGameOver { get; private set; }
+    public bool IsQuotaFulfilled { get; private set; }
+    public bool IsRunEnded { get { return IsGameOver || IsQuotaFulfilled; } }
+    // Star rating for the shift. Reviews come in when passengers step off.
+    public RideRatings Ratings { get; private set; }
     public event Action<PlayerMode> OnModeChanged;
     public Camera OnFootCamera { get { return onFootCamera; } }
     public Camera DriverCamera { get { return driverCamera; } }
@@ -67,15 +69,17 @@ public class SceneController : MonoBehaviour {
     public ObjectPooling NpcPool { get { return npcPool; } }
     public NpcSpawnEntry[] SpawnableNpcs { get { return spawnableNpcs; } }
 
-    // Only from a complete stop, and not while the screen is showing a CCTV feed
+    // Only from a complete stop with the doors shut, and not while looking at a CCTV feed
     public bool CanLeaveSeat {
         get {
             return Mode == PlayerMode.Driving
                 && bus != null && bus.IsStopped
+                && doors != null && doors.IsClosed
                 && !IsViewingCCTV;
         }
     }
 
+    // Driving mode means sitting at the wheel, so the doors are a seated-only control
     public bool CanUseDoors {
         get {
             return Mode == PlayerMode.Driving
@@ -83,6 +87,8 @@ public class SceneController : MonoBehaviour {
                 && !IsViewingCCTV;
         }
     }
+
+    public BusCabin Cabin { get { return cabin; } }
 
     void Awake() {
         if (Instance != null && Instance != this) {
@@ -110,8 +116,15 @@ public class SceneController : MonoBehaviour {
         if (gameOverMenu == null) {
             gameOverMenu = FindAnyObjectByType<GameOverMenu>(FindObjectsInactive.Include);
         }
+        if (quotaFulfilledMenu == null) {
+            quotaFulfilledMenu = FindAnyObjectByType<QuotaFulfilledMenu>(FindObjectsInactive.Include);
+        }
         if (pauseMenu == null || gameOverMenu == null) {
             Debug.LogWarning("SceneController: Pause/Game Over UI missing from scene. Run Tools/Bus Driver/Bake Overlay Menus Into Scene.");
+        }
+        Ratings = GetComponent<RideRatings>();
+        if (Ratings == null) {
+            Ratings = gameObject.AddComponent<RideRatings>();
         }
         WireCrashDetector();
     }
@@ -129,8 +142,12 @@ public class SceneController : MonoBehaviour {
     }
 
     void HandleCrash(float deltaV, bool isMajor, Collision collision) {
-        if (IsGameOver) {
+        if (IsRunEnded) {
             return;
+        }
+        // Anyone riding right now remembers this when they rate the trip
+        if (cabin != null) {
+            cabin.NotifyCrash(isMajor);
         }
         float impactSpeed = crashDetector != null
             ? crashDetector.PreCollisionSpeedKmh
@@ -164,53 +181,24 @@ public class SceneController : MonoBehaviour {
         if (soundController != null && !string.IsNullOrEmpty(ambienceSound)) {
             soundController.Play(ambienceSound);
         }
-        if (populateStopsOnStart) {
-            PopulateBusStops();
-        }
     }
 
     // ---------------------------------------------------------- NPC spawning
 
+    // Bus stops spawn their own opening wave and minute ticks; this stays for callers
+    // that want to force an empty-stop roll (e.g. after a debug clear).
     public void PopulateBusStops() {
-        if (npcPool == null || spawnableNpcs == null || spawnableNpcs.Length == 0) {
-            return;
-        }
         BusStop[] stops = FindObjectsByType<BusStop>();
-        System.Array.Sort(stops, (a, b) => b.SpawnCount.CompareTo(a.SpawnCount));
-        bool placedGuaranteed = string.IsNullOrEmpty(guaranteedFirstNpcId);
         for (int i = 0; i < stops.Length; i++) {
-            BusStop stop = stops[i];
-            if (stop == null || stop.WaitingCount > 0) {
-                continue;
-            }
-            int count = stop.SpawnCount;
-            for (int slot = 0; slot < count; slot++) {
-                string poolId;
-                if (!placedGuaranteed && slot == 0 && npcPool.HasPool(guaranteedFirstNpcId)) {
-                    poolId = guaranteedFirstNpcId;
-                    placedGuaranteed = true;
-                }else {
-                    poolId = PickSpawnPoolId();
-                }
-                if (string.IsNullOrEmpty(poolId)) {
-                    continue;
-                }
-                SpawnNpcAtStop(stop, poolId, slot);
+            if (stops[i] != null) {
+                stops[i].TrySpawnWave();
             }
         }
     }
 
     public void PopulateStop(BusStop stop) {
-        if (stop == null || stop.WaitingCount > 0) {
-            return;
-        }
-        int count = stop.SpawnCount;
-        for (int slot = 0; slot < count; slot++) {
-            string poolId = PickSpawnPoolId();
-            if (string.IsNullOrEmpty(poolId)) {
-                continue;
-            }
-            SpawnNpcAtStop(stop, poolId, slot);
+        if (stop != null) {
+            stop.TrySpawnWave();
         }
     }
 
@@ -363,7 +351,7 @@ public class SceneController : MonoBehaviour {
     }
 
     void Update() {
-        if (IsGameOver) {
+        if (IsRunEnded) {
             return;
         }
         if (Input.GetKeyDown(pauseKey)) {
@@ -376,6 +364,7 @@ public class SceneController : MonoBehaviour {
         if (ingameMenus.pausedGame || Mode != PlayerMode.Driving) {
             return;
         }
+        HandleDoorDecision();
         if (Input.GetKeyDown(GameKeys.leaveSeat)) {
             TryLeaveSeat();
         }else if (Input.GetKeyDown(GameKeys.doors) && CanUseDoors) {
@@ -383,8 +372,21 @@ public class SceneController : MonoBehaviour {
         }
     }
 
+    // Someone is standing on the step: wave them aboard or turn them away
+    void HandleDoorDecision() {
+        Passenger atDoor = cabin != null ? cabin.PassengerAtDoor : null;
+        if (atDoor == null) {
+            return;
+        }
+        if (Input.GetKeyDown(GameKeys.interact)) {
+            atDoor.AcceptAboard();
+        }else if (Input.GetKeyDown(GameKeys.kickOut)) {
+            atDoor.RefuseAtDoor();
+        }
+    }
+
     public void TriggerGameOver() {
-        if (IsGameOver) {
+        if (IsRunEnded) {
             return;
         }
         IsGameOver = true;
@@ -392,6 +394,9 @@ public class SceneController : MonoBehaviour {
         Time.timeScale = 0f;
         if (pauseMenu != null) {
             pauseMenu.Hide();
+        }
+        if (quotaFulfilledMenu != null) {
+            quotaFulfilledMenu.Hide();
         }
         if (gameOverMenu != null) {
             gameOverMenu.Show();
@@ -402,8 +407,30 @@ public class SceneController : MonoBehaviour {
         }
     }
 
+    public void TriggerQuotaFulfilled() {
+        if (IsRunEnded) {
+            return;
+        }
+        IsQuotaFulfilled = true;
+        ingameMenus.pausedGame = true;
+        Time.timeScale = 0f;
+        if (pauseMenu != null) {
+            pauseMenu.Hide();
+        }
+        if (gameOverMenu != null) {
+            gameOverMenu.Hide();
+        }
+        if (quotaFulfilledMenu != null) {
+            quotaFulfilledMenu.Show();
+        }
+        ApplyCursor();
+        if (soundController != null) {
+            soundController.PauseAll();
+        }
+    }
+
     public void SetPaused(bool paused) {
-        if (IsGameOver) {
+        if (IsRunEnded) {
             return;
         }
         ingameMenus.pausedGame = paused;
@@ -478,6 +505,9 @@ public class SceneController : MonoBehaviour {
                 }
                 if (settings.interactKey != KeyCode.None) {
                     GameKeys.interact = settings.interactKey;
+                }
+                if (settings.kickOutKey != KeyCode.None) {
+                    GameKeys.kickOut = settings.kickOutKey;
                 }
             }
         }

@@ -6,11 +6,13 @@ public static class GameKeys {
     public const KeyCode defaultDoors = KeyCode.Q;
     public const KeyCode defaultLeaveSeat = KeyCode.E;
     public const KeyCode defaultHandbrake = KeyCode.LeftShift;
+    public const KeyCode defaultKickOut = KeyCode.Mouse0;
 
     public static KeyCode interact = defaultInteract;
     public static KeyCode doors = defaultDoors;
     public static KeyCode leaveSeat = defaultLeaveSeat;
     public static KeyCode handbrake = defaultHandbrake;
+    public static KeyCode kickOut = defaultKickOut;
 
     public static string Label(KeyCode key) {
         switch (key) {
@@ -33,5 +35,6 @@ public static class GameKeys {
         doors = defaultDoors;
         leaveSeat = defaultLeaveSeat;
         handbrake = defaultHandbrake;
+        kickOut = defaultKickOut;
     }
 }

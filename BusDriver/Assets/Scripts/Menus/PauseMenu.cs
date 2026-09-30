@@ -69,7 +69,6 @@ public class PauseMenu : MonoBehaviour {
         if (controlsRoot != null) {
             controlsRoot.SetActive(false);
         }
-        RefreshHudHints();
     }
 
     public void Resume() {
@@ -134,7 +133,6 @@ public class PauseMenu : MonoBehaviour {
         if (pauseRoot != null) {
             pauseRoot.SetActive(true);
         }
-        RefreshHudHints();
         PlayUISound();
     }
 
@@ -195,13 +193,6 @@ public class PauseMenu : MonoBehaviour {
     static void ReplaceClick(Button button, UnityEngine.Events.UnityAction action) {
         button.onClick = new Button.ButtonClickedEvent();
         button.onClick.AddListener(action);
-    }
-
-    void RefreshHudHints() {
-        DrivingHUD hud = FindAnyObjectByType<DrivingHUD>();
-        if (hud != null) {
-            hud.RefreshControlsHint();
-        }
     }
 
     void PlayUISound() {

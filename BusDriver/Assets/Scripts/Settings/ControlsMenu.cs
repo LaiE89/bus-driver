@@ -12,6 +12,7 @@ public class ControlsMenu : MonoBehaviour {
     [SerializeField] TMP_Text doorsText;
     [SerializeField] TMP_Text leaveSeatText;
     [SerializeField] TMP_Text interactText;
+    [SerializeField] TMP_Text kickOutText;
 
     SoundController soundController;
     Event keyEvent;
@@ -24,6 +25,11 @@ public class ControlsMenu : MonoBehaviour {
     const string BindDoors = "doors";
     const string BindLeaveSeat = "leaveSeat";
     const string BindInteract = "interact";
+    const string BindKickOut = "kickOut";
+
+    static readonly string[] allBinds = {
+        BindSwitchCamera, BindHandbrake, BindDoors, BindLeaveSeat, BindInteract, BindKickOut
+    };
 
     public void Awake() {
         waitingForKey = false;
@@ -60,7 +66,9 @@ public class ControlsMenu : MonoBehaviour {
             }
             newKey = keyEvent.keyCode;
             waitingForKey = false;
-        }else if (keyEvent.isMouse) {
+        }else if (keyEvent.type == EventType.MouseDown) {
+            // Only presses. Moves and releases also count as mouse events and would
+            // bind LMB the moment the player twitched the mouse.
             if (keyEvent.button == 0) {
                 newKey = KeyCode.Mouse0;
             }else if (keyEvent.button == 1) {
@@ -96,6 +104,10 @@ public class ControlsMenu : MonoBehaviour {
 
     public void StartRebindInteract() {
         StartRebind(BindInteract);
+    }
+
+    public void StartRebindKickOut() {
+        StartRebind(BindKickOut);
     }
 
     public void StartRebind(string bindId) {
@@ -144,6 +156,7 @@ public class ControlsMenu : MonoBehaviour {
         SetText(doorsText, GameKeys.doors);
         SetText(leaveSeatText, GameKeys.leaveSeat);
         SetText(interactText, GameKeys.interact);
+        SetText(kickOutText, GameKeys.kickOut);
     }
 
     public bool HasBakedBinds() {
@@ -151,7 +164,8 @@ public class ControlsMenu : MonoBehaviour {
             && handbrakeText != null
             && doorsText != null
             && leaveSeatText != null
-            && interactText != null;
+            && interactText != null
+            && kickOutText != null;
     }
 
     public void ApplyingKeybinds() {
@@ -196,6 +210,7 @@ public class ControlsMenu : MonoBehaviour {
         PlaceRow("DOORS", "Doors Button", labelBase, buttonBase, -spacing * 2f);
         PlaceRow("LEAVE SEAT", "Leave Seat Button", labelBase, buttonBase, -spacing * 3f);
         PlaceRow("INTERACT", "Interact Button", labelBase, buttonBase, -spacing * 4f);
+        PlaceRow("KICK OUT", "Kick Out Button", labelBase, buttonBase, -spacing * 5f);
     }
 
     void PlaceRow(string labelName, string buttonName, Vector2 labelBase, Vector2 buttonBase, float yOffset) {
@@ -227,12 +242,37 @@ public class ControlsMenu : MonoBehaviour {
     }
 
     static void SetBind(string bindId, KeyCode key) {
+        // Two actions sharing a button leaves one of them unreachable, so whoever
+        // already held this key takes over the one being replaced.
+        foreach (string other in allBinds) {
+            if (other != bindId && KeyFor(other) == key) {
+                Assign(other, KeyFor(bindId));
+                break;
+            }
+        }
+        Assign(bindId, key);
+    }
+
+    static void Assign(string bindId, KeyCode key) {
         switch (bindId) {
             case BindSwitchCamera: switchCameraKey = key; break;
             case BindHandbrake: GameKeys.handbrake = key; break;
             case BindDoors: GameKeys.doors = key; break;
             case BindLeaveSeat: GameKeys.leaveSeat = key; break;
             case BindInteract: GameKeys.interact = key; break;
+            case BindKickOut: GameKeys.kickOut = key; break;
+        }
+    }
+
+    static KeyCode KeyFor(string bindId) {
+        switch (bindId) {
+            case BindSwitchCamera: return switchCameraKey;
+            case BindHandbrake: return GameKeys.handbrake;
+            case BindDoors: return GameKeys.doors;
+            case BindLeaveSeat: return GameKeys.leaveSeat;
+            case BindInteract: return GameKeys.interact;
+            case BindKickOut: return GameKeys.kickOut;
+            default: return KeyCode.None;
         }
     }
 
@@ -243,6 +283,7 @@ public class ControlsMenu : MonoBehaviour {
             case BindDoors: return doorsText;
             case BindLeaveSeat: return leaveSeatText;
             case BindInteract: return interactText;
+            case BindKickOut: return kickOutText;
             default: return null;
         }
     }

@@ -10,6 +10,8 @@ public class StaringMonster : Monster {
     [SerializeField] float yawLimit = 110f;
     [SerializeField] float pitchLimit = 35f;
 
+    public override string DialogueKind { get { return "StaringMonster"; } }
+
     protected override void Tick(float deltaTime) {
         if (State != PassengerState.Seated || head == null) {
             return;
