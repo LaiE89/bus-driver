@@ -22,6 +22,8 @@ namespace BusDriver.Gameplay.Bus {
         public float OpenAmount { get { return openAmount; } }
         // true when they start to open, false once fully closed
         public event Action<bool> OnChanged;
+        // Every time the panels reach fully open (a stop is Served on the first, §2.4)
+        public event Action OnFullyOpened;
 
         readonly HashSet<object> holds = new HashSet<object>();
         bool driverOpen;
@@ -82,7 +84,11 @@ namespace BusDriver.Gameplay.Bus {
 
             // Closing is deferred rather than refused, whoever is in the doorway finishes first
             bool open = lockHeld && (IsOpenWanted || doorwayUser != null);
+            bool wasFullyOpen = openAmount >= 1f;
             openAmount = Mathf.MoveTowards(openAmount, open ? 1f : 0f, Time.deltaTime / slideTime);
+            if (!wasFullyOpen && openAmount >= 1f && OnFullyOpened != null) {
+                OnFullyOpened();
+            }
             if (view != null) {
                 view.SetDoorOpen(openAmount);
             }

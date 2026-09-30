@@ -46,9 +46,14 @@ namespace BusDriver.Gameplay.Route {
         public float AverageSpeed { get; private set; }
         public int RespawnCount { get; private set; }
 
-        // The first stop still ahead (RouteProgress, T-M2-11, adds served and missed), or −1
+        // The next stop of the night: RouteProgress's first Pending stop (§2.4), or before it's
+        // wired the first stop still ahead; −1 when none is left
         public int NextStopIndex {
             get {
+                if (shift != null && shift.Progress != null && shift.Progress.Stops.Count > 0) {
+                    StopRecord next = shift.Progress.Next;
+                    return next != null ? next.Index : -1;
+                }
                 for (int i = 0; route != null && i < route.stops.Length; i++) {
                     if (route.stops[i].distance >= DistanceAlong) {
                         return i;

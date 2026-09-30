@@ -40,6 +40,7 @@ namespace BusDriver.Editor.Builders {
             LegacyGameOver gameOver = contextObject.AddComponent<LegacyGameOver>();
             ShiftDirector director = contextObject.AddComponent<ShiftDirector>();
             RouteTracker tracker = contextObject.AddComponent<RouteTracker>();
+            RouteProgress progress = contextObject.AddComponent<RouteProgress>();
 
             GameObject bus = Instantiate(PrefabBuilder.BusPath, "Bus");
             GameObject rig = Instantiate(PrefabBuilder.OnFootRigPath, "OnFootRig");
@@ -86,6 +87,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "director", director);
             SetRef(context, "debugRiders", debugRiders);
             SetRef(context, "tracker", tracker);
+            SetRef(context, "progress", progress);
             SetRef(context, "autoPilot", autoPilot);
             SetRefArray(context, "bindables", Bindables(scene).ToArray());
 

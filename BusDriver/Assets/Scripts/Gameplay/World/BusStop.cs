@@ -52,7 +52,19 @@ namespace BusDriver.Gameplay.World {
             }
         }
 
+        // §2.4: riders whose destination is this stop get off one at a time, then the waiting
+        // riders board one at a time. A leaving rider holds the doors, so they can't close on them.
         IEnumerator BoardingRoutine(BusCabin cabin) {
+            List<Passenger> alighting = cabin.AlightingAt(this);
+            for (int i = 0; i < alighting.Count; i++) {
+                Passenger rider = alighting[i];
+                if (rider == null || !rider.Leave()) {
+                    continue;
+                }
+                while (rider != null && rider.IsAboard) {
+                    yield return null;
+                }
+            }
             List<Passenger> sent = new List<Passenger>();
             while (cabin.Doors.IsOpenWanted && Contains(cabin)) {
                 if (waiting.Count > 0 && cabin.FreeSeatCount > 0) {

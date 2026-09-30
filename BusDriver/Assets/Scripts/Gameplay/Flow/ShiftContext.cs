@@ -22,6 +22,7 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] LegacyGameOver gameOver;
         [SerializeField] ShiftDirector director;
         [SerializeField] RouteTracker tracker;
+        [SerializeField] RouteProgress progress;
         [Tooltip("The development and test driver (§4.18)")]
         [SerializeField] AutoPilot autoPilot;
         [Tooltip("Development and test riders (T-M2-07), until ManifestSpawner (T-M3-03)")]
@@ -73,8 +74,9 @@ namespace BusDriver.Gameplay.Flow {
             shift.Director.Init(shift);
             RegisterDebugSections(shift);
 
-            // 1. RouteTracker, RouteProgress (T-M2-11)
+            // 1. RouteTracker, RouteProgress
             shift.Tracker.Init(shift);
+            shift.Progress.Init(shift);
             // 2. ShiftClockDriver (T-M2-12)
             // 3. The bus, CCTV, the mode switch and the input adapters
             shift.Cabin.Init(shift);
@@ -130,6 +132,7 @@ namespace BusDriver.Gameplay.Flow {
                 DebugRiders = debugRiders,
                 Director = director,
                 Tracker = tracker,
+                Progress = progress,
                 AutoPilot = autoPilot,
             };
             return shift;

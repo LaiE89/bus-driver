@@ -52,6 +52,9 @@ namespace BusDriver.Gameplay.Bus {
         IReadOnlyList<BusStop> stops = new BusStop[0];
         // The run's seating stream (§2.6); a fixed fallback before Init, for tests that build a cabin alone
         System.Random seating;
+        // Who gets off at a stop (§2.4). Riders get destinations with the manifest (T-M3-02); until
+        // then nobody alights by choice.
+        Func<Passenger, BusStop, bool> alightsAt;
 
         // ShiftContext, step 3 of the Init order (§4.5)
         public void Init(ShiftServices shift) {
@@ -172,6 +175,27 @@ namespace BusDriver.Gameplay.Bus {
                 }
                 return null;
             }
+        }
+
+        // The rule that picks the riders who get off at a stop (PassengerRegistry, T-M3-02)
+        public void SetAlightingRule(Func<Passenger, BusStop, bool> rule) {
+            alightsAt = rule;
+        }
+
+        // The seated riders whose stop this is, in boarding order; they get off before anyone
+        // boards (§2.4). Allocates, once per stop visit.
+        public List<Passenger> AlightingAt(BusStop stop) {
+            List<Passenger> alighting = new List<Passenger>();
+            if (alightsAt == null) {
+                return alighting;
+            }
+            for (int i = 0; i < passengers.Count; i++) {
+                Passenger passenger = passengers[i];
+                if (passenger != null && passenger.State == PassengerState.Seated && alightsAt(passenger, stop)) {
+                    alighting.Add(passenger);
+                }
+            }
+            return alighting;
         }
 
         // Interior colliders and passenger interaction only exist while the bus is frozen for walking

@@ -38,6 +38,8 @@ namespace BusDriver.Core.Data {
     public enum DashScreen : int { Clock = 0, FareBox = 1, Gps = 2, Mirror = 3 }
     // Mirrors UnityEngine.FullScreenMode's values; save models hold no Unity types (§4.9)
     public enum WindowMode : int { ExclusiveFullScreen = 0, FullScreenWindow = 1, MaximizedWindow = 2, Windowed = 3 }
+    // A stop's record in the night (§2.4, T-M2-11). Served and Missed are final.
+    public enum StopState : int { Pending = 0, Served = 1, Missed = 2 }
 
     // Route geometry (§3, RouteDefinition; T-M2-01, D71)
     public enum SegmentKind : int { Straight = 0, Arc = 1 }
