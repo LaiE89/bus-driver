@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using BusDriver.Core.Data;
 using BusDriver.Core.Util;
+using BusDriver.Editor.Builders;
+using BusDriver.Gameplay.World;
 using UnityEditor;
 using UnityEngine;
 
@@ -16,6 +18,7 @@ namespace BusDriver.Editor.Validation {
             CheckSoundLibrary,
             CheckRoutes,
             CheckLighting,
+            CheckEnvironment,
         };
 
         public static List<string> Validate() {
@@ -121,6 +124,44 @@ namespace BusDriver.Editor.Validation {
             Require(problems, preset.postProfile, "NightLightingPreset.postProfile");
             if (preset.referenceBrightness <= 0f) {
                 problems.Add("NightLightingPreset.referenceBrightness must be positive");
+            }
+        }
+
+        // Every environment kind resolves to a view and has its logic prefab (T-M2-06, §4.14)
+        static void CheckEnvironment(List<string> problems) {
+            GameRootConfig config = Config;
+            if (config == null) {
+                return;
+            }
+            EnvironmentViewSet set = config.environment;
+            if (set == null) {
+                problems.Add("GameRootConfig.environment is not assigned");
+                return;
+            }
+            HashSet<string> seen = new HashSet<string>();
+            foreach (EnvironmentViewEntry entry in set.entries) {
+                if (entry == null) {
+                    problems.Add("EnvironmentViewSet has an empty entry");
+                    continue;
+                }
+                if (!seen.Add(entry.kind)) {
+                    problems.Add($"environment kind '{entry.kind}' is listed twice");
+                }
+                foreach (GameObject view in new[] { entry.greyboxView, entry.artView }) {
+                    if (view != null && (view.GetComponentInChildren<Collider>(true) != null || view.GetComponentInChildren<Rigidbody>(true) != null)) {
+                        problems.Add($"the view '{view.name}' of '{entry.kind}' holds a collider or rigidbody (they belong on the logic prefab)");
+                    }
+                }
+            }
+            foreach (string kind in EnvironmentKinds.All()) {
+                if (set.Resolve(kind) == null) {
+                    problems.Add($"environment kind '{kind}' has no view");
+                }
+                GameObject logic = AssetDatabase.LoadAssetAtPath<GameObject>(EnvironmentPrefabBuilder.LogicPath(kind));
+                EnvironmentPiece piece = logic != null ? logic.GetComponent<EnvironmentPiece>() : null;
+                if (piece == null || piece.Kind != kind || piece.ViewSlot == null) {
+                    problems.Add($"environment kind '{kind}' has no logic prefab with an EnvironmentPiece and a view slot");
+                }
             }
         }
 

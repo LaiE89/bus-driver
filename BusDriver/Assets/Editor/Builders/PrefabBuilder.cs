@@ -13,7 +13,8 @@ using static BusDriver.Editor.Builders.BuilderUtil;
 
 namespace BusDriver.Editor.Builders {
     // BuildAll step 7 (§4.15): the logic prefabs and their greybox views. For now: Bus, OnFootRig
-    // and FallCamera (T-M1-14), the HUD and Screens (UIPrefabBuilder, T-M1-16) and the MVP's two
+    // and FallCamera (T-M1-14), the HUD and Screens (UIPrefabBuilder, T-M1-16), the environment
+    // kinds (EnvironmentPrefabBuilder, T-M2-06) and the MVP's two
     // pooled riders (T-M1-16, until the manifest and the view split replace them in M2–M3). The 12 m bus geometry, camera placements and seat layout are the
     // MVP's, unchanged (Appendix A.2). The logic root owns every collider, camera, light and
     // anchor; the View child owns only renderers (§4.14).
@@ -84,6 +85,7 @@ namespace BusDriver.Editor.Builders {
             BuildLegacyRider<Passenger>(LegacyPassengerPath, "Passenger");
             BuildLegacyRider<WeepingAngel>(LegacyWeepingAngelPath, "WeepingAngel");
             UIPrefabBuilder.Build();
+            EnvironmentPrefabBuilder.Build();
             AssetDatabase.SaveAssets();
         }
 

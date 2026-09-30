@@ -8,6 +8,8 @@ namespace BusDriver.Gameplay.World {
     // Sits on the road centreline with local +x pointing at the kerb. Passengers board
     // when the bus door (not just its nose) is lined up with the stop and the doors open.
     public class BusStop : MonoBehaviour {
+        [Tooltip("The RouteDefinition stop id (§3.2); set when the route scene is built")]
+        [SerializeField] string stopId = "";
         [SerializeField] List<Passenger> waiting = new List<Passenger>();
         [Header("Spawning")]
         [SerializeField] int spawnCount = 2;
@@ -20,6 +22,7 @@ namespace BusDriver.Gameplay.World {
         [SerializeField] float zoneHalfLength = 6f;
         [SerializeField] float boardInterval = 1.2f;
 
+        public string StopId { get { return stopId; } }
         public int WaitingCount { get { return waiting.Count; } }
         public int SpawnCount { get { return Mathf.Max(0, spawnCount); } }
 

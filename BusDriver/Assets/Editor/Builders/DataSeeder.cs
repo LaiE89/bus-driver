@@ -53,6 +53,7 @@ namespace BusDriver.Editor.Builders {
             yield return Seed.Of<RouteDefinition>(RouteSeed.RelativePath, RouteSeed.Fill);
             yield return Seed.Of<VolumeProfile>(LightingSeed.PostRelativePath, LightingSeed.FillPost);
             yield return Seed.Of<NightLightingPreset>(LightingSeed.PresetRelativePath, LightingSeed.FillPreset);
+            yield return Seed.Of<EnvironmentViewSet>(EnvironmentSeed.RelativePath, EnvironmentSeed.Fill);
         }
 
         [MenuItem("Tools/Bus Driver/Builders/Data Seeder (create missing)")]
@@ -134,6 +135,7 @@ namespace BusDriver.Editor.Builders {
             }
             AdoptRoute(config, AssetDatabase.LoadAssetAtPath<RouteDefinition>(root + "/" + RouteSeed.RelativePath));
             LightingSeed.Adopt(root);
+            EnvironmentSeed.Adopt(root, config);
             EditorUtility.SetDirty(config);
         }
 

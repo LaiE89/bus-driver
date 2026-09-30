@@ -13,6 +13,8 @@ namespace BusDriver.Editor.Builders {
             public string Name;
             public Color BaseColor;
             public Color? Emission;
+            // GPU instancing, for the many identical trees (§4.17)
+            public bool Instanced;
         }
 
         // The MVP palette, unchanged (the art swap replaces views, not these)
@@ -46,7 +48,23 @@ namespace BusDriver.Editor.Builders {
             New("Rock", new Color(0.24f, 0.23f, 0.22f)),
             New("Water", new Color(0.03f, 0.05f, 0.08f)),
             New("GuardRail", new Color(0.55f, 0.56f, 0.58f)),
+            // Environment views (T-M2-06)
+            Instanced(New("Foliage", new Color(0.05f, 0.1f, 0.06f))),
+            Instanced(New("Bark", new Color(0.17f, 0.12f, 0.09f))),
+            New("Wood", new Color(0.33f, 0.23f, 0.14f)),
+            New("Concrete", new Color(0.52f, 0.52f, 0.5f)),
+            New("Metal", new Color(0.4f, 0.42f, 0.45f)),
+            // Road signs: a little self-lit, standing in for retroreflective sheeting
+            New("SignYellow", new Color(0.85f, 0.68f, 0.08f), new Color(0.85f, 0.68f, 0.08f) * 0.25f),
+            New("SignWhite", new Color(0.82f, 0.82f, 0.8f), new Color(0.82f, 0.82f, 0.8f) * 0.2f),
+            New("BarrierRed", new Color(0.65f, 0.08f, 0.06f), new Color(0.65f, 0.08f, 0.06f) * 0.2f),
+            New("Window", new Color(0.9f, 0.75f, 0.45f), new Color(1f, 0.78f, 0.45f) * 1.2f),
         };
+
+        static Spec Instanced(Spec spec) {
+            spec.Instanced = true;
+            return spec;
+        }
 
         static Spec New(string name, Color baseColor, Color? emission = null) {
             return new Spec { Name = name, BaseColor = baseColor, Emission = emission };
@@ -56,7 +74,8 @@ namespace BusDriver.Editor.Builders {
         public static void Build() {
             BuilderUtil.EnsureFolder(Folder);
             foreach (Spec spec in Specs) {
-                BuilderUtil.GetOrCreateMaterial(PathOf(spec.Name), spec.BaseColor, spec.Emission);
+                Material mat = BuilderUtil.GetOrCreateMaterial(PathOf(spec.Name), spec.BaseColor, spec.Emission);
+                mat.enableInstancing = spec.Instanced;
             }
             HullPhysics();
             AssetDatabase.SaveAssets();

@@ -43,6 +43,7 @@ STATUS = {
     "T-M2-03": "Done (2026-09-30)",
     "T-M2-04": "Done (2026-09-30)",
     "T-M2-05": "Done (2026-09-30)",
+    "T-M2-06": "Done (2026-09-30)",
 }
 def M(mid, title, phase, goal, acceptance, note=""):
     MILESTONES.append(dict(id=mid, title=title, phase=phase, goal=goal, acceptance=acceptance, note=note, tickets=[]))

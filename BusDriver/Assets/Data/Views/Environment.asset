@@ -1,0 +1,114 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77e2be55f35244c26a8ad71f40b1d349, type: 3}
+  m_Name: Environment
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.EnvironmentViewSet
+  entries:
+  - kind: Blocker.FallenTree.A
+    greyboxView: {fileID: 8519710019468003752, guid: efaf5b565254e4d68b36dda5d5d35a4e, type: 3}
+    artView: {fileID: 0}
+  - kind: Blocker.FallenTree.B
+    greyboxView: {fileID: 3931766074340830461, guid: 78866dde9232a4300913837a578ad3cd, type: 3}
+    artView: {fileID: 0}
+  - kind: Blocker.FenceRoadClosed.A
+    greyboxView: {fileID: 5888660748900059775, guid: 57728d97fc5f8436494e627eb1943c13, type: 3}
+    artView: {fileID: 0}
+  - kind: Blocker.FenceRoadClosed.B
+    greyboxView: {fileID: 4993195058057472771, guid: 4de285bca4cd84125a19a5b87996946e, type: 3}
+    artView: {fileID: 0}
+  - kind: Blocker.ConcreteBarriers.A
+    greyboxView: {fileID: 4281886914521157322, guid: 15e99f5f3e3004466b904f43de193aae, type: 3}
+    artView: {fileID: 0}
+  - kind: Blocker.ConcreteBarriers.B
+    greyboxView: {fileID: 7261753096412708205, guid: 673a352a96a824bd79e7d54624cd0472, type: 3}
+    artView: {fileID: 0}
+  - kind: Blocker.CollapsedBridge.A
+    greyboxView: {fileID: 8022055350137805279, guid: fb1488e6934b44e7f94bb68e0db838e1, type: 3}
+    artView: {fileID: 0}
+  - kind: Blocker.CollapsedBridge.B
+    greyboxView: {fileID: 3010677783927950937, guid: a9ead4419bdb14b0ea548e512665f8b6, type: 3}
+    artView: {fileID: 0}
+  - kind: Blocker.Gate.A
+    greyboxView: {fileID: 2982558189018249711, guid: 966b2305635334befba7023ad9e419de, type: 3}
+    artView: {fileID: 0}
+  - kind: Blocker.Gate.B
+    greyboxView: {fileID: 7536586894545130920, guid: 1ad618061fdbb410aa18ea5163bd4230, type: 3}
+    artView: {fileID: 0}
+  - kind: Stop.Depot
+    greyboxView: {fileID: 4384370652806422337, guid: 31f6d58d49800424a8a7749569e64c8a, type: 3}
+    artView: {fileID: 0}
+  - kind: Stop.FarmGate
+    greyboxView: {fileID: 2297229594497882886, guid: 27ed2338f2e174d14ab894a6185f0e54, type: 3}
+    artView: {fileID: 0}
+  - kind: Stop.GasStation
+    greyboxView: {fileID: 1625191525533387638, guid: 3fca4fc9e1b414aac9870fb3425956b1, type: 3}
+    artView: {fileID: 0}
+  - kind: Stop.Campground
+    greyboxView: {fileID: 4811153167740932998, guid: d4ee02e7c220946ea8e7cc6667c97ab5, type: 3}
+    artView: {fileID: 0}
+  - kind: Stop.Church
+    greyboxView: {fileID: 8102232889403593048, guid: 0f32ac9a56e5047f4a786f3879719ea3, type: 3}
+    artView: {fileID: 0}
+  - kind: Stop.Clinic
+    greyboxView: {fileID: 7540453346479919568, guid: 1151f4a3134a74e7497ac7b186a3e10a, type: 3}
+    artView: {fileID: 0}
+  - kind: Stop.Trailhead
+    greyboxView: {fileID: 2900918561022059849, guid: d4c49cd6a559944e3805405b0cb3a6a2, type: 3}
+    artView: {fileID: 0}
+  - kind: Stop.Terminus
+    greyboxView: {fileID: 7720078818900827595, guid: 404c6f6122d3c4ca8a0d8d59b5c4bc6c, type: 3}
+    artView: {fileID: 0}
+  - kind: Lamp.Street
+    greyboxView: {fileID: 3051975141075763440, guid: dd9f94f71533f4c069e50065cdea2079, type: 3}
+    artView: {fileID: 0}
+  - kind: Lamp.Tunnel
+    greyboxView: {fileID: 9217461751962990747, guid: 21e1f87b3fb524cd781a55aa38a42299, type: 3}
+    artView: {fileID: 0}
+  - kind: Sign.BridgeAhead
+    greyboxView: {fileID: 4463548225233464975, guid: 0871e53bfb12d4e898d319d44eb11d12, type: 3}
+    artView: {fileID: 0}
+  - kind: Sign.NoGuardrailAhead
+    greyboxView: {fileID: 7433103014468150395, guid: c8a6c9e445a1d44f0ac4c271bad454bc, type: 3}
+    artView: {fileID: 0}
+  - kind: Sign.SharpCurveRight
+    greyboxView: {fileID: 8941952765211197642, guid: b905515c7f19c443380d2125739ed023, type: 3}
+    artView: {fileID: 0}
+  - kind: Sign.Chevron
+    greyboxView: {fileID: 1209443398745876527, guid: 09dbae5e8cbc846a6b70deb18bf8654d, type: 3}
+    artView: {fileID: 0}
+  - kind: Sign.TunnelAhead
+    greyboxView: {fileID: 9129361286413515404, guid: fb76b3fe5ddca4f9483cbb04ca9044c9, type: 3}
+    artView: {fileID: 0}
+  - kind: Sign.StopSign
+    greyboxView: {fileID: 2984093672033895824, guid: 522d0671677e54b278ad0ebc2adc14e1, type: 3}
+    artView: {fileID: 0}
+  - kind: Guardrail.Segment
+    greyboxView: {fileID: 7325203628707102041, guid: f571db429ee03469282aff96c8012dea, type: 3}
+    artView: {fileID: 0}
+  - kind: Guardrail.EndCap
+    greyboxView: {fileID: 6850615193329100992, guid: 19cff924de51d4e238c500f6ef16c4d2, type: 3}
+    artView: {fileID: 0}
+  - kind: Tree.Conifer.A
+    greyboxView: {fileID: 6240261989490124414, guid: 81d75202b16f04796aef3fa620b3ab09, type: 3}
+    artView: {fileID: 0}
+  - kind: Tree.Conifer.B
+    greyboxView: {fileID: 3832814114830880300, guid: aa13f99e45c2d4ff38256146cb22aa0e, type: 3}
+    artView: {fileID: 0}
+  - kind: Rock.Chunk
+    greyboxView: {fileID: 5918475798563297481, guid: ee9067cc1fde94982aa4eefcd7e3d7a7, type: 3}
+    artView: {fileID: 0}
+  - kind: Building.Depot
+    greyboxView: {fileID: 6586957900786447127, guid: 06706eba4dfd8418fbba8bb72edcab0e, type: 3}
+    artView: {fileID: 0}
+  - kind: Building.Lodge
+    greyboxView: {fileID: 7342635395365212556, guid: 1876f5d5733da48c6afc14860c1aa501, type: 3}
+    artView: {fileID: 0}
