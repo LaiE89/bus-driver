@@ -92,6 +92,7 @@ namespace BusDriver.Editor.Smoke {
         };
         static int routeShot;
         static bool routeShotPending;
+        static bool gpsCaptured;
 
         // Boot phases before the bus exists
         static GameServices game;
@@ -562,6 +563,13 @@ namespace BusDriver.Editor.Smoke {
                         break;
                     }
                     nextCycleTime = t + 0.8f;
+                    // The dash GPS after serving farm_gate (T-M2-13): the stop ticked, the route dimmed behind
+                    if (!gpsCaptured) {
+                        gpsCaptured = true;
+                        GpsState("gps");
+                        CaptureDash("gps", DashScreen.Gps);
+                        break;
+                    }
                     if (routeShotPending) {
                         routeShotPending = false;
                         Capture(RouteShots[routeShot].name, BusCamera("DriverCamera"));
@@ -658,6 +666,36 @@ namespace BusDriver.Editor.Smoke {
             Capture(fileName, cam);
             cam.enabled = wasEnabled;
             cam.gameObject.SetActive(wasActive);
+        }
+
+        // A close-up of one dash screen from a temporary camera in front of its anchor (+Z faces the driver)
+        static void CaptureDash(string fileName, DashScreen screen) {
+            Transform anchor = bus.View != null ? bus.View.DashAnchor(screen) : null;
+            Check(anchor != null, "the bus view has no dash anchor for " + screen);
+            if (anchor == null) {
+                return;
+            }
+            GameObject go = new GameObject("Dash Capture Camera");
+            Camera cam = go.AddComponent<Camera>();
+            cam.nearClipPlane = 0.02f;
+            cam.farClipPlane = 5f;
+            cam.fieldOfView = 30f;
+            float size = Mathf.Max(anchor.lossyScale.x, anchor.lossyScale.y);
+            go.transform.SetPositionAndRotation(anchor.position + anchor.forward * size * 2.1f, Quaternion.LookRotation(-anchor.forward, anchor.up));
+            Capture(fileName, cam);
+            UnityEngine.Object.Destroy(go);
+        }
+
+        static void GpsState(string label) {
+            BusDriver.UI.Dash.RouteMapView gps = UnityEngine.Object.FindAnyObjectByType<BusDriver.UI.Dash.RouteMapView>();
+            Check(gps != null, "no dash GPS");
+            if (gps == null) {
+                return;
+            }
+            Gameplay.Route.RouteProgress progress = night.Shift.Progress;
+            Core.Rules.StopRecord farm = progress.Find(TestStopId);
+            Log($"{label}: signal {gps.HasSignal}, {TestStopId} {farm.State} ({farm.Rating}), next {(progress.Next != null ? progress.Next.StopId : "—")}, rating '{gps.RatingText}'");
+            Check(farm.State == Core.Data.StopState.Served, TestStopId + " should be Served after boarding there");
         }
 
         static Camera BusCamera(string cameraName) {
