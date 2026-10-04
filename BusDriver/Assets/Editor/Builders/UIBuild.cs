@@ -184,7 +184,25 @@ namespace BusDriver.Editor.Builders {
                 Theme(text, ThemeRole.Body).SetPaletteColor(ThemeColor.Disabled);
             }
             // The list items sit on a light background, so the caption keeps TMP's dark text too
+            SizeDropdownList(go.transform, size.y);
             return dropdown;
+        }
+
+        // TMP's defaults lay the list out for a 14pt font, so the 32pt Body role is clipped top and
+        // bottom. Rows match the closed control, and the list shows four of them before scrolling.
+        static void SizeDropdownList(Transform dropdown, float rowHeight) {
+            SetHeight(dropdown.Find("Template/Viewport/Content/Item"), rowHeight);
+            SetHeight(dropdown.Find("Template/Viewport/Content"), rowHeight);
+            SetHeight(dropdown.Find("Template"), rowHeight * 4f);
+        }
+
+        // Only the height: every one of these rects stretches to its parent's width
+        static void SetHeight(Transform target, float height) {
+            RectTransform rect = target as RectTransform;
+            if (rect == null) {
+                return;
+            }
+            rect.sizeDelta = new Vector2(rect.sizeDelta.x, height);
         }
 
         public static Toggle CreateToggle(string name, Transform parent, Vector2 anchor, Vector2 position) {

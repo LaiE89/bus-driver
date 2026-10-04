@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Assemblies;
 
 namespace BusDriver.Tests.EditMode {
     // Enforces the §4.1 hard rules on runtime code (Assets/Scripts): rule 5 (no Find*, tag lookups,
@@ -96,7 +97,7 @@ namespace BusDriver.Tests.EditMode {
 
         static List<string> MutableStatics() {
             List<string> found = new List<string>();
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
+            foreach (Assembly assembly in CurrentAssemblies.GetLoadedAssemblies()) {
                 string name = assembly.GetName().Name;
                 if (!name.StartsWith("BusDriver.") || name.Contains(".Tests") || name == "BusDriver.Editor") {
                     continue;

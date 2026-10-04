@@ -52,7 +52,10 @@ namespace BusDriver.Editor.Builders {
             GameObject contextObject = new GameObject("Menu Context");
             MenuContext context = contextObject.AddComponent<MenuContext>();
             SceneAmbience ambience = contextObject.AddComponent<SceneAmbience>();
-            SetStringArray(ambience, "loops", new[] { SoundIds.AmbForestNight, SoundIds.AmbWind });
+            // No bed yet: amb.wind's clip is a broadband hiss that reads as static over a quiet
+            // menu, and amb.forest_night still has only a placeholder hum. The menu stays on the
+            // lamp buzz and the UI sounds until one of them has a real forest recording.
+            SetStringArray(ambience, "loops", new string[0]);
 
             BuildDiorama();
 
@@ -84,15 +87,7 @@ namespace BusDriver.Editor.Builders {
             UIBuild.Theme(label, ThemeRole.Caption).SetPaletteColor(ThemeColor.Disabled);
             BuildLabelView labelView = label.gameObject.AddComponent<BuildLabelView>();
 
-            RectTransform loading = UIBuild.Panel("Loading Screen", canvas.transform);
-            UIBuild.Fill("Dim", loading, Background, true);
-            Vector2 center = new Vector2(0.5f, 0.5f);
-            UIBuild.Label("Loading Label", loading, "LOADING", ThemeRole.Screen, TextAlignmentOptions.Center, center, new Vector2(0f, 60f), new Vector2(800f, 80f));
-            Slider slider = UIBuild.CreateSlider("Progress Slider", loading, center, new Vector2(0f, -20f), new Vector2(800f, 24f), 0f, 1f);
-            slider.interactable = false;
-            TMP_Text progress = UIBuild.Label("Progress Text", loading, "0%", ThemeRole.Body, TextAlignmentOptions.Center, center, new Vector2(0f, -80f), new Vector2(400f, 50f));
-            loading.gameObject.SetActive(false);
-
+            // No loading screen here: GameRoot owns one that outlives this scene (§4.3)
             GameObject screensPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(UIPrefabBuilder.ScreensPath);
             GameObject screens = (GameObject)PrefabUtility.InstantiatePrefab(screensPrefab);
             screens.name = "Screens";
@@ -105,9 +100,6 @@ namespace BusDriver.Editor.Builders {
             SetRef(menu, "optionsButton", options);
             SetRef(menu, "controlsButton", controls);
             SetRef(menu, "quitButton", quit);
-            SetRef(menu, "loadingScreen", loading.gameObject);
-            SetRef(menu, "slider", slider);
-            SetRef(menu, "progressText", progress);
 
             SetRef(context, "buildLabel", labelView);
             SetRefArray(context, "bindables", NightSystemsBuilder.Bindables(scene).ToArray());

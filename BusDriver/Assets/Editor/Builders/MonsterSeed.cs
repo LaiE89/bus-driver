@@ -129,20 +129,19 @@ namespace BusDriver.Editor.Builders {
             };
         }
 
-        // §2.12b, D47: watching only pauses it
+        // Main-branch Weeping Angel: no threat kill — proximity hunt only (kill scare is presentation)
         static void FillAngel(MonsterDefinition m) {
             m.displayName = "The Weeping Angel";
-            m.rules = new[] { Rule(ThreatCondition.Observed, 0f), Rule(ThreatCondition.Always, 1.2f) };
+            m.rules = new[] { Rule(ThreatCondition.Observed, 0f), Rule(ThreatCondition.Always, 0f) };
             m.seatZonePreference = SeatZone.Rear;
             m.seatZoneFallback = SeatZone.Mid;
-            m.escape = new MonsterEscape(EscapeKind.ObserveFor, 2f, 60f);
+            m.escape = new MonsterEscape(EscapeKind.None, 0f, 60f);
             m.ability = new AngelStalkConfig();
             m.journal = new MonsterJournal {
                 sightingText = "A rider who hides their face in their hands and weeps.",
                 tellsText = new[] {
                     "It never moves while anyone is watching. Not even a breath.",
                     "Unwatched, it stands and comes down the aisle.",
-                    "You can hear it scrape along the floor.",
                 },
                 hint = "Watching only holds it. Throw it out.",
             };

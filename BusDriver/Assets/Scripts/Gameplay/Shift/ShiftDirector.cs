@@ -48,8 +48,10 @@ namespace BusDriver.Gameplay.Shift {
         public bool IsLastNight { get { return NightIndex >= LastNight; } }
 
         public event Action<ShiftState> OnStateChanged;
-        // The doors are fully open at the end stop; RunFlow applies the result to the run (§4.4)
+        // End stop served and the cabin empty; RunFlow applies the result to the run (§4.4)
         public event Action<NightResult> OnNightCompleted;
+        // End stop served but the night net missed the quota; RunFlow wipes the run
+        public event Action<NightResult> OnNightFailed;
         // The Summary's Continue on nights 1–4: RunFlow saves and loads the next night
         public event Action OnSummaryConfirmed;
         // The Summary's Continue on night 5: the run is won
@@ -99,9 +101,12 @@ namespace BusDriver.Gameplay.Shift {
             }
         }
 
-        // The Summary's Continue (§2.21)
+        // The Summary's Continue (§2.21). A failed quota night never advances.
         public void ConfirmSummary() {
             if (State != ShiftState.Summary) {
+                return;
+            }
+            if (Result != null && !Result.quotaMet) {
                 return;
             }
             if (IsLastNight) {
@@ -146,25 +151,51 @@ namespace BusDriver.Gameplay.Shift {
             }else if (State == ShiftState.Depot) {
                 // The depot shop arrives in T-M7-05; until then the depot is passed straight through
                 ConfirmDepot();
+            }else if (State == ShiftState.Driving) {
+                // End stop served earlier while someone was still walking off: finish once empty
+                TryFinishNight();
             }
         }
 
-        // The F1 "Win the night" cheat (T-M4-10): the Summary, as if the doors had just opened at
-        // the end stop (riders still aboard aren't delivered)
+        // The F1 "Win the night" cheat (T-M4-10): jump straight to the Summary
         internal void WinNightForDebug() {
-            HandleTerminus();
+            FinishNight();
         }
 
-        // §2.1: the doors are fully open at the night's end stop, so the night is won
+        // Doors fully open at the end stop: humans start walking off; the night finishes once none
+        // are left aboard (monsters must be kicked first)
         void HandleTerminus() {
+            TryFinishNight();
+        }
+
+        void TryFinishNight() {
+            if (State != ShiftState.Driving || progress == null || !progress.TerminusReached) {
+                return;
+            }
+            BusCabin cabin = shift != null ? shift.Cabin : null;
+            if (cabin != null && !cabin.IsEmpty) {
+                return;
+            }
+            FinishNight();
+        }
+
+        void FinishNight() {
             if (State != ShiftState.Driving) {
                 return;
             }
             Result = BuildResult();
-            Log.Info(LogCat.Flow, $"night {NightIndex} complete: {Money.FormatDelta(Result.NetCents)}, {Result.stats.ridersDelivered} delivered");
+            int quota = shift.Night != null ? shift.Night.quotaCents : 0;
+            Result.quotaCents = quota;
+            Result.quotaMet = quota <= 0 || Result.NetCents >= quota;
+            Log.Info(LogCat.Flow, $"night {NightIndex} complete: {Money.FormatDelta(Result.NetCents)}, quota {Money.Format(quota)}, "
+                + (Result.quotaMet ? "met" : "FAILED") + $", {Result.stats.ridersDelivered} delivered");
             Log.Info(LogCat.Flow, $"[NIGHT{NightIndex}] duration={NightSeconds:0.0}s");
-            if (OnNightCompleted != null) {
-                OnNightCompleted(Result);
+            if (Result.quotaMet) {
+                if (OnNightCompleted != null) {
+                    OnNightCompleted(Result);
+                }
+            }else if (OnNightFailed != null) {
+                OnNightFailed(Result);
             }
             SetState(ShiftState.Summary);
         }

@@ -12,6 +12,8 @@ namespace BusDriver.Core.Data {
         [Tooltip("Multiplies every positive threat rate (§2.9)")]
         public float threatRateMultiplier = 1f;
         public bool hintsEnabled;
+        [Tooltip("Night net must reach this many cents by the end stop, or the run is lost")]
+        public int quotaCents = 0;
 
         [Tooltip("The riders, in order; when set, the generator is skipped (night 1)")]
         public RiderSpec[] scripted = new RiderSpec[0];

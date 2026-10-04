@@ -39,7 +39,7 @@ namespace BusDriver.Tests.PlayMode.Monsters {
 
         internal static MonsterBrain SpawnSeated(ShiftServices shift, string monsterId, BusSeat seat, string lookId) {
             Passenger rider = shift.DebugRiders.SpawnSeated(new RiderSpec {
-                lookId = lookId, boardStopId = "campground", destinationStopId = "church", monsterId = monsterId,
+                lookId = lookId, boardStopId = "campground", destinationStopId = "", monsterId = monsterId,
             }, seat);
             Assert.IsNotNull(rider, "no rider spawned in " + (seat != null ? seat.name : "a free seat"));
             MonsterBrain brain = rider.GetComponent<MonsterBrain>();

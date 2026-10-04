@@ -4,6 +4,7 @@ using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Debug;
+using BusDriver.Gameplay.Dialogue;
 using BusDriver.Gameplay.Economy;
 using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
@@ -61,6 +62,8 @@ namespace BusDriver.Gameplay.Flow {
         public ViewFactory Views;
         // Spawns the night's riders (§4.6)
         public ManifestSpawner Manifest;
+        // What riders say at the door, in their seat and on the way off (§4.13)
+        public DialogueService Dialogue;
         // The night's money (§2.7, §4.6)
         public ShiftLedger Ledger;
         public EconomyRules Economy;

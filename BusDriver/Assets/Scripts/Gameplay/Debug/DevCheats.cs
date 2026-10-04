@@ -75,7 +75,7 @@ namespace BusDriver.Gameplay.Debug {
             RiderSpec spec = new RiderSpec {
                 lookId = riders.NextLookId(),
                 boardStopId = shift.Progress != null && shift.Progress.Next != null ? shift.Progress.Next.StopId : "",
-                destinationStopId = riders.EndStopId(),
+                destinationStopId = "",
                 monsterId = monster.id,
             };
             riders.SpawnSeated(spec, seat);

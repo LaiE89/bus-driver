@@ -15,10 +15,9 @@ namespace BusDriver.Editor.Builders {
     // BuildAll step 7 (§4.15): the logic prefabs and their greybox views. For now: Bus, OnFootRig
     // and FallCamera (T-M1-14), the HUD and Screens (UIPrefabBuilder, T-M1-16), the environment
     // kinds (EnvironmentPrefabBuilder, T-M2-06), the Passenger logic prefab and its greybox view
-    // (T-M3-01), a monster variant per MonsterDefinition (T-M4-03) and the legacy WeepingAngel
-    // (a reference only, until T-M6-05). The 12 m bus geometry, camera
-    // placements and seat layout are the MVP's, unchanged (Appendix A.2). The logic root owns
-    // every collider, camera, light and anchor; the view owns only renderers (§4.14).
+    // (T-M3-01) and a monster variant per MonsterDefinition (T-M4-03, T-M6-05). The 12 m bus
+    // geometry, camera placements and seat layout are the MVP's, unchanged (Appendix A.2). The
+    // logic root owns every collider, camera, light and anchor; the view owns only renderers (§4.14).
     public static class PrefabBuilder {
         public const string Folder = GeneratedRoot + "/Prefabs";
         public const string BusPath = Folder + "/Bus.prefab";
@@ -27,7 +26,6 @@ namespace BusDriver.Editor.Builders {
         public const string PassengerPath = Folder + "/Passenger.prefab";
         public const string ViewsFolder = Folder + "/Views";
         public const string GreyboxPassengerViewPath = ViewsFolder + "/View_GreyboxPassenger.prefab";
-        public const string LegacyWeepingAngelPath = Folder + "/WeepingAngel.prefab";
         public const string MonstersFolder = Folder + "/Monsters";
         public const string TuningPath = "Assets/Settings/BusTuning.asset";
 
@@ -91,7 +89,6 @@ namespace BusDriver.Editor.Builders {
             BuildGreyboxPassengerView();
             BuildRider<Passenger>(PassengerPath, "Passenger");
             BuildMonsterVariants();
-            BuildRider<WeepingAngel>(LegacyWeepingAngelPath, "WeepingAngel");
             UIPrefabBuilder.Build();
             EnvironmentPrefabBuilder.Build();
             AssetDatabase.SaveAssets();
@@ -658,6 +655,9 @@ namespace BusDriver.Editor.Builders {
                 }
                 if (monster.ability is StarerAdvanceConfig) {
                     instance.AddComponent<StarerAdvance>();
+                }
+                if (monster.ability is AngelStalkConfig) {
+                    instance.AddComponent<AngelStalk>();
                 }
                 GameObject saved = SaveOrOverwritePrefab(instance, MonsterPath(monster.id));
                 Object.DestroyImmediate(instance);

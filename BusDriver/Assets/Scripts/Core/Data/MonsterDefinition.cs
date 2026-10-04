@@ -79,15 +79,21 @@ namespace BusDriver.Core.Data {
         public float revealSeconds = 2f;
     }
 
-    // §2.12b: its position follows its threat, and it only moves unobserved
+    // Main-branch Weeping Angel numbers: sit delay, aisle walk, proximity kill
     [Serializable]
     public sealed class AngelStalkConfig : MonsterAbilityConfig {
         [Tooltip("The aisle walk, metres per second")]
         public float walkSpeed = 0.55f;
-        [Tooltip("Stuck this long while unobserved, it teleports to its target")]
-        public float stuckTeleportSeconds = 3f;
-        [Tooltip("It stands up into the aisle at this threat (Unsettled)")]
-        public float standAtThreat = 25f;
+        [Tooltip("How close to the hunt target counts as a kill, metres")]
+        public float killDistance = 0.6f;
+        [Tooltip("Seconds after sitting before it may start hunting (low end)")]
+        public float minHuntDelay = 20f;
+        [Tooltip("Seconds after sitting before it may start hunting (high end)")]
+        public float maxHuntDelay = 40f;
+        [Tooltip("How close to a waypoint counts as arrived, metres")]
+        public float aisleReach = 0.08f;
+        [Tooltip("How close to the final hunt target it stops walking, metres")]
+        public float stopDistance = 0.35f;
     }
 
     // One monster type (§2.9–§2.12b, §4.8). Seeded once from §2 by DataSeeder, then the source of

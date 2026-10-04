@@ -4,6 +4,7 @@ using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
+using BusDriver.Gameplay.Passengers;
 
 namespace BusDriver.Gameplay.Player {
     public enum PlayerMode { Driving, OnFoot }
@@ -153,10 +154,25 @@ namespace BusDriver.Gameplay.Player {
             if (game == null || game.Pause.IsPaused || Mode != PlayerMode.Driving) {
                 return;
             }
+            HandleDoorDecision();
             if (game.Input.Actions.LeaveSeat.WasPressedThisFrame()) {
                 TryLeaveSeat();
             }else if (game.Input.Actions.Doors.WasPressedThisFrame() && CanUseDoors) {
                 doors.TryToggle();
+            }
+        }
+
+        // Somebody is standing on the step: wave them aboard or turn them away (§2.4). They hold
+        // the doors open until this is answered, so the bus can't pull away from them.
+        void HandleDoorDecision() {
+            Passenger atDoor = cabin != null ? cabin.PassengerAtDoor : null;
+            if (atDoor == null) {
+                return;
+            }
+            if (game.Input.Actions.AcceptRider.WasPressedThisFrame()) {
+                atDoor.AcceptAboard();
+            }else if (game.Input.Actions.RefuseRider.WasPressedThisFrame()) {
+                atDoor.RefuseAtDoor();
             }
         }
     }

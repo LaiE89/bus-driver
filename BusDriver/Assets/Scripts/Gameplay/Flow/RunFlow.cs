@@ -168,6 +168,7 @@ namespace BusDriver.Gameplay.Flow {
             ShiftDirector director = currentNight.Director;
             if (director != null) {
                 director.OnNightCompleted += CompleteNight;
+                director.OnNightFailed += FailNight;
                 director.OnSummaryConfirmed += HandleSummaryConfirmed;
                 director.OnRunWon += HandleRunWon;
             }
@@ -196,6 +197,19 @@ namespace BusDriver.Gameplay.Flow {
             Run.nightIndex = result.nightIndex + 1;
             Run.nightInProgress = false;
             Log.Info(LogCat.Flow, $"night {result.nightIndex} complete: wallet {Money.Format(Run.walletCents)}, next night {Run.nightIndex}");
+        }
+
+        // Missed the night's money quota: the run is wiped, same as a death, before Summary Continue
+        public void FailNight(NightResult result) {
+            if (Run == null || result == null) {
+                return;
+            }
+            Run.nightInProgress = false;
+            if (!IsDebugRun) {
+                game.Saves.Delete(SaveSlot.Run);
+            }
+            Log.Info(LogCat.Flow, $"run lost: night {result.nightIndex} missed quota "
+                + $"{Money.Format(result.NetCents)} / {Money.Format(result.quotaCents)}");
         }
 
         // §4.4: a death wipes the run at once, before its presenter plays (D21), and the meta save

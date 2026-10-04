@@ -70,6 +70,15 @@ namespace BusDriver.Tests.EditMode.Route {
         }
 
         [Test]
+        public void NextAfter_ReturnsTheFollowingInNightStop() {
+            StopProgress progress = New("church");
+            Assert.AreEqual("gas_station", progress.NextAfter("farm_gate").StopId);
+            Assert.AreEqual("campground", progress.NextAfter("gas_station").StopId);
+            Assert.AreEqual("church", progress.NextAfter("campground").StopId);
+            Assert.AreEqual("church", progress.NextAfter("church").StopId, "nothing after the end stop");
+        }
+
+        [Test]
         public void ServedStopsAreNeverMissed() {
             StopProgress progress = New();
             progress.TryServe("farm_gate", 2000.0, out _);

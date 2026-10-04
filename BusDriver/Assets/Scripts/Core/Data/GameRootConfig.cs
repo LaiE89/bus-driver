@@ -28,6 +28,10 @@ namespace BusDriver.Core.Data {
         [Tooltip("Data/UI/Theme.asset (a BusDriver.UI.Theme.UITheme; typed loosely because Core can't see UI, D61)")]
         public ScriptableObject uiTheme;
 
+        [Tooltip("Generated/Prefabs/Loading. GameRoot keeps one of these alive for the whole run, "
+            + "because a scene change destroys every other canvas mid-load (§4.3)")]
+        public GameObject loadingScreen;
+
         [Tooltip("The balance numbers (Data/Balance/Balance)")]
         public BalanceConfig balance;
 

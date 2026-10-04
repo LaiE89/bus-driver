@@ -25,7 +25,29 @@ namespace BusDriver.Gameplay.Passengers {
             NightDefinition night = services.Night;
             NightDefinition first = services.Game.Config.Night(1);
             Manifest = Manifest.FromScripted(night, first, services.Setup.NoMonsters);
+            RouteDefinition route = services.Route != null ? services.Route.Route : null;
+            string endStop = night != null ? night.endStopId : "";
+            // Night 1's script only covers farm_gate..campground; nights that run further pad the
+            // empty kerbs so every stop before the end has someone waiting
+            Manifest.EnsureBoardingCoverage(route, endStop, LookIds(services));
+            // Destinations past the night's end (or boarding at/after it) would leave the win
+            // condition ambiguous; pull everything onto the night
+            Manifest.ClampToNight(route, endStop);
             SpawnAll(Manifest);
+        }
+
+        static string[] LookIds(ShiftServices services) {
+            PassengerLookDefinition[] looks = services.Game != null && services.Game.Config != null
+                ? services.Game.Config.looks
+                : null;
+            if (looks == null || looks.Length == 0) {
+                return new string[0];
+            }
+            string[] ids = new string[looks.Length];
+            for (int i = 0; i < looks.Length; i++) {
+                ids[i] = looks[i] != null ? looks[i].id : "";
+            }
+            return ids;
         }
 
         public void SpawnAll(Manifest manifest) {

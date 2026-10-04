@@ -65,14 +65,22 @@ namespace BusDriver.Tests.EditMode.Builders {
         }
 
         [Test]
-        public void WeepingAngel_MatchesSection2_12b() {
+        public void WeepingAngel_MatchesMainHunt() {
             MonsterDefinition m = Monster("weeping_angel");
-            AssertRules(m, ThreatCondition.Observed, 0f, ThreatCondition.Always, 1.2f);
+            AssertRules(m, ThreatCondition.Observed, 0f, ThreatCondition.Always, 0f);
             Assert.AreEqual(All, m.observerKinds);
             Assert.AreEqual(SeatZone.Rear, m.seatZonePreference);
             Assert.AreEqual(SeatZone.Mid, m.seatZoneFallback);
-            Assert.AreEqual(EscapeKind.ObserveFor, m.escape.kind);
-            Assert.AreEqual(2f, m.escape.seconds);
+            Assert.AreEqual(EscapeKind.None, m.escape.kind);
+            Assert.IsNotNull(m.killScare, "killScare jump scare");
+            Assert.IsNotNull(m.logicPrefab.GetComponent<AngelStalk>(), "prefab carries AngelStalk");
+            Assert.IsNull(m.logicPrefab.GetComponent<KillSequence>(), "no threat telegraph");
+            AngelStalkConfig ability = m.Ability<AngelStalkConfig>();
+            Assert.IsNotNull(ability);
+            Assert.AreEqual(0.55f, ability.walkSpeed, 0.001f);
+            Assert.AreEqual(0.6f, ability.killDistance, 0.001f);
+            Assert.AreEqual(20f, ability.minHuntDelay, 0.001f);
+            Assert.AreEqual(40f, ability.maxHuntDelay, 0.001f);
         }
 
         [Test]

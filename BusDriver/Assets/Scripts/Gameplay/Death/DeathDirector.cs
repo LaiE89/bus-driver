@@ -133,7 +133,7 @@ namespace BusDriver.Gameplay.Death {
             return report;
         }
 
-        public const string WhispererId = "whisperer";
+        public const string WhispererId = MonsterIds.Whisperer;
 
         // An aboard, seated monster of that type, or null
         public MonsterBrain ActiveMonster(string monsterId) {

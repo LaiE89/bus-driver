@@ -18,6 +18,7 @@ MonoBehaviour:
   soundLibrary: {fileID: 11400000, guid: 26dc90fd214144fa0b258cd7e9beefbd, type: 2}
   audioConfig: {fileID: 11400000, guid: 4e5151e53fe56441698bab482fc9ab81, type: 2}
   uiTheme: {fileID: 11400000, guid: 4c02e7e0ce11c49559f09a5c73f1b3c3, type: 2}
+  loadingScreen: {fileID: 7109098474395229466, guid: 855af116f81a70641b7994720513c784, type: 3}
   balance: {fileID: 11400000, guid: 80b1042107ca54d59b5aa25368af88e9, type: 2}
   routes:
   - {fileID: 11400000, guid: 8f8cbec31f24846e1bc582eeab448f64, type: 2}
@@ -49,5 +50,7 @@ MonoBehaviour:
   scares:
   - {fileID: 11400000, guid: 4cfec3d0c737a436eb629b7837d74711, type: 2}
   - {fileID: 11400000, guid: 8bd38dd69ad2848b7b1d3282e67cd90e, type: 2}
+  - {fileID: 11400000, guid: b1c2d3e4f5a6478899aabbccddeeff01, type: 2}
+  - {fileID: 11400000, guid: c2d3e4f5a6b7488990bbccddeeff0011, type: 2}
   - {fileID: 11400000, guid: a85e46303087e4d1e853c992a1e168d0, type: 2}
   - {fileID: 11400000, guid: f9374a038d29e4e969b8180161833d68, type: 2}

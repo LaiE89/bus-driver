@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using TMPro;
 using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Flow;
@@ -19,12 +18,8 @@ namespace BusDriver.UI.Menu {
         [SerializeField] Button optionsButton;
         [SerializeField] Button controlsButton;
         [SerializeField] Button quitButton;
-        [SerializeField] GameObject loadingScreen;
-        [SerializeField] Slider slider;
-        [SerializeField] TMP_Text progressText;
 
         GameServices game;
-        bool loading;
 
         // From MenuContext.Initialize, before Start
         public void Bind(GameServices services) {
@@ -36,7 +31,6 @@ namespace BusDriver.UI.Menu {
             optionsButton.onClick.AddListener(OpenOptions);
             controlsButton.onClick.AddListener(OpenControls);
             quitButton.onClick.AddListener(QuitGame);
-            loadingScreen.SetActive(false);
         }
 
         // Controller-ready rule 4 (§4.10): something always has focus
@@ -52,9 +46,8 @@ namespace BusDriver.UI.Menu {
                 Log.Error(LogCat.Flow, "MainMenu was never bound to the game services; the Menu scene needs its MenuContext");
                 return;
             }
-            loading = true;
-            loadingScreen.SetActive(true);
-            slider.value = 0f;
+            // GameRoot's loading overlay takes it from here: this scene is destroyed partway
+            // through the load, so the bar can't live on this canvas
             game.Flow.NewRun();
         }
 
@@ -66,15 +59,6 @@ namespace BusDriver.UI.Menu {
         public void OpenControls() {
             PlayUISound();
             router.Push(controls);
-        }
-
-        // The load itself runs on GameRoot, so this object can be destroyed by it at any time
-        void Update() {
-            if (!loading || game == null) {
-                return;
-            }
-            slider.value = game.Scenes.Progress;
-            progressText.SetText($"{(slider.value * 100).ToString("N0")}%");
         }
 
         public void QuitGame() {

@@ -4,6 +4,7 @@ using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Debug;
+using BusDriver.Gameplay.Dialogue;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
@@ -50,6 +51,7 @@ namespace BusDriver.Editor.Builders {
             PlayerAttention attention = contextObject.AddComponent<PlayerAttention>();
             ViewFactory views = contextObject.AddComponent<ViewFactory>();
             ManifestSpawner manifest = contextObject.AddComponent<ManifestSpawner>();
+            DialogueService dialogue = contextObject.AddComponent<DialogueService>();
             MonsterSystem monsters = contextObject.AddComponent<MonsterSystem>();
             ScarePlayer scarePlayer = contextObject.AddComponent<ScarePlayer>();
             ScareDirector scares = contextObject.AddComponent<ScareDirector>();
@@ -114,6 +116,7 @@ namespace BusDriver.Editor.Builders {
             SetRef(context, "riders", riders);
             SetRef(context, "views", views);
             SetRef(context, "manifest", manifest);
+            SetRef(context, "dialogue", dialogue);
             SetRef(context, "monsters", monsters);
             SetRef(context, "scarePlayer", scarePlayer);
             SetRef(context, "scares", scares);

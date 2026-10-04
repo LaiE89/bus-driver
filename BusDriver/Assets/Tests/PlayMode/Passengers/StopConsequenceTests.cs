@@ -27,9 +27,9 @@ namespace BusDriver.Tests.PlayMode.Passengers {
             FlowTestUtil.DeleteSaveRoot(saveRoot);
         }
 
-        // Serve farm_gate (look01 → campground, look02 → church board), then drive straight to the
-        // church: gas_station and campground are missed. Their waiting riders walk away; look01, whose
-        // stop was campground, is carried to the church and delivered there with look02.
+        // Serve farm_gate (look01 → campground, look02 → church), then drive straight to the church:
+        // gas_station and campground are missed. Waiting riders walk away; look01 is retargeted to
+        // the next stop (church), gets off there, and takes the fare back.
         [UnityTest, Timeout(900000)]
         public IEnumerator MissedStop_RidersLostAndCarried() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
@@ -59,7 +59,7 @@ namespace BusDriver.Tests.PlayMode.Passengers {
 
             yield return FlowTestUtil.WaitFor(() => progress.Find("campground").State == StopState.Missed, 240f, "campground missed");
             Assert.AreEqual(RiderStatus.Lost, look05.Status);
-            Assert.AreEqual("church", look01.DestinationStopId, "a rider whose stop was missed rides on to the end stop");
+            Assert.AreEqual("church", look01.DestinationStopId, "a rider whose stop was missed gets off at the next stop");
             Assert.IsTrue(look01.Retargeted);
             Assert.IsFalse(look02.Retargeted);
             // Walked off and despawned
@@ -68,13 +68,18 @@ namespace BusDriver.Tests.PlayMode.Passengers {
             yield return NightDrive.ArriveAt(night, "church");
             Assert.IsTrue(shift.Doors.TryOpen(), "the doors wouldn't open at the church");
             yield return FlowTestUtil.WaitFor(() => progress.TerminusReached, 20f, "the end stop served");
-            Assert.AreEqual(RiderStatus.Delivered, look01.Status, "the carried rider is delivered at the end stop");
+            Assert.AreEqual(RiderStatus.Delivered, look01.Status, "the retargeted rider is dropped at the next stop");
             Assert.AreEqual(RiderStatus.Delivered, look02.Status);
             Assert.AreEqual("church", look01.ExitStopId);
             Assert.AreEqual("church", look02.ExitStopId);
+            Assert.AreEqual(0, shift.Ledger.Totals.Cents(LedgerKind.Refund),
+                "the missed-stop refund waits until their farewell on the step");
             Assert.AreEqual(0, shift.Riders.Aboard.Count, "no non-monster rider is left aboard at the end stop");
             Assert.AreEqual(StopState.Served, progress.Find("church").State, "the end stop can't be missed");
-            // They still walk off through the doors
+            // Farewell (and refund) fire on the doorstep; then they finish walking off
+            yield return FlowTestUtil.WaitFor(
+                () => shift.Ledger.Totals.Cents(LedgerKind.Refund) == -shift.Balance.fareCents, 60f,
+                "the missed-stop rider taking their fare back at farewell");
             yield return FlowTestUtil.WaitFor(() => shift.Cabin.Passengers.Count == 0, 60f, "the delivered riders getting off");
         }
     }

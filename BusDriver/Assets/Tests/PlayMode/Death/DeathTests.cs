@@ -95,7 +95,7 @@ namespace BusDriver.Tests.PlayMode.Death {
             // New Run from Game Over
             screen.NewRunButton.onClick.Invoke();
             yield return FlowTestUtil.WaitForDriving(game);
-            Assert.AreEqual(1, Object.FindObjectsByType<GameRoot>(FindObjectsSortMode.None).Length, "one GameRoot");
+            Assert.AreEqual(1, Object.FindObjectsByType<GameRoot>().Length, "one GameRoot");
             Assert.AreEqual(1, game.Flow.Run.nightIndex);
             Assert.AreEqual(2, game.Meta.Current.runsStarted);
             Assert.AreEqual(0f, Shift().Fade.Alpha, "the new night isn't black");

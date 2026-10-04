@@ -16,6 +16,7 @@ MonoBehaviour:
   endStopId: lodge
   threatRateMultiplier: 1.35
   hintsEnabled: 0
+  quotaCents: 3150
   scripted: []
   riderCountMin: 11
   riderCountMax: 13

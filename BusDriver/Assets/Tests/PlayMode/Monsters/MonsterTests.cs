@@ -83,7 +83,7 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             BusSeat seat = SeatCam2Sees(shift);
             Assert.IsNotNull(seat, "no seat in CAM 2's frame");
             Passenger rider = shift.DebugRiders.SpawnSeated(new RiderSpec {
-                lookId = "look06", boardStopId = "gas_station", destinationStopId = "church", monsterId = "starer",
+                lookId = "look06", boardStopId = "gas_station", destinationStopId = "", monsterId = "starer",
             }, seat);
             Assert.IsNotNull(rider);
             MonsterBrain brain = rider.GetComponent<MonsterBrain>();

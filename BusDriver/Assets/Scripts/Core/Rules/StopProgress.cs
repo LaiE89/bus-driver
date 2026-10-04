@@ -86,6 +86,18 @@ namespace BusDriver.Core.Rules {
             return null;
         }
 
+        // The next stop of this night after stopId, or the end stop when none follows
+        public StopRecord NextAfter(string stopId) {
+            StopRecord current = Find(stopId);
+            int start = current != null ? current.Index + 1 : 0;
+            for (int i = start; i < records.Length; i++) {
+                if (records[i].InNight) {
+                    return records[i];
+                }
+            }
+            return EndStop;
+        }
+
         // The doors are fully open at this stop for the first time. False for an unknown stop, one
         // outside the night, or one already Served or Missed (Missed is final, even after reversing).
         // A NaN arrival (no clock) leaves the rating None.

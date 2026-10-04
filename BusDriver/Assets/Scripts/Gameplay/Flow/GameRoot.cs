@@ -66,9 +66,26 @@ namespace BusDriver.Gameplay.Flow {
             services.Flow = new RunFlow(services);
             services.Scenes.Attach(services);
             Services = services;
+            BuildLoadingScreen(config, services);
             services.Settings.Apply();
             if (SelfTestRunner.Requested(Environment.GetCommandLineArgs())) {
                 gameObject.AddComponent<SelfTestRunner>().Begin(build.Label);
+            }
+        }
+
+        // The loading overlay is the only UI outside a scene (§4.3): a night load replaces the
+        // menu scene halfway through, so a canvas living in a scene can't cover it. Bound through
+        // IGameBindable, so Gameplay never names the UI type.
+        void BuildLoadingScreen(GameRootConfig config, GameServices services) {
+            if (config.loadingScreen == null) {
+                Log.Error(LogCat.Flow, "GameRootConfig.loadingScreen is not set; the night will load on a black screen");
+                return;
+            }
+            GameObject overlay = Instantiate(config.loadingScreen, transform);
+            overlay.name = config.loadingScreen.name;
+            IGameBindable[] bindables = overlay.GetComponentsInChildren<IGameBindable>(true);
+            for (int i = 0; i < bindables.Length; i++) {
+                bindables[i].Bind(services);
             }
         }
 

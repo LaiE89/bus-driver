@@ -55,7 +55,7 @@ namespace BusDriver.Editor.Builders {
             System.Random random = new System.Random((int)hash);
             float[] samples;
             if (definition.loop) {
-                samples = Hum(hash, random);
+                samples = Hum(hash);
             }else if (definition.group == AudioGroup.Scares) {
                 samples = Burst(hash, random);
             }else if (definition.group == AudioGroup.Ui) {
@@ -66,14 +66,17 @@ namespace BusDriver.Editor.Builders {
             return Wav(samples);
         }
 
-        // 2 s, a whole number of cycles so the loop point is seamless, with a little noise
-        static float[] Hum(uint hash, System.Random random) {
+        // 2 s, a whole number of cycles so the loop point is seamless. Tonal only: a noise layer
+        // reads as radio static once it loops under a quiet scene, and it clicks at the loop point
+        static float[] Hum(uint hash) {
             float frequency = 55f + (hash % 60) * 0.5f;
             float[] samples = new float[SampleRate * 2];
             for (int i = 0; i < samples.Length; i++) {
                 float t = (float)i / SampleRate;
+                // One cycle of a 0.5 Hz tremolo fits the loop, so it breathes and still joins up
+                float tremolo = 0.85f + 0.15f * Mathf.Sin(Mathf.PI * t);
                 float tone = Mathf.Sin(2f * Mathf.PI * frequency * t) + 0.3f * Mathf.Sin(4f * Mathf.PI * frequency * t);
-                samples[i] = 0.25f * tone + 0.05f * ((float)random.NextDouble() * 2f - 1f);
+                samples[i] = 0.25f * tremolo * tone;
             }
             return samples;
         }

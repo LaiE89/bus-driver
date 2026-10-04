@@ -10,15 +10,16 @@ using BusDriver.Gameplay.Shift;
 
 namespace BusDriver.Gameplay.Economy {
     // Turns rider events into ledger entries (§2.7, §4.6): a fare when a rider boards (monsters
-    // too, D34), a tip for an Early delivery, a refund when an innocent is kicked or a rider is
-    // killed, and a bounty for a kicked monster. Subscriptions only; it holds no state of its own
-    // beyond what each rider paid.
+    // too, D34), a tip or missed-stop refund when they speak their farewell on the step, a refund
+    // when an innocent is kicked or a rider is killed, and a bounty for a kicked monster.
+    // Subscriptions only; it holds no state of its own beyond what each rider paid.
     public sealed class EconomyRules {
         readonly Dictionary<string, int> paid = new Dictionary<string, int>();
-        // Riders delivered before their stop was marked Served (they can reach the kerb before the
-        // doors finish opening); their tip is decided once it is
+        // Riders who said farewell before their stop was marked Served (doors still opening); tip
+        // is decided once the stop is served
         readonly List<RiderRecord> awaitingRating = new List<RiderRecord>();
         readonly List<RiderRecord> ready = new List<RiderRecord>();
+        readonly HashSet<string> settled = new HashSet<string>();
         ShiftLedger ledger;
         BalanceConfig balance;
         PassengerRegistry riders;
@@ -40,6 +41,7 @@ namespace BusDriver.Gameplay.Economy {
             cabin = shift.Cabin;
             BountyFor = monsterId => balance.defaultBountyCents;
             cabin.OnPassengerBoarded += HandleBoarded;
+            cabin.OnPassengerDropOff += HandleDropOff;
             riders.OnStatusChanged += HandleStatusChanged;
             progress.OnServed += HandleServed;
             shift.Debug.Register("Economy", ledger.WriteDebug);
@@ -55,11 +57,29 @@ namespace BusDriver.Gameplay.Economy {
             ledger.Record(new LedgerEntry(LedgerKind.Fare, fare, record.RiderId, record.Spec.boardStopId, Now()));
         }
 
+        // Same moment as the drop-off dialogue: tip for an Early stop, fare back if their stop was missed
+        void HandleDropOff(Passenger passenger) {
+            RiderRecord record = riders.For(passenger);
+            if (record == null || !settled.Add(record.RiderId)) {
+                return;
+            }
+            if (string.IsNullOrEmpty(record.ExitStopId) && cabin != null && cabin.CurrentStop != null) {
+                record.ExitStopId = cabin.CurrentStop.StopId;
+            }
+            if (record.Retargeted) {
+                RefundFare(record, LedgerKind.Refund);
+                return;
+            }
+            StopRecord stop = progress.Find(record.ExitStopId);
+            if (stop != null && stop.State == StopState.Pending) {
+                awaitingRating.Add(record);
+                return;
+            }
+            PayTip(record, stop);
+        }
+
         void HandleStatusChanged(RiderRecord record) {
             switch (record.Status) {
-                case RiderStatus.Delivered:
-                    HandleDelivered(record);
-                    break;
                 case RiderStatus.Kicked:
                     if (record.IsMonster) {
                         // The fare is kept (§2.7)
@@ -72,15 +92,6 @@ namespace BusDriver.Gameplay.Economy {
                     RefundFare(record, LedgerKind.Lost);
                     break;
             }
-        }
-
-        void HandleDelivered(RiderRecord record) {
-            StopRecord stop = progress.Find(record.ExitStopId);
-            if (stop != null && stop.State == StopState.Pending) {
-                awaitingRating.Add(record);
-                return;
-            }
-            PayTip(record, stop);
         }
 
         void HandleServed(StopRecord stop) {

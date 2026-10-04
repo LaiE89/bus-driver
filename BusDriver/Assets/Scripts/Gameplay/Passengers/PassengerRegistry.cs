@@ -20,9 +20,10 @@ namespace BusDriver.Gameplay.Passengers {
         public readonly RiderSpec Spec;
         public Passenger Passenger { get; internal set; }
         public RiderStatus Status { get; internal set; }
-        // The stop this rider gets off at; the night's end stop once theirs is missed (§2.4)
+        // The stop this rider gets off at; the next stop once theirs is missed (§2.4).
+        // Empty for monsters: they never request a drop-off (§2.9).
         public string DestinationStopId { get; internal set; }
-        // Carried on to the end stop because their own stop was missed: fare kept, no tip (§2.4)
+        // Bound for a later stop because theirs was missed: dropped at the next stop, fare refunded
         public bool Retargeted { get; internal set; }
         // Where they left the bus (delivered or kicked), or "" if they never did
         public string ExitStopId { get; internal set; } = "";
@@ -35,7 +36,7 @@ namespace BusDriver.Gameplay.Passengers {
             RiderId = riderId;
             Index = index;
             Spec = spec;
-            DestinationStopId = spec.destinationStopId;
+            DestinationStopId = spec.IsMonster ? "" : spec.destinationStopId;
         }
     }
 
@@ -43,7 +44,8 @@ namespace BusDriver.Gameplay.Passengers {
     // or lost. It sets the cabin's alighting rule: a non-monster rider gets off at their
     // destination (§2.4); monsters never get off by themselves (§2.9). It also applies the stop
     // consequences of §2.4: a missed stop's waiting riders walk away (Lost), riders bound for it are
-    // carried on to the end stop, and the end stop delivers every non-monster rider aboard.
+    // retargeted to the next stop (fare refunded on delivery), and the end stop delivers every
+    // non-monster rider aboard.
     public sealed class PassengerRegistry : MonoBehaviour {
         readonly List<RiderRecord> all = new List<RiderRecord>();
         readonly List<RiderRecord> aboard = new List<RiderRecord>();
@@ -105,23 +107,34 @@ namespace BusDriver.Gameplay.Passengers {
                     passenger.WalkAway(busStop.transform.right);
                 }
             }
-            StopRecord end = progress.EndStop;
-            if (end == null) {
+            StopRecord next = progress != null ? NextDropOffAfter(stop) : null;
+            if (next == null) {
                 return;
             }
             for (int i = 0; i < aboard.Count; i++) {
                 RiderRecord record = aboard[i];
                 if (!record.IsMonster && record.DestinationStopId == stop.StopId) {
-                    record.DestinationStopId = end.StopId;
+                    record.DestinationStopId = next.StopId;
                     record.Retargeted = true;
                 }
             }
         }
 
+        // First in-night stop after the missed one (usually the next kerb; the end stop when none left)
+        StopRecord NextDropOffAfter(StopRecord missed) {
+            IReadOnlyList<StopRecord> stops = progress.Stops;
+            for (int i = missed.Index + 1; i < stops.Count; i++) {
+                if (stops[i].InNight) {
+                    return stops[i];
+                }
+            }
+            return progress.EndStop;
+        }
+
         // §2.4 End stop: the doors are fully open, so every non-monster rider aboard is delivered
         // here, whatever their stop was. They still walk off through the doors (the alighting rule
-        // matches them), but the night is already won. Monsters still aboard simply stay behind:
-        // no penalty, no bounty.
+        // matches them); ShiftDirector waits until the cabin is empty before the Summary. Monsters
+        // stay aboard until kicked: no auto-delivery, no penalty, no bounty.
         void HandleTerminus() {
             StopRecord end = progress.EndStop;
             delivering.Clear();
@@ -183,6 +196,17 @@ namespace BusDriver.Gameplay.Passengers {
             }
         }
 
+        // Turned away on the step (§2.4): they never counted as aboard, so there is no fare to
+        // refund and no review. Recorded so the Summary and the debug overlay can tell them from
+        // a rider who is still waiting at a stop.
+        public void MarkRefused(Passenger passenger) {
+            RiderRecord record = For(passenger);
+            if (record != null) {
+                record.ExitStopId = CurrentStopId();
+                SetStatus(record, RiderStatus.Refused);
+            }
+        }
+
         // A monster the Salt charm expelled (§2.14): off the bus, fare kept, no bounty
         public void MarkExpelled(Passenger passenger) {
             RiderRecord record = For(passenger);
@@ -213,9 +237,11 @@ namespace BusDriver.Gameplay.Passengers {
             }
         }
 
+        // Only a rider who actually made it aboard can be delivered: one who was kicked, refused on
+        // the step or already settled keeps the status they have
         void HandleLeft(Passenger passenger) {
             RiderRecord record = For(passenger);
-            if (record == null || record.Status == RiderStatus.Kicked || record.Status == RiderStatus.Delivered) {
+            if (record == null || record.Status != RiderStatus.Aboard) {
                 RemoveAboard(record);
                 return;
             }

@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using UnityEngine.Assemblies;
 using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using Debug = UnityEngine.Debug;
@@ -118,7 +120,7 @@ namespace BusDriver.Editor.Build {
             PlayerSettings.SetScriptingBackend(named, ScriptingImplementation.Mono2x);
             PlayerSettings.SetManagedStrippingLevel(named, ManagedStrippingLevel.Low);
             if (target == BuildTarget.StandaloneOSX) {
-                UnityEditor.OSXStandalone.UserBuildSettings.architecture = MacArchitecture();
+                SetMacArchitecture(MacArchitecture());
             }
 
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
@@ -139,6 +141,32 @@ namespace BusDriver.Editor.Build {
                 Debug.LogError("[BUILD] FAIL " + line);
             }
             return ok;
+        }
+
+        // UserBuildSettings lives in the macOS build support module, so an editor without that module
+        // installed has no assembly to compile against (CS0234). Reflection keeps this file building
+        // on a Windows-only install; the Build target check above already stops the build itself.
+        static void SetMacArchitecture(OSArchitecture architecture) {
+            Type settings = FindEditorType("UnityEditor.OSXStandalone.UserBuildSettings");
+            PropertyInfo property = settings == null
+                ? null
+                : settings.GetProperty("architecture", BindingFlags.Public | BindingFlags.Static);
+            if (property == null) {
+                Debug.LogWarning("[BUILD] macOS build support is not installed, so the architecture is "
+                    + "left at its default. Add Mac Build Support (Mono) in Unity Hub (T-M0-08).");
+                return;
+            }
+            property.SetValue(null, Enum.ToObject(property.PropertyType, (int)architecture));
+        }
+
+        static Type FindEditorType(string fullName) {
+            foreach (Assembly assembly in CurrentAssemblies.GetLoadedAssemblies()) {
+                Type type = assembly.GetType(fullName, false);
+                if (type != null) {
+                    return type;
+                }
+            }
+            return null;
         }
 
         // Universal (Intel + Apple silicon) per §4.20. Burst merges its two slices with the editor's

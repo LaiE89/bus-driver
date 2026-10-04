@@ -11,6 +11,7 @@ namespace BusDriver.Core.Util {
         public const string Mimic = "mimic";
         public const string Scare = "scare";
         public const string Decoy = "decoy";
+        public const string Dialogue = "dialogue";
         public const string Menu = "menu";
         // Monster behaviour that isn't the Mimic's copying (D69)
         public const string Monster = "monster";

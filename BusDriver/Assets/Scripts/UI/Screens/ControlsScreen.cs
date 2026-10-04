@@ -23,9 +23,9 @@ namespace BusDriver.UI.Screens {
         public const string BackButtonName = "Back Button";
 
         [SerializeField] ScreenRouter router;
-        [SerializeField] int rowsPerColumn = 10;
-        [SerializeField] float firstRowY = 380f;
-        [SerializeField] float rowPitch = 42f;
+        [SerializeField] float firstRowY = 360f;
+        // Room for a 44 px row, which is what the 32pt row text needs
+        [SerializeField] float rowPitch = 54f;
         [SerializeField] float columnOffset = 430f;
 
         sealed class Row {
@@ -123,33 +123,38 @@ namespace BusDriver.UI.Screens {
                 return;
             }
             List<RebindableBinding> bindings = input.RebindableBindings();
+            // The screen has room for exactly two columns, so they split whatever the asset has:
+            // the list grows as actions are added and the layout keeps up on its own
+            int perColumn = Mathf.Max(1, (bindings.Count + 1) / 2);
             for (int i = 0; i < bindings.Count; i++) {
-                int column = i / rowsPerColumn;
+                int column = i / perColumn;
                 float x = column == 0 ? -columnOffset : columnOffset;
-                float y = firstRowY - (i % rowsPerColumn) * rowPitch;
+                float y = firstRowY - (i % perColumn) * rowPitch;
                 rows.Add(CreateRow(bindings[i], labelTemplate, buttonTemplate, x, y));
             }
-            statusText = CloneLabel(labelTemplate, "Rebind Status", new Vector2(0f, firstRowY - rowsPerColumn * rowPitch - 20f), new Vector2(1200f, 30f));
+            float belowRows = firstRowY - perColumn * rowPitch;
+            statusText = CloneLabel(labelTemplate, "Rebind Status", new Vector2(0f, belowRows - 20f), new Vector2(1200f, 44f));
             statusText.alignment = TextAlignmentOptions.Center;
             statusText.text = "";
-            Place(transform.Find(ResetButtonName), new Vector2(0f, firstRowY - rowsPerColumn * rowPitch - 90f));
-            Place(transform.Find(BackButtonName), new Vector2(0f, firstRowY - rowsPerColumn * rowPitch - 180f));
+            Place(transform.Find(ResetButtonName), new Vector2(0f, belowRows - 110f));
+            Place(transform.Find(BackButtonName), new Vector2(0f, belowRows - 215f));
 
             labelTemplate.gameObject.SetActive(false);
             buttonTemplate.gameObject.SetActive(false);
         }
 
         Row CreateRow(RebindableBinding binding, Transform labelTemplate, Transform buttonTemplate, float x, float y) {
-            TMP_Text label = CloneLabel(labelTemplate, binding.ActionId + " label", new Vector2(x - 190f, y), new Vector2(320f, 30f));
+            TMP_Text label = CloneLabel(labelTemplate, binding.ActionId + " label", new Vector2(x - 230f, y), new Vector2(380f, 44f));
             label.text = binding.Label.ToUpperInvariant();
             label.alignment = TextAlignmentOptions.Right;
 
             Row row = new Row { Binding = binding };
-            row.KeyButton = CloneButton(buttonTemplate, binding.ActionId + " key", new Vector2(x + 60f, y), new Vector2(180f, 30f));
+            row.KeyButton = CloneButton(buttonTemplate, binding.ActionId + " key", new Vector2(x + 90f, y), new Vector2(240f, 44f));
             row.KeyText = row.KeyButton.GetComponentInChildren<TMP_Text>(true);
             row.KeyButton.onClick.AddListener(() => StartRebind(row));
 
-            row.ResetButton = CloneButton(buttonTemplate, binding.ActionId + " reset", new Vector2(x + 215f, y), new Vector2(110f, 30f));
+            // Wide enough for RESET at the row's text size, and clear of the key button
+            row.ResetButton = CloneButton(buttonTemplate, binding.ActionId + " reset", new Vector2(x + 325f, y), new Vector2(180f, 44f));
             row.ResetButton.GetComponentInChildren<TMP_Text>(true).text = UIText.Reset;
             row.ResetButton.onClick.AddListener(() => ResetRow(row));
             return row;

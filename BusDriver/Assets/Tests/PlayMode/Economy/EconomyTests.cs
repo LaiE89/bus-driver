@@ -66,11 +66,12 @@ namespace BusDriver.Tests.PlayMode.Economy {
             RiderRecord look04 = NightDrive.Rider(shift, "look04");
             yield return NightDrive.ArriveAt(night, "campground");
             Assert.IsTrue(shift.Doors.TryOpen());
-            yield return FlowTestUtil.WaitFor(() => look04.Status == RiderStatus.Delivered, 60f, "look04 getting off at campground");
             StopRecord campground = shift.Progress.Find("campground");
+            // Tip lands with the farewell on the doorstep, before NotifyLeft marks Delivered
+            yield return FlowTestUtil.WaitFor(() => ledger.Totals.Count(LedgerKind.Tip) == 1, 60f, "the tip on drop-off");
+            Assert.AreNotEqual(RiderStatus.Delivered, look04.Status, "tip is paid at the farewell, before they finish stepping off");
             Assert.AreEqual(ArrivalRating.Early, campground.Rating,
                 $"campground should be reached early: arrived {campground.ArrivalGameSeconds:0}, scheduled {campground.ScheduledGameSeconds:0}");
-            yield return FlowTestUtil.WaitFor(() => ledger.Totals.Count(LedgerKind.Tip) == 1, 10f, "the tip");
             LedgerEntry tip = default;
             foreach (LedgerEntry entry in ledger.Entries) {
                 if (entry.Kind == LedgerKind.Tip) {
@@ -81,9 +82,38 @@ namespace BusDriver.Tests.PlayMode.Economy {
             Assert.AreEqual(EconomyMath.Tip(balance.fareCents, balance.tipPercent), tip.AmountCents);
             Assert.AreEqual(175, tip.AmountCents, "a 50 % tip on a $3.50 fare");
             Assert.AreEqual("campground", tip.StopId);
+            yield return FlowTestUtil.WaitFor(() => look04.Status == RiderStatus.Delivered, 60f, "look04 finishing the step-off");
             // The night's money is in the ledger; the run's wallet takes it when the night completes
             Assert.AreEqual(0, night.Setup.Run.walletCents);
             Assert.AreEqual(ledger.Totals.NetCents, ledger.WalletNowCents);
+        }
+
+        // An innocent kicked out takes their fare back (§2.7 / §2.13)
+        [UnityTest, Timeout(900000)]
+        public IEnumerator Economy_InnocentKicked_RefundsFare() {
+            GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
+            game.Flow.DebugNoMonsters = true;
+            game.Flow.NewRun(Seed);
+            yield return FlowTestUtil.WaitForDriving(game);
+            ShiftContext night = Object.FindAnyObjectByType<ShiftContext>();
+            ShiftServices shift = night.Shift;
+            BalanceConfig balance = shift.Balance;
+
+            Time.timeScale = TimeScale;
+            yield return NightDrive.ServeStop(night, "farm_gate");
+            RiderRecord look01 = NightDrive.Rider(shift, "look01");
+            Assert.AreEqual(RiderStatus.Aboard, look01.Status);
+            Assert.AreEqual(2 * balance.fareCents, shift.Ledger.Totals.Cents(LedgerKind.Fare));
+
+            // Stay stopped with the doors shut so the player can walk back and kick
+            Assert.IsTrue(shift.Doors.TryClose());
+            yield return FlowTestUtil.WaitFor(() => shift.Doors.IsClosed, 20f, "doors closed");
+            Passenger passenger = look01.Passenger;
+            yield return OnFootKick.WalkUpAndKick(shift, passenger);
+            Assert.AreEqual(RiderStatus.Kicked, look01.Status);
+            Assert.AreEqual(-balance.fareCents, shift.Ledger.Totals.Cents(LedgerKind.Refund),
+                "kicking a human refunds the fare they paid");
+            yield return OnFootKick.WaitGoneAndSitDown(shift, passenger);
         }
     }
 }

@@ -1,8 +1,10 @@
+using BusDriver.Core.Data;
 using BusDriver.UI.Debug;
 using BusDriver.UI.Hud;
 using BusDriver.UI.Screens;
 using BusDriver.UI.Theme;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using static BusDriver.Editor.Builders.BuilderUtil;
@@ -14,6 +16,7 @@ namespace BusDriver.Editor.Builders {
         public const string HudPath = PrefabBuilder.Folder + "/HUD.prefab";
         public const string ScreensPath = PrefabBuilder.Folder + "/Screens.prefab";
         public const string DebugOverlayPath = PrefabBuilder.Folder + "/DebugOverlay.prefab";
+        public const string LoadingPath = PrefabBuilder.Folder + "/Loading.prefab";
         public const string DashPath = DashPrefabBuilder.Path;
 
         // Canvas order (§4.13): CCTV under the HUD, screens over both, debug on top
@@ -24,6 +27,8 @@ namespace BusDriver.Editor.Builders {
         // Over the HUD, under the screens, so the pause menu stays readable in a fade
         public const int FadeOrder = 15;
         public const int ScreensOrder = 20;
+        // Over every screen: a load covers whatever was on screen when it started
+        public const int LoadingOrder = 30;
         public const int DebugOrder = 40;
 
         static readonly Vector2 Center = new Vector2(0.5f, 0.5f);
@@ -34,7 +39,58 @@ namespace BusDriver.Editor.Builders {
             BuildHud();
             BuildScreens();
             BuildDebugOverlay();
+            BuildLoading();
             DashPrefabBuilder.Build();
+        }
+
+        // The one canvas that isn't part of a scene (§4.3): GameRoot instantiates it under itself
+        // so it survives the scene change in the middle of a night load. The camera clears to
+        // black for the moment when the menu has gone and the bus isn't switched on yet.
+        static void BuildLoading() {
+            GameObject root = new GameObject("Loading");
+
+            GameObject cameraObject = new GameObject("Blank Camera");
+            cameraObject.transform.SetParent(root.transform, false);
+            Camera blank = cameraObject.AddComponent<Camera>();
+            blank.clearFlags = CameraClearFlags.SolidColor;
+            blank.backgroundColor = Color.black;
+            blank.cullingMask = 0;
+            // Behind anything a scene brings, so it only ever shows when it is the only camera
+            blank.depth = -100f;
+            blank.enabled = false;
+
+            Canvas canvas = UIBuild.CreateCanvas("Loading Canvas", root.transform, LoadingOrder);
+            Object.DestroyImmediate(canvas.GetComponent<GraphicRaycaster>());
+            RectTransform panel = UIBuild.Panel("LoadingPanel", canvas.transform);
+            UIBuild.Fill("Dim", panel, Color.black, false);
+            UIBuild.Label("Loading Label", panel, "LOADING", ThemeRole.Screen, TextAlignmentOptions.Center,
+                Center, new Vector2(0f, 60f), new Vector2(800f, 80f));
+            Slider bar = UIBuild.CreateSlider("Progress Slider", panel, Center, new Vector2(0f, -20f), new Vector2(800f, 24f), 0f, 1f);
+            bar.interactable = false;
+            TMP_Text percent = UIBuild.Label("Progress Text", panel, "0%", ThemeRole.Body, TextAlignmentOptions.Center,
+                Center, new Vector2(0f, -80f), new Vector2(400f, 50f));
+
+            LoadingView view = root.AddComponent<LoadingView>();
+            SetRef(view, "panel", panel.gameObject);
+            SetRef(view, "canvas", canvas);
+            SetRef(view, "blankCamera", blank);
+            SetRef(view, "bar", bar);
+            SetRef(view, "percentText", percent);
+            panel.gameObject.SetActive(false);
+            canvas.enabled = false;
+
+            GameObject prefab = SaveOrOverwritePrefab(root, LoadingPath);
+            Object.DestroyImmediate(root);
+
+            // GameRoot reaches it through the one Resources asset (§4.2), and this builder runs
+            // after DataSeeder has created that asset
+            GameRootConfig config = AssetDatabase.LoadAssetAtPath<GameRootConfig>(GameRootConfig.AssetPath);
+            if (config != null && config.loadingScreen != prefab) {
+                config.loadingScreen = prefab;
+                EditorUtility.SetDirty(config);
+                // PrefabBuilder / BuildAll also save, but wire it now so a solo Prefabs bake sticks
+                AssetDatabase.SaveAssets();
+            }
         }
 
         // ================================================================== HUD
@@ -47,8 +103,6 @@ namespace BusDriver.Editor.Builders {
             RectTransform driverPanel = UIBuild.Panel("DriverPanel", hudCanvas.transform);
             TMP_Text speed = UIBuild.Label("SpeedText", driverPanel, "0 km/h", ThemeRole.Screen, TextAlignmentOptions.BottomRight, new Vector2(1f, 0f), new Vector2(-60f, 40f), new Vector2(600f, 110f));
             TMP_Text gear = UIBuild.Label("GearText", driverPanel, "N", ThemeRole.Screen, TextAlignmentOptions.BottomRight, new Vector2(1f, 0f), new Vector2(-60f, 150f), new Vector2(200f, 80f));
-            TMP_Text controls = UIBuild.Label("ControlsText", driverPanel, "", ThemeRole.Caption, TextAlignmentOptions.BottomLeft, new Vector2(0f, 0f), new Vector2(40f, 30f), new Vector2(1500f, 40f));
-            UIBuild.Theme(controls, ThemeRole.Caption).SetPaletteColor(ThemeColor.Disabled);
 
             RectTransform onFootPanel = UIBuild.Panel("OnFootPanel", hudCanvas.transform);
             GameObject crosshair = UIBuild.UIObject("Crosshair", onFootPanel);
@@ -58,9 +112,10 @@ namespace BusDriver.Editor.Builders {
             dot.raycastTarget = false;
             onFootPanel.gameObject.SetActive(false);
 
-            // Shared by the seat and on-foot views
-            TMP_Text prompt = UIBuild.Label("PromptText", hudCanvas.transform, "", ThemeRole.Hud, TextAlignmentOptions.Bottom, new Vector2(0.5f, 0f), new Vector2(0f, 220f), new Vector2(1200f, 110f));
-            TMP_Text status = UIBuild.Label("StatusText", hudCanvas.transform, "", ThemeRole.Hud, TextAlignmentOptions.Top, new Vector2(0.5f, 1f), new Vector2(0f, -50f), new Vector2(600f, 50f));
+            // Interaction prompts sit a little below centre so they read as tooltips over the
+            // world, not as a footer. The dialogue box owns the bottom strip instead.
+            TMP_Text prompt = UIBuild.Label("PromptText", hudCanvas.transform, "", ThemeRole.Hud, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), new Vector2(0f, -140f), new Vector2(1200f, 110f));
+            TMP_Text status = UIBuild.Label("StatusText", hudCanvas.transform, "", ThemeRole.Hud, TextAlignmentOptions.Top, new Vector2(0.5f, 1f), new Vector2(0f, -50f), new Vector2(900f, 100f));
             UIBuild.Theme(status, ThemeRole.Hud).SetPaletteColor(ThemeColor.Highlight);
 
             SetRef(hud, "driverPanel", driverPanel.gameObject);
@@ -69,7 +124,8 @@ namespace BusDriver.Editor.Builders {
             SetRef(hud, "statusText", status);
             SetRef(hud, "speedText", speed);
             SetRef(hud, "gearText", gear);
-            SetRef(hud, "controlsText", controls);
+
+            BuildDialogue(hudCanvas.transform);
 
             Canvas cctvCanvas = UIBuild.CreateCanvas("CCTV Canvas", root.transform, CctvOrder);
             // Nothing to click on a camera feed
@@ -105,6 +161,35 @@ namespace BusDriver.Editor.Builders {
 
             SaveOrOverwritePrefab(root, HudPath);
             Object.DestroyImmediate(root);
+        }
+
+        // Bottom-centre strip on the HUD canvas: it belongs to the world, not to a screen, so it
+        // stays up while the player drives. Starts hidden; DialogueView shows it when somebody
+        // speaks. Prompts live higher (near screen centre) so the two never share a band.
+        static void BuildDialogue(Transform parent) {
+            // The view sits on a holder that stays active, so it can switch the box back on
+            GameObject holder = UIBuild.UIObject("Dialogue", parent);
+            UIBuild.Stretch((RectTransform)holder.transform);
+            GameObject box = UIBuild.UIObject("DialoguePanel", holder.transform);
+            RectTransform rect = (RectTransform)box.transform;
+            UIBuild.Place(rect, new Vector2(0.5f, 0f), new Vector2(0f, 48f), new Vector2(1500f, 200f));
+            Image background = box.AddComponent<Image>();
+            background.color = Dim;
+            background.raycastTarget = false;
+
+            TMP_Text speaker = UIBuild.Label("SpeakerText", rect, "", ThemeRole.Caption, TextAlignmentOptions.TopLeft,
+                new Vector2(0f, 1f), new Vector2(40f, -24f), new Vector2(700f, 44f));
+            UIBuild.Theme(speaker, ThemeRole.Caption).SetPaletteColor(ThemeColor.Highlight);
+            TMP_Text line = UIBuild.Label("LineText", rect, "", ThemeRole.Hud, TextAlignmentOptions.TopLeft,
+                new Vector2(0f, 1f), new Vector2(40f, -70f), new Vector2(1420f, 110f));
+            // Lines are full sentences, so unlike the rest of the HUD this one wraps
+            line.textWrappingMode = TextWrappingModes.Normal;
+
+            DialogueView view = holder.AddComponent<DialogueView>();
+            SetRef(view, "panel", box);
+            SetRef(view, "speakerText", speaker);
+            SetRef(view, "lineText", line);
+            box.SetActive(false);
         }
 
         // The scare overlay (T-M4-05): the flash, the CCTV static and the two hands, over the HUD
@@ -234,13 +319,16 @@ namespace BusDriver.Editor.Builders {
             UIBuild.Label("Title", root, UIText.Options, ThemeRole.Title, TextAlignmentOptions.Center, Center, new Vector2(0f, 400f), new Vector2(1220f, 160f));
 
             Vector2 control = new Vector2(420f, 44f);
+            // A dropdown shows its caption in the 32pt Body role, which needs more height than a
+            // slider's bar does; the rows are 80 apart, so this still leaves a gap between them
+            Vector2 list = new Vector2(420f, 60f);
             Slider sens = Row(root, "Mouse Sensitivity", 250f, p => UIBuild.CreateSlider("Sensitivity Slider", root, Center, p, control, 10f, 200f));
             Slider volume = Row(root, "Master Volume", 170f, p => UIBuild.CreateSlider("Volume Slider", root, Center, p, control, 0f, 1f));
             Slider brightness = Row(root, "Brightness", 90f, p => UIBuild.CreateSlider("Brightness Slider", root, Center, p, control, 0f, 1f));
-            TMP_Dropdown quality = Row(root, "Quality", 10f, p => UIBuild.CreateDropdown("Quality Dropdown", root, Center, p, control));
-            TMP_Dropdown resolution = Row(root, "Resolution", -70f, p => UIBuild.CreateDropdown("Resolution Dropdown", root, Center, p, control));
+            TMP_Dropdown quality = Row(root, "Quality", 10f, p => UIBuild.CreateDropdown("Quality Dropdown", root, Center, p, list));
+            TMP_Dropdown resolution = Row(root, "Resolution", -70f, p => UIBuild.CreateDropdown("Resolution Dropdown", root, Center, p, list));
             Toggle fullscreen = Row(root, "Fullscreen", -150f, p => UIBuild.CreateToggle("Fullscreen Toggle", root, Center, p - new Vector2(190f, 0f)));
-            TMP_Dropdown fps = Row(root, "Target FPS", -230f, p => UIBuild.CreateDropdown("Target FPS Dropdown", root, Center, p, control));
+            TMP_Dropdown fps = Row(root, "Target FPS", -230f, p => UIBuild.CreateDropdown("Target FPS Dropdown", root, Center, p, list));
 
             Button apply = UIBuild.CreateButton("Apply Button", root, UIText.Apply, Center, new Vector2(-300f, -380f), new Vector2(260f, 70f));
             Button controlsButton = UIBuild.CreateButton("Controls Button", root, UIText.Controls, Center, new Vector2(0f, -380f), new Vector2(300f, 70f));
@@ -273,10 +361,13 @@ namespace BusDriver.Editor.Builders {
             RectTransform root = ScreenRoot("ControlsScreen", parent, ScreenBackground, out controls);
             UIBuild.Label("Title", root, UIText.Controls, ThemeRole.Title, TextAlignmentOptions.Center, Center, new Vector2(0f, 460f), new Vector2(1220f, 140f));
             // The template row the screen clones for every binding (ControlsScreen.Build)
-            UIBuild.Label(ControlsScreen.LabelTemplateName, root, "ACTION", ThemeRole.Body, TextAlignmentOptions.Right, Center, Vector2.zero, new Vector2(320f, 30f));
-            UIBuild.CreateButton(ControlsScreen.ButtonTemplateName, root, "KEY", Center, Vector2.zero, new Vector2(180f, 30f));
-            UIBuild.CreateButton(ControlsScreen.ResetButtonName, root, UIText.ResetAll, Center, new Vector2(0f, -110f), new Vector2(320f, 60f));
-            UIBuild.CreateButton(ControlsScreen.BackButtonName, root, UIText.Back, Center, new Vector2(0f, -200f), new Vector2(260f, 60f));
+            UIBuild.Label(ControlsScreen.LabelTemplateName, root, "ACTION", ThemeRole.Body, TextAlignmentOptions.Right, Center, Vector2.zero, new Vector2(380f, 44f));
+            Button rowTemplate = UIBuild.CreateButton(ControlsScreen.ButtonTemplateName, root, "KEY", Center, Vector2.zero, new Vector2(240f, 44f));
+            // A binding row reads as a table, not as a menu button, and the 48pt Button role
+            // overflows a row either way; the 32pt Body role fits the ones ControlsScreen clones
+            UIBuild.Theme(rowTemplate.GetComponentInChildren<TMP_Text>(true), ThemeRole.Body);
+            UIBuild.CreateButton(ControlsScreen.ResetButtonName, root, UIText.ResetAll, Center, new Vector2(0f, -110f), new Vector2(440f, 84f));
+            UIBuild.CreateButton(ControlsScreen.BackButtonName, root, UIText.Back, Center, new Vector2(0f, -200f), new Vector2(320f, 84f));
             SetRef(controls, "router", router);
             return controls;
         }
@@ -313,8 +404,7 @@ namespace BusDriver.Editor.Builders {
             UIBuild.Theme(wallet, ThemeRole.Body).SetPaletteColor(ThemeColor.Highlight);
             TMP_Text stops = Column("Arrival Stops", root, ThemeRole.Body, TextAlignmentOptions.TopLeft, 125f, 450f);
             TMP_Text scheduled = Column("Arrival Scheduled", root, ThemeRole.Body, TextAlignmentOptions.TopRight, 450f, 200f);
-            TMP_Text actual = Column("Arrival Actual", root, ThemeRole.Body, TextAlignmentOptions.TopRight, 640f, 180f);
-            TMP_Text ratings = Column("Arrival Ratings", root, ThemeRole.Body, TextAlignmentOptions.TopRight, 825f, 190f);
+            TMP_Text actual = Column("Arrival Actual", root, ThemeRole.Body, TextAlignmentOptions.TopRight, 825f, 180f);
             TMP_Text counts = UIBuild.Label("Counts", root, "", ThemeRole.Body, TextAlignmentOptions.Center, Center, new Vector2(0f, -250f), new Vector2(1700f, 50f));
             Button next = UIBuild.CreateButton("Continue Button", root, UIText.Continue, Center, new Vector2(0f, -380f), new Vector2(380f, 80f));
             SetRef(summary, "firstSelected", next);
@@ -326,7 +416,6 @@ namespace BusDriver.Editor.Builders {
             SetRef(summary, "arrivalStops", stops);
             SetRef(summary, "arrivalScheduled", scheduled);
             SetRef(summary, "arrivalActual", actual);
-            SetRef(summary, "arrivalRatings", ratings);
             SetRef(summary, "countsText", counts);
             SetRef(summary, "continueButton", next);
             return summary;

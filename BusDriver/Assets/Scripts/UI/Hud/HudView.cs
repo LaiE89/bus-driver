@@ -1,14 +1,15 @@
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
+using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.World;
 using TMPro;
 using UnityEngine;
 
 namespace BusDriver.UI.Hud {
-    // The HUD canvas (§4.13, was half of DrivingHUD): speed, gear and the controls line while
-    // driving, the crosshair on foot, and the prompt and status lines for both. The CCTV feed's own
-    // overlay is CctvOverlayView. Prompt keys come from the bindings (controller-ready rule 3).
+    // The HUD canvas (§4.13): speed and gear while driving, the crosshair on foot, STOP REQUESTED
+    // / last-stop note at the top, and the prompt for both. The CCTV feed's own overlay is
+    // CctvOverlayView. Prompt keys come from the bindings (controller-ready rule 3).
     public sealed class HudView : MonoBehaviour, IShiftBindable {
         [Header("Panels")]
         [SerializeField] GameObject driverPanel;
@@ -19,28 +20,29 @@ namespace BusDriver.UI.Hud {
         [SerializeField] TMP_Text statusText;
         [SerializeField] TMP_Text speedText;
         [SerializeField] TMP_Text gearText;
-        [SerializeField] TMP_Text controlsText;
 
         GameServices game;
         BusController bus;
         BusDoors doors;
         BusCabin cabin;
+        RouteProgress progress;
         CCTVSystem cctv;
         PlayerModeController mode;
         PlayerInteractor interactor;
         // Cached until a rebind
         string interactKey = "";
+        string kickKey = "";
         string leaveSeatKey = "";
         string doorsKey = "";
-
-        // Tests
-        internal string ControlsHint { get { return controlsText != null ? controlsText.text : ""; } }
+        string acceptRiderKey = "";
+        string refuseRiderKey = "";
 
         public void Bind(ShiftServices shift) {
             game = shift.Game;
             bus = shift.Bus;
             doors = shift.Doors;
             cabin = shift.Cabin;
+            progress = shift.Progress;
             cctv = shift.Cctv;
             mode = shift.Mode;
             interactor = shift.Interactor;
@@ -82,10 +84,11 @@ namespace BusDriver.UI.Hud {
                 return;
             }
             interactKey = Key("Interact");
+            kickKey = Key("Kick");
             leaveSeatKey = Key("LeaveSeat");
             doorsKey = Key("Doors");
-            controlsText.text =
-                $"{Key("Throttle")} DRIVE   {Key("Steer")} STEER   {Key("Handbrake")} HANDBRAKE   {Key("CycleCamera")} CAMERAS   {doorsKey} DOORS   {leaveSeatKey} LEAVE SEAT";
+            acceptRiderKey = Key("AcceptRider");
+            refuseRiderKey = Key("RefuseRider");
         }
 
         string Key(string actionId) {
@@ -97,21 +100,47 @@ namespace BusDriver.UI.Hud {
                 return;
             }
             promptText.text = BuildPrompt();
-            statusText.text = doors.IsClosed ? "" : "DOORS OPEN";
+            statusText.text = BuildStatus();
             if (driverPanel.activeSelf) {
                 speedText.text = $"{Mathf.RoundToInt(bus.SpeedKmh)} km/h";
                 gearText.text = bus.IsParked ? "P" : GearLabel(bus.CurrentGear);
             }
         }
 
-        // Only ever offers what would actually work right now
+        // Top-of-HUD status: stop requests, and a last-stop callout when the next kerb ends the night
+        string BuildStatus() {
+            int requests = cabin != null ? cabin.StopRequestCount : 0;
+            string request = requests == 0 ? "" : (requests > 1 ? $"STOP REQUESTED  x{requests}" : "STOP REQUESTED");
+            string last = "";
+            if (progress != null && progress.Next != null && progress.Next.IsEndStop) {
+                last = "LAST STOP, STOP HERE";
+            }
+            if (request != "" && last != "") {
+                return request + "\n" + last;
+            }
+            return request != "" ? request : last;
+        }
+
         string BuildPrompt() {
             if (game.Pause.IsPaused) {
                 return "";
             }
             if (mode.Mode == PlayerMode.OnFoot) {
                 string prompt = interactor != null ? interactor.CurrentPrompt : "";
-                return prompt == "" ? "" : $"{interactKey}   {prompt}";
+                if (prompt == "") {
+                    return "";
+                }
+                string lines = $"{interactKey}   {prompt}";
+                string alt = interactor.CurrentAltPrompt;
+                if (alt != "") {
+                    lines += $"\n{kickKey}   {alt}";
+                }
+                return lines;
+            }
+            // Somebody on the step outranks everything else: the bus can't move until they are
+            // dealt with, so the doors and the seat are no use yet (§2.4)
+            if (cabin != null && cabin.PassengerAtDoor != null) {
+                return $"{acceptRiderKey}   Let aboard\n{refuseRiderKey}   Turn away";
             }
             string text = "";
             if (mode.CanLeaveSeat) {

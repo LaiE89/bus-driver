@@ -57,7 +57,7 @@ namespace BusDriver.Tests.PlayMode.Scares {
 
         static int ScareHeads() {
             int count = 0;
-            foreach (GameObject go in Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None)) {
+            foreach (GameObject go in Object.FindObjectsByType<GameObject>()) {
                 if (go.name.StartsWith("ScareHead_Greybox") && go.layer == BusDriver.Core.Util.Layers.ScareFx) {
                     count++;
                 }

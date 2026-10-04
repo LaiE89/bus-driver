@@ -18,7 +18,8 @@ namespace BusDriver.Tests.EditMode.Input {
         static readonly string[] RoadmapIds = {
             "Driving/Throttle", "Driving/Steer", "Driving/Handbrake", "Driving/Look", "Driving/CycleCamera",
             "Driving/Doors", "Driving/LeaveSeat", "Driving/Item1", "Driving/Item2", "Driving/Item3", "Driving/ResetBus",
-            "OnFoot/Move", "OnFoot/Look", "OnFoot/Interact",
+            "Driving/AcceptRider", "Driving/RefuseRider",
+            "OnFoot/Move", "OnFoot/Look", "OnFoot/Interact", "OnFoot/Kick",
             "Global/Pause", "Global/DebugOverlay", "Global/ToggleArt",
             "UI/Navigate", "UI/Submit", "UI/Cancel", "UI/Point", "UI/Click", "UI/ScrollWheel",
         };
@@ -92,9 +93,14 @@ namespace BusDriver.Tests.EditMode.Input {
         [Test]
         public void TheDefaultsFollowD48() {
             Assert.AreEqual("<Mouse>/rightButton", KeyboardPath("OnFoot/Interact"));
+            // Same pairing as Accept/Refuse on the step: right talks, left kicks
+            Assert.AreEqual("<Mouse>/leftButton", KeyboardPath("OnFoot/Kick"));
             Assert.AreEqual("<Keyboard>/q", KeyboardPath("Driving/Doors"));
             Assert.AreEqual("<Keyboard>/e", KeyboardPath("Driving/LeaveSeat"));
             Assert.AreEqual("<Keyboard>/space", KeyboardPath("Driving/CycleCamera"));
+            // The MVP's door decision: interact waves them on, the kick button turns them away
+            Assert.AreEqual("<Mouse>/rightButton", KeyboardPath("Driving/AcceptRider"));
+            Assert.AreEqual("<Mouse>/leftButton", KeyboardPath("Driving/RefuseRider"));
         }
 
         string KeyboardPath(string id) {

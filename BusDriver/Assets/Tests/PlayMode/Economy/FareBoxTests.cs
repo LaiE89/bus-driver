@@ -39,6 +39,7 @@ namespace BusDriver.Tests.PlayMode.Economy {
             Assert.IsNotNull(fareBox, "Dash.prefab has no FareBoxView");
             Assert.AreEqual(shift.Bus.View.DashAnchor(fareBox.Screen), fareBox.Canvas.parent, "the fare box sits on Anchor_Dash_FareBox");
             Assert.AreEqual("$0.00", fareBox.TotalText);
+            StringAssert.Contains("QUOTA", fareBox.QuotaText);
 
             float boardedAt = -1f;
             shift.Cabin.OnPassengerBoarded += passenger => {
@@ -57,6 +58,7 @@ namespace BusDriver.Tests.PlayMode.Economy {
             Assert.AreEqual("+$3.50", fareBox.DeltaText);
             Assert.IsTrue(fareBox.IsPopping);
             Assert.AreEqual(Money.Format(shift.Ledger.Totals.NetCents), fareBox.TotalText);
+            StringAssert.Contains("QUOTA", fareBox.QuotaText);
         }
     }
 }

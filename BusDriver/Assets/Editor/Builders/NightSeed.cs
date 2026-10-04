@@ -8,10 +8,10 @@ namespace BusDriver.Editor.Builders {
     public static class NightSeed {
         public const string Folder = "Nights";
         public const int Count = 5;
-        public const string Starer = "starer";
-        public const string Whisperer = "whisperer";
-        public const string Mimic = "mimic";
-        public const string WeepingAngel = "weeping_angel";
+        public const string Starer = MonsterIds.Starer;
+        public const string Whisperer = MonsterIds.Whisperer;
+        public const string Mimic = MonsterIds.Mimic;
+        public const string WeepingAngel = MonsterIds.WeepingAngel;
 
         public static string RelativePath(int nightIndex) {
             return Folder + "/Night" + nightIndex + ".asset";
@@ -43,18 +43,23 @@ namespace BusDriver.Editor.Builders {
             switch (index) {
                 case 1:
                     night.threatRateMultiplier = 1f;
-                    // §2.19's table, in order; the Starer boards at gas_station, well before the cliff (D106)
+                    // §2.19's table, in order; the Starer boards at gas_station, well before the cliff (D106).
+                    // Stops past church are filled at spawn when a later night reuses this list
+                    // (Manifest.EnsureBoardingCoverage), so every kerb before that night's end has
+                    // at least one waiting rider.
                     night.scripted = new[] {
                         Rider("farm_gate", "look01", "campground"),
                         Rider("farm_gate", "look02", "church"),
                         Rider("gas_station", "look03", "church", DecoyKind.NodOff),
                         Rider("gas_station", "look04", "campground"),
                         Rider("campground", "look05", "church"),
-                        Rider("gas_station", "look06", "church", DecoyKind.None, Starer),
+                        Rider("gas_station", "look06", "", DecoyKind.None, Starer),
+                        Rider("campground", "look07", "", DecoyKind.None, WeepingAngel),
                     };
                     night.riderCountMin = night.riderCountMax = 5;
                     night.decoyCount = 1;
-                    night.monsterCountMin = night.monsterCountMax = 1;
+                    night.monsterCountMin = night.monsterCountMax = 2;
+                    night.quotaCents = 1050;
                     break;
                 case 2:
                     night.threatRateMultiplier = 1f;
@@ -65,6 +70,7 @@ namespace BusDriver.Editor.Builders {
                     night.requiredMonsters = new[] { Starer, Whisperer };
                     night.monsterBoardFirstStop = "farm_gate";
                     night.monsterBoardLastStop = "campground";
+                    night.quotaCents = 2100;
                     break;
                 case 3:
                     night.threatRateMultiplier = 1.1f;
@@ -78,6 +84,7 @@ namespace BusDriver.Editor.Builders {
                     night.monsterBoardLastStop = "church";
                     night.mimicBoardFirstStop = "gas_station";
                     night.mimicBoardLastStop = "campground";
+                    night.quotaCents = 2450;
                     break;
                 case 4:
                     night.threatRateMultiplier = 1.2f;
@@ -90,6 +97,7 @@ namespace BusDriver.Editor.Builders {
                     night.maxPerType = 2;
                     night.monsterBoardFirstStop = "farm_gate";
                     night.monsterBoardLastStop = "church";
+                    night.quotaCents = 2800;
                     break;
                 default:
                     night.threatRateMultiplier = 1.35f;
@@ -102,6 +110,7 @@ namespace BusDriver.Editor.Builders {
                     night.minDistinctTypes = 3;
                     night.monsterBoardFirstStop = "farm_gate";
                     night.monsterBoardLastStop = "clinic";
+                    night.quotaCents = 3150;
                     break;
             }
         }

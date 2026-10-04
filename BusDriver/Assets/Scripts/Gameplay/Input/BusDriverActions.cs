@@ -15,7 +15,8 @@ namespace BusDriver.Gameplay.Input {
         public static readonly string[] AllIds = {
             "Driving/Throttle", "Driving/Steer", "Driving/Handbrake", "Driving/Look", "Driving/CycleCamera",
             "Driving/Doors", "Driving/LeaveSeat", "Driving/Item1", "Driving/Item2", "Driving/Item3", "Driving/ResetBus",
-            "OnFoot/Move", "OnFoot/Look", "OnFoot/Interact",
+            "Driving/AcceptRider", "Driving/RefuseRider",
+            "OnFoot/Move", "OnFoot/Look", "OnFoot/Interact", "OnFoot/Kick",
             "Global/Pause", "Global/DebugOverlay", "Global/ToggleArt",
             "UI/Navigate", "UI/Submit", "UI/Cancel", "UI/Point", "UI/Click", "UI/ScrollWheel",
         };
@@ -38,10 +39,15 @@ namespace BusDriver.Gameplay.Input {
         public readonly InputAction Item2;
         public readonly InputAction Item3;
         public readonly InputAction ResetBus;
+        // Wave the rider on the step aboard, or turn them away (§2.4)
+        public readonly InputAction AcceptRider;
+        public readonly InputAction RefuseRider;
         // OnFoot
         public readonly InputAction Move;
         public readonly InputAction OnFootLook;
         public readonly InputAction Interact;
+        // Kick a seated rider out (alt interact while on foot)
+        public readonly InputAction Kick;
         // Global
         public readonly InputAction Pause;
         public readonly InputAction DebugOverlay;
@@ -72,9 +78,12 @@ namespace BusDriver.Gameplay.Input {
             Item2 = Resolve("Driving/Item2");
             Item3 = Resolve("Driving/Item3");
             ResetBus = Resolve("Driving/ResetBus");
+            AcceptRider = Resolve("Driving/AcceptRider");
+            RefuseRider = Resolve("Driving/RefuseRider");
             Move = Resolve("OnFoot/Move");
             OnFootLook = Resolve("OnFoot/Look");
             Interact = Resolve("OnFoot/Interact");
+            Kick = Resolve("OnFoot/Kick");
             Pause = Resolve("Global/Pause");
             DebugOverlay = Resolve("Global/DebugOverlay");
             ToggleArt = Resolve("Global/ToggleArt");

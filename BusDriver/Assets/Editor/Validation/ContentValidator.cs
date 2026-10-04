@@ -61,6 +61,8 @@ namespace BusDriver.Editor.Validation {
             Require(problems, config.soundLibrary, "GameRootConfig.soundLibrary");
             Require(problems, config.audioConfig, "GameRootConfig.audioConfig");
             Require(problems, config.uiTheme, "GameRootConfig.uiTheme");
+            // Survives the menu→night scene swap; without it GameRoot logs and loads black (§4.3)
+            Require(problems, config.loadingScreen, "GameRootConfig.loadingScreen");
             Require(problems, config.balance, "GameRootConfig.balance");
             CheckBalance(problems, config.balance);
         }

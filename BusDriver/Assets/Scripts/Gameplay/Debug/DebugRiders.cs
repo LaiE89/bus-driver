@@ -32,16 +32,17 @@ namespace BusDriver.Gameplay.Debug {
             }
         }
 
-        // A rider (or the monster of that id; "" for a human) waiting at the stop, riding to the
-        // night's end stop
+        // A rider (or the monster of that id; "" for a human) waiting at the stop. Humans ride to
+        // the night's end; monsters keep no drop-off.
         internal Passenger SpawnWaiting(BusStop stop, string monsterId) {
             if (stop == null) {
                 return null;
             }
+            bool monster = !string.IsNullOrEmpty(monsterId);
             RiderSpec spec = new RiderSpec {
                 lookId = NextLookId(),
                 boardStopId = stop.StopId,
-                destinationStopId = EndStopId(),
+                destinationStopId = monster ? "" : EndStopId(),
                 monsterId = monsterId ?? "",
             };
             return SpawnWaiting(stop, spec);

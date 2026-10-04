@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using UnityEngine;
 using BusDriver.Core.Data;
+using BusDriver.Core.Rules;
+using BusDriver.Core.Util;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
@@ -9,11 +11,12 @@ using BusDriver.Gameplay.Views;
 using BusDriver.Gameplay.World;
 
 namespace BusDriver.Gameplay.Passengers {
-    public enum PassengerState { Waiting, Boarding, Seated, Leaving, Gone }
+    // Greeting: standing on the step, waiting for the driver to wave them on or turn them away
+    public enum PassengerState { Waiting, Boarding, Greeting, Seated, Leaving, Gone }
 
     // Everyone who rides the bus. A monster is a Passenger plus components (MonsterBrain,
     // ThreatMeter, its ability, §4.1 rule 4), which listen to its events and answer IKickHandler.
-    // The virtual hooks remain for the legacy PR #5 WeepingAngel until T-M6-05 ports it.
+    // Virtual hooks remain for monster subclasses / future content.
     // Movement is plain waypoint walking in bus-local space: the bus moves, so no NavMesh,
     // and passengers have no physics.
     // Logic only (§4.14): the root owns Anchor_Head (observation) and the interact collider; the
@@ -39,6 +42,8 @@ namespace BusDriver.Gameplay.Passengers {
         public BusCabin Cabin { get; private set; }
         public bool IsAboard { get; private set; }
         public bool WasKicked { get; private set; }
+        // Rang for their stop: the HUD's STOP REQUESTED line counts these (same as the MVP)
+        public bool HasRequestedStop { get; private set; }
         public string DisplayName { get { return displayName; } }
         // The logic head, for observation linecasts and "is it on camera"
         public Transform Head { get { return anchorHead; } }
@@ -52,12 +57,20 @@ namespace BusDriver.Gameplay.Passengers {
         // The night this rider belongs to; null for one placed by hand (tests)
         protected ShiftServices Shift { get; private set; }
 
+        // Standing in the stairwell with the doors held open, waiting on the driver (§2.4)
+        public bool AwaitingBoardingDecision {
+            get { return State == PassengerState.Greeting && decision == BoardingDecision.Pending; }
+        }
+
+        enum BoardingDecision { Pending, Accepted, Refused }
+
         PassengerViewBase view;
         bool seatedPose;
         BusStop homeStop;
         Vector3 waitPosition;
         Quaternion waitRotation;
         bool abortRequested;
+        BoardingDecision decision;
 
         protected virtual void Awake() {
             State = PassengerState.Waiting;
@@ -66,9 +79,11 @@ namespace BusDriver.Gameplay.Passengers {
         }
 
         void Update() {
-            if (State != PassengerState.Gone) {
-                Tick(Time.deltaTime);
+            if (State == PassengerState.Gone) {
+                return;
             }
+            Tick(Time.deltaTime);
+            UpdateRide();
         }
 
         // ------------------------------------------------------------ hooks
@@ -85,14 +100,103 @@ namespace BusDriver.Gameplay.Passengers {
         protected virtual void OnLeft() { }
         // Every frame in every state except Gone
         protected virtual void Tick(float deltaTime) { }
+        // Said something because the driver came back for a chat
+        protected virtual void OnChatted() { }
         // The driver, on foot, started or stopped looking straight at this passenger
         public virtual void SetFocused(bool focused) { }
 
-        public virtual string Prompt { get { return "Kick out"; } }
+        public virtual string Prompt { get { return "Talk"; } }
         public virtual bool CanInteract { get { return State == PassengerState.Seated; } }
+        public virtual string AltPrompt { get { return "Kick out"; } }
 
         public void Interact() {
+            Chat();
+        }
+
+        public void AltInteract() {
             Kick();
+        }
+
+        // ---------------------------------------------------------- dialogue
+
+        // This rider's night record, or null for one placed by hand (tests)
+        RiderRecord Record { get { return Shift != null && Shift.Riders != null ? Shift.Riders.For(this) : null; } }
+
+        // A rider with no night behind them says nothing at all, rather than guessing a kind
+        void Speak(string line) {
+            if (Shift != null && Shift.Dialogue != null) {
+                Shift.Dialogue.Say(DisplayName, line);
+            }
+        }
+
+        DialogueKind Kind(RiderRecord record) {
+            return PassengerDialogue.KindFor(record != null ? record.MonsterId : "");
+        }
+
+        System.Random DialogueRng() {
+            return Shift != null && Shift.Rng != null ? Shift.Rng.Get(RngStreams.Dialogue) : null;
+        }
+
+        // They only ring once the next stop on the night is theirs (§2.4)
+        void BeginStopWatch() {
+            HasRequestedStop = false;
+        }
+
+        void UpdateRide() {
+            if (State != PassengerState.Seated || HasRequestedStop) {
+                return;
+            }
+            RiderRecord record = Record;
+            if (record == null || record.IsMonster || string.IsNullOrEmpty(record.DestinationStopId)
+                    || Shift == null || Shift.Tracker == null) {
+                return;
+            }
+            RouteStop next = Shift.Tracker.NextStop;
+            if (next == null || next.stopId != record.DestinationStopId) {
+                return;
+            }
+            HasRequestedStop = true;
+            if (Shift.Game != null && Shift.Game.Audio != null) {
+                // 2D cabin ding: a 3D one-shot at the world origin is inaudible on the route
+                Shift.Game.Audio.Play(SoundIds.BusStopRequest);
+            }
+        }
+
+        // Stepping aboard: humans name the stop they want, monsters say whatever they say
+        void SayGreeting() {
+            RiderRecord record = Record;
+            StopRecord destination = record != null && Shift.Progress != null
+                ? Shift.Progress.Find(record.DestinationStopId)
+                : null;
+            Speak(PassengerDialogue.Greeting(Kind(record), destination != null ? destination.DisplayName : "", DialogueRng()));
+        }
+
+        // Stepping off. A rider the bus carried past their stop complains about that instead of
+        // reviewing the stop they ended up at (§2.4). Tip / missed-stop refund settle with the line.
+        void SayFarewell(bool kicked) {
+            RiderRecord record = Record;
+            ArrivalRating rating = ArrivalRating.None;
+            if (record != null && record.Retargeted) {
+                rating = ArrivalRating.Missed;
+            }else if (Shift != null && Shift.Progress != null && Cabin != null && Cabin.CurrentStop != null) {
+                StopRecord stop = Shift.Progress.Find(Cabin.CurrentStop.StopId);
+                rating = stop != null ? stop.Rating : ArrivalRating.None;
+            }
+            Speak(PassengerDialogue.Farewell(Kind(record), rating, kicked, DialogueRng()));
+            if (!kicked && Cabin != null) {
+                Cabin.NotifyDropOff(this);
+            }
+        }
+
+        // The driver walked back for a chat. Ignored while anyone is mid-sentence, so holding the
+        // button cannot stack up a queue of lines.
+        public bool Chat() {
+            if (State != PassengerState.Seated || Shift == null || Shift.Dialogue == null || Shift.Dialogue.IsPlaying) {
+                return false;
+            }
+            Speak(PassengerDialogue.Seated(Kind(Record), DialogueRng()));
+            OnChatted();
+            return true;
         }
 
         // Rough visibility test with no occlusion, enough for "am I on camera right now"
@@ -143,9 +247,35 @@ namespace BusDriver.Gameplay.Passengers {
             waitPosition = transform.position;
             waitRotation = transform.rotation;
             abortRequested = false;
+            decision = BoardingDecision.Pending;
             State = PassengerState.Boarding;
             StartCoroutine(BoardRoutine());
             return true;
+        }
+
+        // The driver waves them aboard
+        public void AcceptAboard() {
+            if (!AwaitingBoardingDecision) {
+                return;
+            }
+            // Cut the greeting short so the next line (or silence) isn't queued behind it
+            StopDoorDialogue();
+            decision = BoardingDecision.Accepted;
+        }
+
+        // Turned away at the door. No fare and no review: refusing is the driver's call (§2.7).
+        public void RefuseAtDoor() {
+            if (!AwaitingBoardingDecision) {
+                return;
+            }
+            StopDoorDialogue();
+            decision = BoardingDecision.Refused;
+        }
+
+        void StopDoorDialogue() {
+            if (Shift != null && Shift.Dialogue != null) {
+                Shift.Dialogue.Clear();
+            }
         }
 
         // Already riding when the scene starts
@@ -162,6 +292,7 @@ namespace BusDriver.Gameplay.Passengers {
             transform.localRotation = Quaternion.identity;
             SetSeatedPose(true);
             State = PassengerState.Seated;
+            BeginStopWatch();
             RefreshInteractable();
             OnBoarded();
             OnSeated();
@@ -236,11 +367,18 @@ namespace BusDriver.Gameplay.Passengers {
 
         IEnumerator BoardRoutine() {
             BusDoors doors = Cabin.Doors;
-            yield return WalkWorld(() => Cabin.DoorOutsideWorld, () => abortRequested);
-            while (!abortRequested && !doors.TryEnter(this)) {
-                yield return null;
+            Cabin.JoinDoorQueue(this);
+            // Shuffle up the kerb in single file. Only the front of the line takes the door, and
+            // never while somebody is still on their way off.
+            yield return QueueWorld(
+                () => Cabin.DoorQueueWorld(this),
+                () => Cabin.IsDoorQueueHead(this) && !Cabin.AnyLeaving && doors.TryEnter(this),
+                () => abortRequested);
+            if (!abortRequested) {
+                yield return WalkWorld(() => Cabin.DoorOutsideWorld, () => abortRequested);
             }
             if (abortRequested) {
+                Cabin.LeaveDoorQueue(this);
                 doors.Exit(this);
                 yield return ReturnToStop();
                 yield break;
@@ -251,6 +389,28 @@ namespace BusDriver.Gameplay.Passengers {
             Cabin.Register(this);
             yield return WalkLocal(Cabin.DoorStepLocal);
             yield return WalkLocal(Cabin.AisleAtDoorLocal);
+
+            // Stand in the stairwell, say where they're going and wait for the driver to decide.
+            // The hold keeps the bus parked while somebody is still on the step (§2.4).
+            State = PassengerState.Greeting;
+            decision = BoardingDecision.Pending;
+            doors.Hold(this);
+            SayGreeting();
+            while (decision == BoardingDecision.Pending) {
+                FaceDriver();
+                yield return null;
+            }
+
+            // Decided either way, so the next in line can start walking up. The doorway token
+            // still keeps them off the step until this one is out of it.
+            Cabin.LeaveDoorQueue(this);
+            if (decision == BoardingDecision.Refused) {
+                yield return RefusedRoutine(doors);
+                yield break;
+            }
+
+            // Only now does the fare go in the box: EconomyRules charges on this event (§2.7)
+            doors.Release(this);
             doors.Exit(this);
             OnBoarded();
             Cabin.NotifyBoarded(this);
@@ -259,6 +419,7 @@ namespace BusDriver.Gameplay.Passengers {
             yield return Slide(Cabin.SeatLocal(Seat), Quaternion.identity);
             SetSeatedPose(true);
             State = PassengerState.Seated;
+            BeginStopWatch();
             RefreshInteractable();
             OnSeated();
             RaiseSeated();
@@ -269,6 +430,33 @@ namespace BusDriver.Gameplay.Passengers {
             if (Seated != null) {
                 Seated(this);
             }
+        }
+
+        // Turned away on the step: back down it and off into the night. They never counted as
+        // aboard, so no fare was charged and they leave no review.
+        IEnumerator RefusedRoutine(BusDoors doors) {
+            State = PassengerState.Leaving;
+            if (Seat != null) {
+                Seat.Release(this);
+                Seat = null;
+            }
+            RefreshInteractable();
+            if (Shift != null && Shift.Riders != null) {
+                Shift.Riders.MarkRefused(this);
+            }
+            Speak(PassengerDialogue.Refused(Kind(Record), DialogueRng()));
+            yield return WalkLocal(Cabin.DoorStepLocal);
+            yield return StepOffAndVanish(doors);
+        }
+
+        // Turns to look at whoever is driving, so a rider on the step addresses the player
+        void FaceDriver() {
+            if (Shift == null || Shift.Mode == null || Cabin == null) {
+                return;
+            }
+            Transform space = Cabin.PassengerRoot != null ? Cabin.PassengerRoot : Cabin.transform;
+            Vector3 driverLocal = space.InverseTransformPoint(Shift.Mode.PlayerPosition);
+            Face(driverLocal - transform.localPosition, true);
         }
 
         IEnumerator ReturnToStop() {
@@ -286,35 +474,53 @@ namespace BusDriver.Gameplay.Passengers {
 
         IEnumerator LeaveRoutine(bool kicked) {
             BusDoors doors = Cabin.Doors;
-            // Hunting monsters may already have vacated their seat
-            Vector3 aisle = Seat != null
-                ? Cabin.SeatAisleLocal(Seat)
-                : new Vector3(Cabin.AisleAtDoorLocal.x, transform.localPosition.y, transform.localPosition.z);
             State = PassengerState.Leaving;
-            if (Seat != null) {
-                Seat.Release(this);
-                Seat = null;
-            }
+            HasRequestedStop = false;
             RefreshInteractable();
             OnLeaving(kicked);
             // The bus stays put from now until this passenger is off
             doors.Hold(this);
-
-            SetSeatedPose(false);
-            yield return Slide(aisle, transform.localRotation);
-            yield return WalkLocal(Cabin.AisleAtDoorLocal);
-            while (!doors.TryEnter(this)) {
+            // Stay in the seat while anyone is still coming through the door: the aisle is one
+            // person wide, so the two groups never share it.
+            while (Cabin.AnyBoarding) {
                 yield return null;
             }
+            // Hunting monsters may already have vacated their seat
+            Vector3 row = Seat != null
+                ? Cabin.SeatAisleLocal(Seat)
+                : new Vector3(Cabin.AisleAtDoorLocal.x, transform.localPosition.y, transform.localPosition.z);
+            if (Seat != null) {
+                Seat.Release(this);
+                Seat = null;
+            }
+            Cabin.JoinExitQueue(this);
+
+            SetSeatedPose(false);
+            yield return Slide(Cabin.ExitStepOutLocal(this, row), transform.localRotation);
+            // Follow the person in front down the aisle until the doorway is ours
+            yield return QueueLocal(
+                () => Cabin.ExitQueueLocal(this),
+                () => Cabin.IsExitQueueHead(this) && doors.TryEnter(this));
             yield return WalkLocal(Cabin.DoorStepLocal);
+            // They have their say from the step, where the driver can still hear them
+            FaceDriver();
+            SayFarewell(kicked);
+            yield return StepOffAndVanish(doors);
+        }
+
+        // Shared tail of every exit, refused or delivered: off the step, clear of the bus, gone
+        IEnumerator StepOffAndVanish(BusDoors doors) {
             transform.SetParent(null, true);
             yield return WalkWorld(() => Cabin.DoorOutsideWorld, null);
 
             Vector3 away = transform.position + Cabin.ExitDirection * exitWalkDistance;
             BusCabin cabin = Cabin;
             IsAboard = false;
+            // Clear of the doorway, so both queues behind can move up
             doors.Exit(this);
             doors.Release(this);
+            cabin.LeaveDoorQueue(this);
+            cabin.LeaveExitQueue(this);
             cabin.Unregister(this);
             OnLeft();
             cabin.NotifyLeft(this);
@@ -337,6 +543,47 @@ namespace BusDriver.Gameplay.Passengers {
                 yield return null;
             }
             SetLocomotion(0f);
+        }
+
+        // Standing in a queue: the spot keeps moving as the line shuffles forward, and we only
+        // leave once we are standing on it and `claim` succeeds.
+        IEnumerator QueueWorld(Func<Vector3> spot, Func<bool> claim, Func<bool> cancel) {
+            while (cancel == null || !cancel()) {
+                Vector3 goal = spot();
+                Vector3 offset = goal - transform.position;
+                offset.y = 0f;
+                if (offset.sqrMagnitude >= 0.0004f) {
+                    SetLocomotion(walkSpeed);
+                    Face(offset, false);
+                    transform.position = Vector3.MoveTowards(transform.position, goal, walkSpeed * Time.deltaTime);
+                }else {
+                    SetLocomotion(0f);
+                    if (claim()) {
+                        yield break;
+                    }
+                }
+                yield return null;
+            }
+            SetLocomotion(0f);
+        }
+
+        IEnumerator QueueLocal(Func<Vector3> spot, Func<bool> claim) {
+            while (true) {
+                Vector3 goal = spot();
+                Vector3 offset = goal - transform.localPosition;
+                offset.y = 0f;
+                if (offset.sqrMagnitude >= 0.0004f) {
+                    SetLocomotion(walkSpeed);
+                    Face(offset, true);
+                    transform.localPosition = Vector3.MoveTowards(transform.localPosition, goal, walkSpeed * Time.deltaTime);
+                }else {
+                    SetLocomotion(0f);
+                    if (claim()) {
+                        yield break;
+                    }
+                }
+                yield return null;
+            }
         }
 
         // Bus-local, so it stays right even if the bus drives off mid-walk
@@ -442,6 +689,8 @@ namespace BusDriver.Gameplay.Passengers {
                     Cabin.Doors.Exit(this);
                     Cabin.Doors.Release(this);
                 }
+                Cabin.LeaveDoorQueue(this);
+                Cabin.LeaveExitQueue(this);
                 Cabin.Unregister(this);
             }
         }

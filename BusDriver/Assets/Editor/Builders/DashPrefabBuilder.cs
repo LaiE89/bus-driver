@@ -4,6 +4,7 @@ using BusDriver.UI.Theme;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 using static BusDriver.Editor.Builders.BuilderUtil;
 
 namespace BusDriver.Editor.Builders {
@@ -55,22 +56,46 @@ namespace BusDriver.Editor.Builders {
             SetRef(view, "timeText", time);
         }
 
-        // The fare box (§2.7, T-M3-07): the night's total on top, the ±delta pop under it
+        // The fare box (§2.7, T-M3-07): quota caption + progress, hero night total, ±delta pop
         static void BuildFareBox(Transform parent) {
             UITheme theme = UIBuild.ThemeAsset;
             RectTransform canvas = ScreenCanvas("Dash_FareBox", parent, FareBoxPixels);
             FareBoxView view = canvas.gameObject.AddComponent<FareBoxView>();
             Vector2 center = new Vector2(0.5f, 0.5f);
+
+            TMP_Text quota = UIBuild.Label("Quota", canvas, "QUOTA  $0.00", ThemeRole.Caption, TextAlignmentOptions.Center,
+                center, new Vector2(0f, 42f), new Vector2(200f, 28f));
+            UIBuild.Theme(quota, ThemeRole.Caption).SetPaletteColor(ThemeColor.Disabled);
+
+            Image track = UIBuild.Fill("QuotaTrack", canvas, new Color(1f, 1f, 1f, 0.12f), false);
+            UIBuild.Place(track.rectTransform, center, new Vector2(0f, 22f), new Vector2(168f, 5f));
+            Image fill = UIBuild.Fill("QuotaFill", track.rectTransform, theme.Palette(ThemeColor.Highlight), false);
+            RectTransform fillRect = fill.rectTransform;
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = new Vector2(0f, 1f);
+            fillRect.offsetMin = Vector2.zero;
+            fillRect.offsetMax = Vector2.zero;
+            fillRect.pivot = new Vector2(0f, 0.5f);
+
             TMP_Text total = UIBuild.Label("Total", canvas, "$0.00", ThemeRole.Screen, TextAlignmentOptions.Center,
-                center, new Vector2(0f, 24f), new Vector2(FareBoxPixels.x, 60f));
+                center, new Vector2(0f, -6f), new Vector2(208f, 48f));
+            UIBuild.Theme(total, ThemeRole.Screen).SetPaletteColor(ThemeColor.Positive);
+            total.fontStyle = FontStyles.Bold;
+
             TMP_Text delta = UIBuild.Label("Delta", canvas, "", ThemeRole.Hud, TextAlignmentOptions.Center,
-                center, new Vector2(0f, -30f), new Vector2(FareBoxPixels.x, 50f));
+                center, new Vector2(0f, -44f), new Vector2(200f, 28f));
+
             SetInt(view, "screen", (int)DashScreen.FareBox);
             SetRef(view, "canvas", canvas);
+            SetRef(view, "quotaText", quota);
             SetRef(view, "totalText", total);
             SetRef(view, "deltaText", delta);
+            SetRef(view, "progressTrack", track);
+            SetRef(view, "progressFill", fill);
             SetColor(view, "upColor", theme.Palette(ThemeColor.Positive));
             SetColor(view, "downColor", theme.Palette(ThemeColor.Danger));
+            SetColor(view, "metColor", theme.Palette(ThemeColor.Positive));
+            SetColor(view, "shortColor", theme.Palette(ThemeColor.Highlight));
         }
 
         // The GPS (§4.13, T-M2-13): a 500 px square map on the left, the next stop, distance, ETA,

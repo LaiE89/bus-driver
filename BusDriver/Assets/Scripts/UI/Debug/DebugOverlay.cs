@@ -32,7 +32,7 @@ namespace BusDriver.UI.Debug {
         internal int CheatButtonCount { get { return cheatButtons.Count; } }
 
         void Awake() {
-            if (!DevBuild.Enabled) {
+            if (!DevBuild.IsEnabled()) {
                 Destroy(gameObject);
                 return;
             }

@@ -14,12 +14,15 @@ namespace BusDriver.Gameplay.Player {
         public bool CanInteract {
             get { return mode != null && mode.Mode == PlayerMode.OnFoot; }
         }
+        public string AltPrompt { get { return ""; } }
 
         public void Interact() {
             if (mode != null) {
                 mode.TrySitDown();
             }
         }
+
+        public void AltInteract() { }
 
         public void SetFocused(bool focused) { }
     }

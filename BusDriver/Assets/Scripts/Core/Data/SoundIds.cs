@@ -10,6 +10,7 @@ namespace BusDriver.Core.Data {
         public const string BusDoorOpen = "bus.door_open";
         public const string BusDoorClose = "bus.door_close";
         public const string BusFareTap = "bus.fare_tap";
+        public const string BusStopRequest = "bus.stop_request";
         public const string BusRumbleStrip = "bus.rumble_strip";
         public const string BusCrashMinor = "bus.crash_minor";
         public const string BusCrashMajor = "bus.crash_major";
@@ -68,7 +69,7 @@ namespace BusDriver.Core.Data {
         public const string MusGameoverSting = "mus.gameover_sting";
 
         public static readonly string[] All = {
-            BusEngineLoop, BusAccel, BusDecel, BusHandbrake, BusDoorOpen, BusDoorClose, BusFareTap, BusRumbleStrip,
+            BusEngineLoop, BusAccel, BusDecel, BusHandbrake, BusDoorOpen, BusDoorClose, BusFareTap, BusStopRequest, BusRumbleStrip,
             BusCrashMinor, BusCrashMajor, BusHorn, CctvSwitch, CctvStaticLoop,
             AmbWind, AmbForestNight, AmbTunnel, AmbCabinHum, AmbLampBuzz,
             PlayerFootstepBus, PlayerFootstepGravel, PaxFootstep, PaxMutterLoop, PaxDeath, PaxKickOut,

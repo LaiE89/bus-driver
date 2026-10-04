@@ -2,7 +2,6 @@ using System.Collections;
 using BusDriver.Core.Save;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Input;
-using BusDriver.UI.Hud;
 using BusDriver.UI.Screens;
 using NUnit.Framework;
 using UnityEngine;
@@ -39,12 +38,11 @@ namespace BusDriver.Tests.PlayMode.Flow {
             game.Flow.NewRun();
             yield return FlowTestUtil.WaitForNight(game);
             yield return null;
-            HudView hud = Object.FindAnyObjectByType<HudView>();
-            StringAssert.Contains("SPACE CAMERAS", hud.ControlsHint);
+            StringAssert.AreEqualIgnoringCase("SPACE", game.Input.GetDisplayString("CycleCamera"));
 
             string error;
             Assert.IsTrue(game.Input.TryApplyBinding("CycleCamera", KeyboardIndex(game.Input.Actions.CycleCamera), "<Keyboard>/c", out error), error);
-            StringAssert.Contains("C CAMERAS", hud.ControlsHint, "the HUD prompt follows the rebind");
+            StringAssert.AreEqualIgnoringCase("C", game.Input.GetDisplayString("CycleCamera"), "the binding follows the rebind");
 
             SaveService disk = new SaveService(saveRoot, SaveMigrations.CreateDefault(), "test");
             SettingsData saved;

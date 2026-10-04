@@ -43,7 +43,8 @@ namespace BusDriver.Tests.PlayMode.Passengers {
                 if (passenger == null) {
                     continue;
                 }
-                if (record.Status == RiderStatus.Waiting && passenger.State == PassengerState.Boarding) {
+                if (record.Status == RiderStatus.Waiting && (passenger.State == PassengerState.Boarding
+                        || passenger.State == PassengerState.Greeting)) {
                     return false;
                 }
                 if (record.Status == RiderStatus.Aboard) {

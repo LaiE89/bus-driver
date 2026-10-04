@@ -8,8 +8,8 @@ using UnityEngine;
 
 namespace BusDriver.Tests.PlayMode.Passengers {
     // The kick flow as a player does it (§2.13): leave the seat at a complete stop, walk down the
-    // aisle with OnFootController.ExternalControl, face the rider within reach, and press Interact
-    // on what the interactor offers
+    // aisle with OnFootController.ExternalControl, face the rider within reach, and use the alt
+    // interact (Kick) on what the interactor offers
     static class OnFootKick {
         // Stops a row ahead of the rider, so the rider is in reach and in front
         const float StandAhead = 0.9f;
@@ -42,8 +42,9 @@ namespace BusDriver.Tests.PlayMode.Passengers {
 
             PlayerInteractor interactor = shift.Interactor;
             yield return FlowTestUtil.WaitFor(() => ReferenceEquals(interactor.Current, rider), 5f, "the interactor to offer the rider");
-            Assert.AreEqual("Kick out", interactor.CurrentPrompt);
-            interactor.Current.Interact();
+            Assert.AreEqual("Talk", interactor.CurrentPrompt);
+            Assert.AreEqual("Kick out", interactor.CurrentAltPrompt);
+            interactor.Current.AltInteract();
             Assert.IsTrue(rider.WasKicked, "the kick didn't take");
         }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Assemblies;
 
 namespace BusDriver.Tests.EditMode {
     // T-M1-21 (§4.2): the dependency direction is Core ← Gameplay ← UI ← Editor. Gameplay never
@@ -62,7 +63,7 @@ namespace BusDriver.Tests.EditMode {
 
         // The compiler drops unused references, so the compiled list may be shorter, never longer
         static void AssertCompiledReferences(string assemblyName, string[] allowed) {
-            Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName);
+            Assembly assembly = CurrentAssemblies.GetLoadedAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName);
             Assert.IsNotNull(assembly, assemblyName + " is not loaded");
             foreach (AssemblyName reference in assembly.GetReferencedAssemblies()) {
                 if (reference.Name.StartsWith("BusDriver.")) {
@@ -74,7 +75,9 @@ namespace BusDriver.Tests.EditMode {
         // Every runtime script sits in the folder of its namespace (Scripts/<Assembly>/<Area>/)
         [Test]
         public void EveryScriptLivesInItsNamespaceFolder() {
-            string scripts = Path.Combine(Application.dataPath, "Scripts");
+            // dataPath uses forward slashes and Path.Combine backslashes; comparing the mix only
+            // lines up in some of the editor's modes, so both sides are normalised here
+            string scripts = Normalize(Path.Combine(Application.dataPath, "Scripts"));
             List<string> misplaced = new List<string>();
             foreach (string file in Directory.GetFiles(scripts, "*.cs", SearchOption.AllDirectories)) {
                 string text = File.ReadAllText(file);
@@ -83,13 +86,17 @@ namespace BusDriver.Tests.EditMode {
                     continue;
                 }
                 string[] parts = match.Groups[1].Value.Split('.');
-                string expected = Path.Combine(scripts, parts[1], parts.Length > 2 ? parts[2] : "");
-                string actual = Path.GetDirectoryName(file);
+                string expected = Normalize(Path.Combine(scripts, parts[1], parts.Length > 2 ? parts[2] : ""));
+                string actual = Normalize(Path.GetDirectoryName(file));
                 if (!actual.StartsWith(expected)) {
-                    misplaced.Add(file.Substring(scripts.Length + 1) + " (namespace " + match.Groups[1].Value + ")");
+                    misplaced.Add(Normalize(file).Substring(scripts.Length + 1) + " (namespace " + match.Groups[1].Value + ")");
                 }
             }
             Assert.IsEmpty(misplaced, "scripts outside their namespace folder: " + string.Join(", ", misplaced));
+        }
+
+        static string Normalize(string path) {
+            return path.Replace('\\', '/').TrimEnd('/');
         }
     }
 }

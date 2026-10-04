@@ -18,16 +18,18 @@ MonoBehaviour:
   - condition: 1
     ratePerSecond: 0
   - condition: 0
-    ratePerSecond: 1.2
+    ratePerSecond: 0
   observerKinds: 15
   graceSeconds: 10
   seatZonePreference: 3
   seatZoneFallback: 2
   killTelegraphSeconds: 4
   escape:
-    kind: 1
-    seconds: 2
+    kind: 0
+    seconds: 0
     resetThreat: 60
+  monsterScare: {fileID: 11400000, guid: b1c2d3e4f5a6478899aabbccddeeff01, type: 2}
+  killScare: {fileID: 11400000, guid: c2d3e4f5a6b7488990bbccddeeff0011, type: 2}
   bountyCents: 500
   ability:
     rid: 1543484118205726723
@@ -36,7 +38,6 @@ MonoBehaviour:
     tellsText:
     - It never moves while anyone is watching. Not even a breath.
     - Unwatched, it stands and comes down the aisle.
-    - You can hear it scrape along the floor.
     hint: Watching only holds it. Throw it out.
     icon: {fileID: 0}
   logicPrefab: {fileID: 8972899070241056763, guid: e1cf8648c66ad4e839e08f5f4d3240a8, type: 3}
@@ -47,5 +48,8 @@ MonoBehaviour:
       type: {class: AngelStalkConfig, ns: BusDriver.Core.Data, asm: BusDriver.Core}
       data:
         walkSpeed: 0.55
-        stuckTeleportSeconds: 3
-        standAtThreat: 25
+        killDistance: 0.6
+        minHuntDelay: 20
+        maxHuntDelay: 40
+        aisleReach: 0.08
+        stopDistance: 0.35

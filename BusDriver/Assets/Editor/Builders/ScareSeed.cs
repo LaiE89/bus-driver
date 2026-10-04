@@ -4,14 +4,16 @@ using BusDriver.Gameplay.Bus;
 using UnityEditor;
 
 namespace BusDriver.Editor.Builders {
-    // Seed data for Data/Scares (§2.10, §2.14, §2.17, §4.8, T-M4-05): the scares M4 needs. The
-    // Starer's lens and kill scares, the generic blackout the SanityZero presenter plays when no
-    // Whisperer is aboard, and the generic kill-sequence telegraph KillSequence plays directly
-    // (T-M4-07). The other monsters' scares and the hallucinations arrive with M5 and M6.
+    // Seed data for Data/Scares (§2.10, §2.12b, §2.14, §2.17, §4.8, T-M4-05, T-M6-05): the Starer's
+    // lens and kill scares, the Weeping Angel's closer/kill scares, the generic blackout the
+    // SanityZero presenter plays when no Whisperer is aboard, and the generic kill-sequence
+    // telegraph KillSequence plays directly (T-M4-07).
     public static class ScareSeed {
         public const string Folder = "Scares";
         public const string StarerLens = "scare.starer.lens";
         public const string StarerKill = "scare.starer.kill";
+        public const string AngelCloser = "scare.angel.closer";
+        public const string AngelKill = "scare.angel.kill";
         public const string BlackoutGeneric = "scare.blackout.generic";
         public const string TelegraphGeneric = "scare.telegraph.generic";
 
@@ -22,6 +24,8 @@ namespace BusDriver.Editor.Builders {
         public static IEnumerable<Seed> Seeds() {
             yield return Seed.Of<ScareDefinition>(RelativePath(StarerLens), FillStarerLens);
             yield return Seed.Of<ScareDefinition>(RelativePath(StarerKill), FillStarerKill);
+            yield return Seed.Of<ScareDefinition>(RelativePath(AngelCloser), FillAngelCloser);
+            yield return Seed.Of<ScareDefinition>(RelativePath(AngelKill), FillAngelKill);
             yield return Seed.Of<ScareDefinition>(RelativePath(BlackoutGeneric), FillBlackout);
             yield return Seed.Of<ScareDefinition>(RelativePath(TelegraphGeneric), FillTelegraph);
         }
@@ -58,6 +62,32 @@ namespace BusDriver.Editor.Builders {
             };
         }
 
+        // §2.12b: the first observation while it's standing — a sting and a short cabin-light stutter
+        static void FillAngelCloser(ScareDefinition scare) {
+            scare.id = AngelCloser;
+            scare.tier = ScareTier.Monster;
+            scare.steps = new[] {
+                Step(0f, ScareStepKind.PlaySound, soundId: SoundIds.MonAngelSting),
+                Step(0f, ScareStepKind.FlickerCabinLights, 0.3f),
+            };
+        }
+
+        // §2.12b: lights cut, force driver view, face at DriverShoulder, sting, blackout
+        static void FillAngelKill(ScareDefinition scare) {
+            scare.id = AngelKill;
+            scare.tier = ScareTier.Kill;
+            scare.steps = new[] {
+                Step(0f, ScareStepKind.LockInput, 2.2f),
+                Step(0f, ScareStepKind.ForceHomeView),
+                Step(0f, ScareStepKind.CabinLightsOff, 0.6f),
+                Step(0f, ScareStepKind.ShowScareHead, 1.6f, anchor: ScareAnchors.DriverShoulder, param: "lookAt"),
+                Step(0f, ScareStepKind.PlaySound, soundId: SoundIds.MonAngelKill),
+                Step(0f, ScareStepKind.CameraShake, 0.6f, intensity: 0.5f),
+                Step(1.2f, ScareStepKind.Blackout, 0.4f),
+                Step(1.6f, ScareStepKind.Wait, 0.6f),
+            };
+        }
+
         // §2.14 SanityZero without a Whisperer aboard: the heartbeat stops, fade to black over 2 s
         static void FillBlackout(ScareDefinition scare) {
             scare.id = BlackoutGeneric;
@@ -79,32 +109,38 @@ namespace BusDriver.Editor.Builders {
             };
         }
 
-        // Lists every seeded scare in the config and gives the Starer its scares where it has none;
-        // never replaces or removes a reference
+        // Lists every seeded scare in the config and gives monsters their scares where they have
+        // none; never replaces or removes a reference
         public static void Adopt(string root, GameRootConfig config) {
             List<ScareDefinition> scares = new List<ScareDefinition>(config.scares ?? new ScareDefinition[0]);
             scares.RemoveAll(s => s == null);
-            foreach (string id in new[] { StarerLens, StarerKill, BlackoutGeneric, TelegraphGeneric }) {
+            foreach (string id in new[] { StarerLens, StarerKill, AngelCloser, AngelKill, BlackoutGeneric, TelegraphGeneric }) {
                 ScareDefinition scare = AssetDatabase.LoadAssetAtPath<ScareDefinition>(root + "/" + RelativePath(id));
                 if (scare != null && !scares.Contains(scare)) {
                     scares.Add(scare);
                 }
             }
             config.scares = scares.ToArray();
-            MonsterDefinition starer = MonsterSeed.Load(root, NightSeed.Starer);
-            if (starer != null) {
-                bool changed = false;
-                if (starer.monsterScare == null) {
-                    starer.monsterScare = AssetDatabase.LoadAssetAtPath<ScareDefinition>(root + "/" + RelativePath(StarerLens));
-                    changed = true;
-                }
-                if (starer.killScare == null) {
-                    starer.killScare = AssetDatabase.LoadAssetAtPath<ScareDefinition>(root + "/" + RelativePath(StarerKill));
-                    changed = true;
-                }
-                if (changed) {
-                    EditorUtility.SetDirty(starer);
-                }
+            AdoptMonsterScares(root, NightSeed.Starer, StarerLens, StarerKill);
+            AdoptMonsterScares(root, NightSeed.WeepingAngel, AngelCloser, AngelKill);
+        }
+
+        static void AdoptMonsterScares(string root, string monsterId, string monsterScareId, string killScareId) {
+            MonsterDefinition monster = MonsterSeed.Load(root, monsterId);
+            if (monster == null) {
+                return;
+            }
+            bool changed = false;
+            if (monster.monsterScare == null) {
+                monster.monsterScare = AssetDatabase.LoadAssetAtPath<ScareDefinition>(root + "/" + RelativePath(monsterScareId));
+                changed = true;
+            }
+            if (monster.killScare == null) {
+                monster.killScare = AssetDatabase.LoadAssetAtPath<ScareDefinition>(root + "/" + RelativePath(killScareId));
+                changed = true;
+            }
+            if (changed) {
+                EditorUtility.SetDirty(monster);
             }
         }
     }

@@ -61,7 +61,7 @@ namespace BusDriver.Tests.EditMode.Builders {
         // The rider prefabs are logic only: the view is created at spawn (§4.14)
         [Test]
         public void RiderPrefabs_HoldNoRenderers() {
-            foreach (string path in new[] { PrefabBuilder.PassengerPath, PrefabBuilder.LegacyWeepingAngelPath }) {
+            foreach (string path in new[] { PrefabBuilder.PassengerPath }) {
                 GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                 Assert.IsNotNull(prefab, path + " is missing; run Build All");
                 Assert.IsEmpty(prefab.GetComponentsInChildren<Renderer>(true), path + " holds renderers");

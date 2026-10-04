@@ -34,7 +34,7 @@ namespace BusDriver.Tests.EditMode.Builders {
             string registry = Source("DebugRegistry.cs");
             StringAssert.Contains("#if UNITY_EDITOR || " + BuildScripts.DevDefine, registry);
             string overlay = Source("DebugOverlay.cs");
-            StringAssert.Contains("if (!DevBuild.Enabled)", overlay);
+            StringAssert.Contains("if (!DevBuild.IsEnabled())", overlay);
         }
 
         // T-M4-10: the monster and death cheats don't compile into a release build at all

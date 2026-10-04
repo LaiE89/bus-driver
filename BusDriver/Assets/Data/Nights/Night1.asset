@@ -16,6 +16,7 @@ MonoBehaviour:
   endStopId: church
   threatRateMultiplier: 1
   hintsEnabled: 1
+  quotaCents: 1050
   scripted:
   - lookId: look01
     boardStopId: farm_gate
@@ -44,14 +45,19 @@ MonoBehaviour:
     monsterId: 
   - lookId: look06
     boardStopId: gas_station
-    destinationStopId: church
+    destinationStopId: 
     decoy: 0
     monsterId: starer
+  - lookId: look07
+    boardStopId: campground
+    destinationStopId: 
+    decoy: 0
+    monsterId: weeping_angel
   riderCountMin: 5
   riderCountMax: 5
   decoyCount: 1
-  monsterCountMin: 1
-  monsterCountMax: 1
+  monsterCountMin: 2
+  monsterCountMax: 2
   requiredMonsters: []
   monsterPool: []
   minDistinctTypes: 0

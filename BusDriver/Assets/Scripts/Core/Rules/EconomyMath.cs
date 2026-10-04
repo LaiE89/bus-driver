@@ -12,7 +12,8 @@ namespace BusDriver.Core.Rules {
         }
 
         // §2.7: a rider delivered to their own destination at a stop reached Early earns the tip. A
-        // rider carried on from a missed stop never does, and neither does a monster.
+        // rider dropped at the next stop after theirs was missed never does (they get a refund
+        // instead), and neither does a monster.
         public static bool EarnsTip(bool isMonster, bool retargeted, string destinationStopId, string exitStopId, ArrivalRating rating) {
             return !isMonster && !retargeted && rating == ArrivalRating.Early
                 && !string.IsNullOrEmpty(exitStopId) && exitStopId == destinationStopId;

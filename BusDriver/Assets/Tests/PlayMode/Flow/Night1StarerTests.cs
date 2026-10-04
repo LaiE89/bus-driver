@@ -67,7 +67,7 @@ namespace BusDriver.Tests.PlayMode.Flow {
                 }
             }
             Passenger rider = shift.DebugRiders.SpawnSeated(new RiderSpec {
-                lookId = "look09", boardStopId = "farm_gate", destinationStopId = "church", monsterId = "starer",
+                lookId = "look09", boardStopId = "farm_gate", destinationStopId = "", monsterId = "starer",
             }, seat);
             RiderRecord record = shift.Riders.For(rider);
             Assert.IsTrue(record.IsMonster);
@@ -129,7 +129,7 @@ namespace BusDriver.Tests.PlayMode.Flow {
             yield return NightDrive.ServeStop(night, "campground");
             yield return NightDrive.ArriveAt(night, "church");
             Assert.IsTrue(shift.Doors.TryOpen(), "the doors wouldn't open at the church");
-            yield return FlowTestUtil.WaitFor(() => shift.Director.State == ShiftState.Summary, 30f, "the Summary");
+            yield return FlowTestUtil.WaitFor(() => shift.Director.State == ShiftState.Summary, 90f, "the Summary after the bus empties");
             Time.timeScale = 1f;
 
             NightResult result = shift.Director.Result;

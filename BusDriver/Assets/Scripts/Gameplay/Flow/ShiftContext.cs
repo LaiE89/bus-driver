@@ -6,6 +6,7 @@ using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Debug;
+using BusDriver.Gameplay.Dialogue;
 using BusDriver.Gameplay.Economy;
 using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
@@ -41,6 +42,8 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] ViewFactory views;
         [Tooltip("Spawns the night's riders (§4.6)")]
         [SerializeField] ManifestSpawner manifest;
+        [Tooltip("What riders say at the door, in their seat and on the way off (§4.13)")]
+        [SerializeField] DialogueService dialogue;
         [Tooltip("The night's monsters and the kill-sequence slot (§4.6)")]
         [SerializeField] MonsterSystem monsters;
         [Tooltip("Plays scare steps (§4.6)")]
@@ -122,9 +125,12 @@ namespace BusDriver.Gameplay.Flow {
             }
             // 4. PlayerAttention
             shift.Attention.Init(shift);
-            // 5. PassengerRegistry, ViewFactory
+            // 5. PassengerRegistry, ViewFactory, and the dialogue they speak through
             shift.Riders.Init(shift);
             shift.Views.Init(shift);
+            if (shift.Dialogue != null) {
+                shift.Dialogue.Init(shift);
+            }
             // 6. ShiftLedger (built in BuildServices), EconomyRules
             shift.Economy.Init(shift);
             // 7. Sanity arrives with M5
@@ -190,6 +196,7 @@ namespace BusDriver.Gameplay.Flow {
                 Riders = riders,
                 Views = views,
                 Manifest = manifest,
+                Dialogue = dialogue,
                 Monsters = monsters,
                 ScarePlayer = scarePlayer,
                 Scares = scares,

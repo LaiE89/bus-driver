@@ -69,6 +69,8 @@ namespace BusDriver.Editor.Builders {
             S(SoundIds.BusDoorOpen, AudioGroup.SfxBus, true, false),
             S(SoundIds.BusDoorClose, AudioGroup.SfxBus, true, false),
             Clip(S(SoundIds.BusFareTap, AudioGroup.SfxCabin, true, false), "Bus/sfx_cardtap_nl_01.wav", 1f),
+            // 2D on purpose: a stop bell has to cut through the cabin wherever the bus is
+            S(SoundIds.BusStopRequest, AudioGroup.SfxCabin, false, false, "[stop requested]"),
             S(SoundIds.BusRumbleStrip, AudioGroup.SfxBus, false, true),
             S(SoundIds.BusCrashMinor, AudioGroup.SfxBus, false, false),
             S(SoundIds.BusCrashMajor, AudioGroup.SfxBus, false, false),

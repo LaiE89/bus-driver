@@ -32,8 +32,9 @@ namespace BusDriver.Tests.PlayMode.Flow {
         }
 
         // Serve farm_gate (look01 → campground, look02 → church), then straight to the church: the
-        // doors opening there end the night. The Summary shows the ledger (two fares, a tip for look02
-        // if the church was reached Early, none for look01 whose stop was missed); Continue saves the
+        // doors open, look02 walks off, and the empty bus ends the night. The Summary shows the ledger
+        // (two fares, a tip for look02 if the church was Early, none for look01 whose stop was missed);
+        // Continue saves the
         // run and loads night 2 with the new wallet.
         [UnityTest, Timeout(900000)]
         public IEnumerator Night_CompletesToSummary() {
@@ -51,7 +52,7 @@ namespace BusDriver.Tests.PlayMode.Flow {
             yield return NightDrive.ArriveAt(night, "church");
             Assert.AreEqual(ShiftState.Driving, director.State, "the night isn't over before the end stop's doors open");
             Assert.IsTrue(shift.Doors.TryOpen());
-            yield return FlowTestUtil.WaitFor(() => director.State == ShiftState.Summary, 20f, "the Summary");
+            yield return FlowTestUtil.WaitFor(() => director.State == ShiftState.Summary, 60f, "the Summary after the bus empties");
             Time.timeScale = 1f;
 
             StopRecord church = shift.Progress.Find("church");

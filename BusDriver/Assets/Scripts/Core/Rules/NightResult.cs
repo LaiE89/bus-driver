@@ -24,6 +24,10 @@ namespace BusDriver.Core.Rules {
         public LedgerTotals totals = new LedgerTotals();
         public int walletBeforeCents;
         public float sanityEnd;
+        // NightDefinition.quotaCents; 0 means no quota
+        public int quotaCents;
+        // False when the night net fell short of the quota: the run ends, no next night
+        public bool quotaMet = true;
         public readonly List<NightArrival> arrivals = new List<NightArrival>();
         // This night's share of the run stats (§4.9): money by kind and the rider counts
         public RunStats stats = new RunStats();

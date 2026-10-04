@@ -36,7 +36,8 @@ namespace BusDriver.Tests.PlayMode.Passengers {
             new[] { "gas_station", "look03", "church", "" },
             new[] { "gas_station", "look04", "campground", "" },
             new[] { "campground", "look05", "church", "" },
-            new[] { "gas_station", "look06", "church", "starer" },
+            new[] { "gas_station", "look06", "", "starer" },
+            new[] { "campground", "look07", "", "weeping_angel" },
         };
 
         [UnityTest, Timeout(300000)]
@@ -46,7 +47,7 @@ namespace BusDriver.Tests.PlayMode.Passengers {
             yield return FlowTestUtil.WaitForNight(game);
             ShiftContext night = Object.FindAnyObjectByType<ShiftContext>();
             IReadOnlyList<RiderRecord> riders = night.Shift.Riders.All;
-            Assert.AreEqual(6, riders.Count, "night 1 has six riders");
+            Assert.AreEqual(7, riders.Count, "night 1 has seven riders");
             for (int i = 0; i < Night1.Length; i++) {
                 RiderRecord record = riders[i];
                 string[] row = Night1[i];
@@ -67,7 +68,7 @@ namespace BusDriver.Tests.PlayMode.Passengers {
             Assert.AreEqual(DecoyKind.NodOff, riders[2].Spec.decoy, "look03 is the NodOff decoy");
             Assert.AreEqual(2, night.Route.Stop("farm_gate").WaitingCount);
             Assert.AreEqual(3, night.Route.Stop("gas_station").WaitingCount, "the decoy, look04 and the Starer (D106)");
-            Assert.AreEqual(1, night.Route.Stop("campground").WaitingCount);
+            Assert.AreEqual(2, night.Route.Stop("campground").WaitingCount, "look05 and the Weeping Angel");
         }
 
         [UnityTest, Timeout(300000)]

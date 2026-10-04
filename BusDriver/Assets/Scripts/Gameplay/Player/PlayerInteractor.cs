@@ -2,14 +2,15 @@ using UnityEngine;
 using BusDriver.Gameplay.Flow;
 
 namespace BusDriver.Gameplay.Player {
-    // Looks along the on-foot camera for something to interact with. Kicking is on foot only
-    // (D46), so nothing is offered while seated. Lives on an always-active object so leaving
-    // the seat does not destroy it.
+    // Looks along the on-foot camera for something to interact with. Talking and kicking are on
+    // foot only (D46), so nothing is offered while seated. Lives on an always-active object so
+    // leaving the seat does not destroy it.
     public class PlayerInteractor : MonoBehaviour {
         [SerializeField] float onFootReach = 2.2f;
 
         public IInteractable Current { get; private set; }
         public string CurrentPrompt { get { return Current != null ? Current.Prompt : ""; } }
+        public string CurrentAltPrompt { get { return Current != null ? Current.AltPrompt : ""; } }
 
         readonly RaycastHit[] hits = new RaycastHit[16];
         GameServices game;
@@ -29,8 +30,13 @@ namespace BusDriver.Gameplay.Player {
                 return;
             }
             SetCurrent(FindTarget(onFootCamera, onFootReach));
-            if (Current != null && game.Input.Actions.Interact.WasPressedThisFrame()) {
+            if (Current == null) {
+                return;
+            }
+            if (game.Input.Actions.Interact.WasPressedThisFrame()) {
                 Current.Interact();
+            }else if (Current.AltPrompt != "" && game.Input.Actions.Kick.WasPressedThisFrame()) {
+                Current.AltInteract();
             }
         }
 

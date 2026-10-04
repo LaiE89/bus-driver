@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace BusDriver.Core.Data {
     // One rider of a night's manifest (§2.6, §2.19): who they look like, where they wait, where
@@ -8,6 +9,7 @@ namespace BusDriver.Core.Data {
     public sealed class RiderSpec {
         public string lookId = "";
         public string boardStopId = "";
+        [Tooltip("Empty for monsters: they never request a drop-off")]
         public string destinationStopId = "";
         public DecoyKind decoy = DecoyKind.None;
         public string monsterId = "";

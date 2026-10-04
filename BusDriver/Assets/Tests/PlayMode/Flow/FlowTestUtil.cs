@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.IO;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Flow;
+using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Shift;
 using NUnit.Framework;
 using UnityEngine;
@@ -56,11 +58,44 @@ namespace BusDriver.Tests.PlayMode.Flow {
                 ShiftDirector director = Director();
                 return director != null && director.State == ShiftState.Driving;
             }, 30f, "the Driving state");
+            DoorDriver(UnityEngine.Object.FindAnyObjectByType<ShiftContext>());
+        }
+
+        // Riders stand on the step until the driver waves them aboard (§2.4), and a test has no
+        // driver, so one is supplied for the rest of the night. A test about the decision itself
+        // turns Accept off and answers the door on its own.
+        public static TestDoorDriver DoorDriver(ShiftContext night) {
+            if (night == null) {
+                return null;
+            }
+            TestDoorDriver driver = night.GetComponent<TestDoorDriver>();
+            if (driver == null) {
+                driver = night.gameObject.AddComponent<TestDoorDriver>();
+                driver.Cabin = night.Shift.Cabin;
+            }
+            return driver;
         }
 
         public static ShiftDirector Director() {
             ShiftContext night = UnityEngine.Object.FindAnyObjectByType<ShiftContext>();
             return night != null ? night.Director : null;
+        }
+    }
+
+    // Stands in for the driver at the door: says yes to whoever is on the step, which is what
+    // the driver does in the cases the rest of the tests are about
+    sealed class TestDoorDriver : MonoBehaviour {
+        internal BusCabin Cabin;
+        internal bool Accept = true;
+
+        void Update() {
+            if (!Accept || Cabin == null) {
+                return;
+            }
+            Passenger atDoor = Cabin.PassengerAtDoor;
+            if (atDoor != null) {
+                atDoor.AcceptAboard();
+            }
         }
     }
 
