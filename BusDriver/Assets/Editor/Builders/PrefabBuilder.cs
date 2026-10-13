@@ -69,11 +69,11 @@ namespace BusDriver.Editor.Builders {
         // Appendix A.2; every CCTV camera has FOV 95. MVP labels, with MID added between them.
         public static readonly CctvSpec[] Cctv = {
             new CctvSpec { Anchor = "Anchor_CCTV_Front", CameraName = "CAM 1 Front", Label = "CAM 1  FRONT", Position = new Vector3(0.3f, 3.2f, 5.3f), Euler = new Vector3(22f, 180f, 0f) },
-            new CctvSpec { Anchor = "Anchor_CCTV_Mid", CameraName = "CAM 2 Mid", Label = "CAM 2  MID", Position = new Vector3(0f, 3.2f, 0.5f), Euler = new Vector3(28f, 180f, 0f) },
-            new CctvSpec { Anchor = "Anchor_CCTV_Rear", CameraName = "CAM 3 Rear", Label = "CAM 3  REAR", Position = new Vector3(0f, 3.2f, -5.7f), Euler = new Vector3(22f, 0f, 0f) },
+          //  new CctvSpec { Anchor = "Anchor_CCTV_Mid", CameraName = "CAM 2 Mid", Label = "CAM 2  MID", Position = new Vector3(0f, 3.2f, 0.5f), Euler = new Vector3(28f, 180f, 0f) },
+          //  new CctvSpec { Anchor = "Anchor_CCTV_Rear", CameraName = "CAM 3 Rear", Label = "CAM 3  REAR", Position = new Vector3(0f, 3.2f, -5.7f), Euler = new Vector3(22f, 0f, 0f) },
         };
         public const float CctvFov = 95f;
-        public const float CctvObserveRange = 7f;
+        public const float CctvObserveRange = 11f; // make "watched" portion of camera big enough to see the whole bus
         public const float DriverFov = 70f;
 
         static readonly Color FogColor = new Color(0.02f, 0.025f, 0.04f);
