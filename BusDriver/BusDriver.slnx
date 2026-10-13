@@ -1,0 +1,9 @@
+﻿<Solution>
+  <Project Path="BusDriver.Core.csproj" />
+  <Project Path="BusDriver.UI.csproj" />
+  <Project Path="BusDriver.Editor.csproj" />
+  <Project Path="BusDriver.Tests.EditMode.csproj" />
+  <Project Path="BusDriver.Gameplay.csproj" />
+  <Project Path="BusDriver.Tests.PlayMode.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+</Solution>
