@@ -123,9 +123,9 @@ namespace BusDriver.Gameplay.Passengers {
         RiderRecord Record { get { return Shift != null && Shift.Riders != null ? Shift.Riders.For(this) : null; } }
 
         // A rider with no night behind them says nothing at all, rather than guessing a kind
-        void Speak(string line) {
+        void Speak(string line, bool sticky = false) {
             if (Shift != null && Shift.Dialogue != null) {
-                Shift.Dialogue.Say(DisplayName, line);
+                Shift.Dialogue.Say(DisplayName, line, sticky);
             }
         }
 
@@ -162,13 +162,14 @@ namespace BusDriver.Gameplay.Passengers {
             }
         }
 
-        // Stepping aboard: humans name the stop they want, monsters say whatever they say
+        // Stepping aboard: humans name the stop they want, monsters say whatever they say.
+        // Sticky so the box stays up until Accept / Refuse at the door.
         void SayGreeting() {
             RiderRecord record = Record;
             StopRecord destination = record != null && Shift.Progress != null
                 ? Shift.Progress.Find(record.DestinationStopId)
                 : null;
-            Speak(PassengerDialogue.Greeting(Kind(record), destination != null ? destination.DisplayName : "", DialogueRng()));
+            Speak(PassengerDialogue.Greeting(Kind(record), destination != null ? destination.DisplayName : "", DialogueRng()), sticky: true);
         }
 
         // Stepping off. A rider the bus carried past their stop complains about that instead of

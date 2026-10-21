@@ -78,5 +78,22 @@ namespace BusDriver.Tests.PlayMode.UI {
             Assert.IsFalse(dialogue.IsPlaying);
             Assert.IsFalse(view.IsShown);
         }
+
+        [UnityTest]
+        public IEnumerator AStickyLineStaysUntilCleared() {
+            yield return StartNight();
+            dialogue.Say("Passenger", "Oak Hill, please.", sticky: true);
+            yield return FlowTestUtil.WaitFor(() => view.ShownText == "Oak Hill, please.", 5f, "the whole sticky line");
+            Assert.IsTrue(view.IsShown);
+            Assert.IsTrue(dialogue.IsShowing);
+            // Past the normal hold: non-sticky lines would have cleared by now
+            yield return new WaitForSeconds(3f);
+            Assert.IsTrue(view.IsShown, "sticky boarding line must stay until accept / refuse");
+            Assert.AreEqual("Oak Hill, please.", dialogue.VisibleText);
+            dialogue.Clear();
+            yield return null;
+            Assert.IsFalse(view.IsShown);
+            Assert.IsFalse(dialogue.IsShowing);
+        }
     }
 }
