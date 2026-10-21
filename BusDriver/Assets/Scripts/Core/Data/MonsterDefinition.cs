@@ -55,10 +55,12 @@ namespace BusDriver.Core.Data {
     // §2.11: sanity drain per second by stage, and the whisper loop's volume by stage
     [Serializable]
     public sealed class WhispererDrainConfig : MonsterAbilityConfig {
-        [Tooltip("Dormant, Unsettled, Aggressive, Lethal")]
-        public float[] drainPerSecondByStage = { 0f, 0.25f, 0.6f, 1.2f };
-        [Tooltip("Dormant, Unsettled, Aggressive, Lethal")]
-        public float[] whisperVolumeByStage = { 0f, 0.3f, 0.6f, 1f };
+        [Tooltip("Dormant, Unsettled, Aggressive, Lethal — positive = sanity lost per second")]
+        public float[] drainPerSecondByStage = { 0.4f, 0.8f, 1.4f, 2.2f };
+        [Tooltip("Dormant, Unsettled, Aggressive, Lethal — whisper bed volume (very quiet at Dormant)")]
+        public float[] whisperVolumeByStage = { 0.02f, 0.12f, 0.4f, 0.85f };
+        [Tooltip("How fast volume eases toward the current stage target, per second")]
+        public float whisperVolumeLerpPerSecond = 0.35f;
     }
 
     // §2.12 and D22: it copies a seated rider, then replaces them

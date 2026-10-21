@@ -52,6 +52,8 @@ namespace BusDriver.Core.Data {
         public float monsterKickSanity = 10f;
         public float monsterScareSanity = -5f;
         public float startleSanity = -2f;
+        [Tooltip("Talking to a human passenger on foot")]
+        public float chatSanityRestore = 8f;
         [Tooltip("Next night: min(100, max(end + bonus, floor))")]
         public float sanityCarryBonus = 30f;
         public float sanityCarryFloor = 60f;

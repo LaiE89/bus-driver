@@ -15,17 +15,17 @@ MonoBehaviour:
   id: hal.static_burst
   clips:
   - {fileID: 8300000, guid: 65e139633669c4a2ab64056d35ac53b2, type: 3}
-  volume: 0.35
+  volume: 0.75
   volumeJitter: 0
   pitch: 1
   pitchJitter: 0
-  group: 3
+  group: 6
   spatial: 0
   minDistance: 1
   maxDistance: 25
   loop: 0
   maxVoices: 4
-  priority: 128
+  priority: 48
   cooldown: 0
   caption: 
   placeholder: 1

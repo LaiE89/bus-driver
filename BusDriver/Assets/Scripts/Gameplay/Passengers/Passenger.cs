@@ -190,13 +190,17 @@ namespace BusDriver.Gameplay.Passengers {
         }
 
         // The driver walked back for a chat. Ignored while anyone is mid-sentence, so holding the
-        // button cannot stack up a queue of lines.
+        // button cannot stack up a queue of lines. Talking to a human restores a little sanity.
         public bool Chat() {
             if (State != PassengerState.Seated || Shift == null || Shift.Dialogue == null || Shift.Dialogue.IsPlaying) {
                 return false;
             }
             Speak(PassengerDialogue.Seated(Kind(Record), DialogueRng()));
             OnChatted();
+            RiderRecord record = Record;
+            if (record != null && !record.IsMonster && Shift.Sanity != null && Shift.Balance != null) {
+                Shift.Sanity.Apply(Shift.Balance.chatSanityRestore, SanityReason.Chat);
+            }
             return true;
         }
 

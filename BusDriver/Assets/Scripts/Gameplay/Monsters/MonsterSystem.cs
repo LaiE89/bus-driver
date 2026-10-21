@@ -32,7 +32,7 @@ namespace BusDriver.Gameplay.Monsters {
         public void Init(ShiftServices services) {
             shift = services;
             config = services.Game != null ? services.Game.Config : null;
-            Sanity = () => services.Setup.Run.sanity;
+            Sanity = () => services.Sanity != null ? services.Sanity.Value : services.Setup.Run.sanity;
             if (services.Economy != null) {
                 services.Economy.BountyFor = BountyFor;
             }

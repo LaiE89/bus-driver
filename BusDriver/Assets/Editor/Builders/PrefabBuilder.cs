@@ -655,6 +655,9 @@ namespace BusDriver.Editor.Builders {
                 if (monster.ability is StarerAdvanceConfig) {
                     instance.AddComponent<StarerAdvance>();
                 }
+                if (monster.ability is WhispererDrainConfig) {
+                    instance.AddComponent<WhispererDrain>();
+                }
                 GameObject saved = SaveOrOverwritePrefab(instance, MonsterPath(monster.id));
                 Object.DestroyImmediate(instance);
                 if (monster.logicPrefab != saved) {
