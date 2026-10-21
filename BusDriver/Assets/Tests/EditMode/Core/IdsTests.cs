@@ -6,7 +6,7 @@ namespace BusDriver.Tests.EditMode.Core {
         [TestCase("farm_gate")]
         [TestCase("look01")]
         [TestCase("route01")]
-        [TestCase("weeping_angel")]
+        [TestCase("mimic")]
         [TestCase("scare.starer.lens")]
         [TestCase("mon.whisper_feed_loop")]
         public void Valid(string id) {

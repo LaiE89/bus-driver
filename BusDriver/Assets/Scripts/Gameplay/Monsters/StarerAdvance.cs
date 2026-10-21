@@ -1,26 +1,23 @@
+using System.Collections;
 using System.Collections.Generic;
 using BusDriver.Core.Data;
 using BusDriver.Core.Rules;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Attention;
 using BusDriver.Gameplay.Bus;
+using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Passengers;
+using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Scares;
 using BusDriver.Gameplay.Shift;
 using UnityEngine;
 
 namespace BusDriver.Gameplay.Monsters {
-    // The Starer's ability and tells (§2.10). It punishes not watching the cabin:
-    // - Advance: its target row closes from the row it first sat in to R1 as its threat rises, and
-    //   whenever it has been unobserved for 1 s and sits behind that row it is suddenly in the
-    //   target row (the free seat nearest its column; a full row passes it on to the next row
-    //   forward; with nothing free it stays).
-    // - Tells: the head always turns to the camera the player is looking through, it goes still
-    //   by stage and its eyes widen with the threat.
-    // - Lens scare: the first time it climbs into Aggressive, the next CCTV cycle within 20 s cuts
-    //   to a camera that sees it and fills the lens with its face.
-    // - Its kill sequence stands it in the aisle beside R1; an escape sits it back down in R2.
+    // The Starer: after grace, while nobody is watching it, it periodically teleports one seat row
+    // forward with no sound or FX. From the near-front row the next hop is an immediate kill scare
+    // (no aisle stand). It never kills while the player is on foot. Rear seating is the definition's
+    // seat preference.
     [RequireComponent(typeof(MonsterBrain))]
     public sealed class StarerAdvance : MonoBehaviour, IMonsterPart {
         ShiftServices shift;
@@ -31,15 +28,12 @@ namespace BusDriver.Gameplay.Monsters {
         float lensWindow;
         bool lensArmed;
         bool lensDone;
-        // Its seat's column when it stood up for the telegraph, to sit back down near it
-        int standColumn = 1;
+        float unobservedTimer;
+        bool killing;
 
-        // The row it first sat down in; 0 before that
         public int BoardRow { get; private set; }
         public int CurrentRow { get { return passenger != null && passenger.Seat != null ? passenger.Seat.Row : 0; } }
-        public int TargetRow { get { return BoardRow > 0 ? StarerRules.TargetRow(BoardRow, brain.Threat) : 0; } }
         public int Advances { get; private set; }
-        // Waiting for the next CCTV cycle to play the lens scare
         public bool LensArmed { get { return lensArmed; } }
         public bool LensPlayed { get; private set; }
 
@@ -50,10 +44,6 @@ namespace BusDriver.Gameplay.Monsters {
             config = owner.Definition.Ability<StarerAdvanceConfig>() ?? new StarerAdvanceConfig();
             passenger.Seated += HandleSeated;
             brain.Meter.OnStageChanged += HandleStageChanged;
-            if (brain.Kill != null) {
-                brain.Kill.OnTelegraphStarted += HandleTelegraphStarted;
-                brain.Kill.OnResolved += HandleResolved;
-            }
             if (shift.Cctv != null) {
                 shift.Cctv.OnViewChanged += HandleViewChanged;
             }
@@ -65,10 +55,6 @@ namespace BusDriver.Gameplay.Monsters {
             }
             if (brain != null) {
                 brain.Meter.OnStageChanged -= HandleStageChanged;
-                if (brain.Kill != null) {
-                    brain.Kill.OnTelegraphStarted -= HandleTelegraphStarted;
-                    brain.Kill.OnResolved -= HandleResolved;
-                }
             }
             if (shift != null && shift.Cctv != null) {
                 shift.Cctv.OnViewChanged -= HandleViewChanged;
@@ -82,7 +68,7 @@ namespace BusDriver.Gameplay.Monsters {
         }
 
         void Update() {
-            if (shift == null || !brain.IsActive) {
+            if (shift == null || !brain.IsActive || killing) {
                 return;
             }
             UpdateTells();
@@ -96,49 +82,96 @@ namespace BusDriver.Gameplay.Monsters {
                     Log.Verbose(LogCat.Threat, "starer: no CCTV cycle within the window; the lens scare is skipped");
                 }
             }
-            TryAdvance();
+            TickAdvance();
         }
 
-        void TryAdvance() {
+        void TickAdvance() {
             BusSeat seat = passenger.Seat;
-            if (seat == null || BoardRow == 0) {
+            if (seat == null || BoardRow == 0 || brain.Meter.Core.InGrace) {
+                unobservedTimer = 0f;
                 return;
             }
-            int target = TargetRow;
-            if (!StarerRules.ShouldAdvance(seat.Row, target, brain.TimeSinceObserved, config.unobservedBeforeAdvance)) {
+            if (brain.IsObserved) {
+                unobservedTimer = 0f;
                 return;
             }
-            for (int row = target; row >= StarerRules.FrontRow; row--) {
+            unobservedTimer += Time.deltaTime;
+            if (!StarerRules.ShouldHop(unobservedTimer, config.advanceIntervalSeconds)) {
+                return;
+            }
+            unobservedTimer = 0f;
+            TryHop(seat);
+        }
+
+        void TryHop(BusSeat seat) {
+            if (StarerRules.IsKillHop(seat.Row, config.killFromRow)) {
+                if (PlayerOnFoot) {
+                    // Never kill on foot; stay put until they sit back down
+                    Log.Verbose(LogCat.Threat, "starer: kill hop skipped (player on foot)");
+                    return;
+                }
+                StartCoroutine(KillPlayer());
+                return;
+            }
+            int nextRow = StarerRules.NextRow(seat.Row);
+            for (int row = nextRow; row >= StarerRules.FrontRow; row--) {
                 BusSeat next = NearestFreeSeat(row, seat.Column);
                 if (next != null && passenger.MoveToSeat(next)) {
                     Advances++;
-                    Log.Verbose(LogCat.Threat, $"starer advanced R{seat.Row} → R{row} (threat {brain.Threat:0.0})");
+                    Log.Verbose(LogCat.Threat, $"starer hopped R{seat.Row} → R{row} (silent)");
                     return;
                 }
             }
         }
 
-        // The free seat in the row nearest the column, or null when the row is full
+        bool PlayerOnFoot {
+            get { return shift.Mode != null && shift.Mode.Mode == PlayerMode.OnFoot; }
+        }
+
+        IEnumerator KillPlayer() {
+            if (killing) {
+                yield break;
+            }
+            killing = true;
+            Log.Info(LogCat.Threat, "starer: kill hop");
+            ScareDefinition scare = brain.Definition != null ? brain.Definition.killScare : null;
+            IDeathPreventer preventer = shift.Death != null
+                ? shift.Death.PreventedBy(DeathCause.MonsterKill, MonsterIds.Starer) : null;
+            if (preventer != null) {
+                killing = false;
+                yield break;
+            }
+            if (scare != null && shift.Scares != null) {
+                ScareHandle handle;
+                if (shift.Scares.Request(scare, ScareContext.For(brain), out handle)) {
+                    while (!handle.IsNone && shift.ScarePlayer != null && shift.ScarePlayer.IsRunning(handle)) {
+                        yield return null;
+                    }
+                }
+            }
+            if (shift.Death != null) {
+                shift.Death.Die(DeathCause.MonsterKill, MonsterIds.Starer);
+            }
+        }
+
         BusSeat NearestFreeSeat(int row, int column) {
             IReadOnlyList<BusSeat> seats = shift.Cabin.Seats;
             BusSeat best = null;
             int bestGap = int.MaxValue;
             for (int i = 0; i < seats.Count; i++) {
-                BusSeat seat = seats[i];
-                if (seat.Row != row || !seat.IsFree) {
+                BusSeat candidate = seats[i];
+                if (candidate.Row != row || !candidate.IsFree) {
                     continue;
                 }
-                int gap = Mathf.Abs(seat.Column - column);
+                int gap = Mathf.Abs(candidate.Column - column);
                 if (gap < bestGap) {
-                    best = seat;
+                    best = candidate;
                     bestGap = gap;
                 }
             }
             return best;
         }
 
-        // HeadTrack always on toward the camera the player looks through, Stillness by stage,
-        // EyesWide by threat (§2.10)
         void UpdateTells() {
             if (passenger.View == null) {
                 return;
@@ -154,7 +187,6 @@ namespace BusDriver.Gameplay.Monsters {
             passenger.View.SetTell(TellId.EyesWide, brain.Threat / 100f);
         }
 
-        // Climbing into Aggressive (not falling back to it from Lethal) arms the lens scare once
         void HandleStageChanged(MonsterBrain owner, ThreatStage from, ThreatStage to) {
             if (to != ThreatStage.Aggressive || from >= ThreatStage.Aggressive || lensDone) {
                 return;
@@ -176,7 +208,6 @@ namespace BusDriver.Gameplay.Monsters {
             LensPlayed = shift.Scares.Request(scare, ScareContext.AtCamera(CameraSeeing(index), brain));
         }
 
-        // The camera just cycled to if it sees the Starer, else the first that does, else that one
         int CameraSeeing(int cycledTo) {
             IReadOnlyList<CctvCamera> cameras = shift.Cctv.Cameras;
             if (passenger.Head == null) {
@@ -196,46 +227,6 @@ namespace BusDriver.Gameplay.Monsters {
 
         static bool Sees(CctvCamera camera, Vector3 head) {
             return camera != null && PlayerAttention.Sees(camera.Camera, head, camera.ObserveRange);
-        }
-
-        // §2.10 Telegraph: it stands up in the aisle beside R1
-        void HandleTelegraphStarted(MonsterBrain owner) {
-            BusSeat front = NearestSeat(StarerRules.FrontRow);
-            if (front == null) {
-                return;
-            }
-            if (passenger.Seat != null) {
-                standColumn = passenger.Seat.Column;
-            }
-            passenger.StandAt(shift.Cabin.SeatAisleLocal(front), Quaternion.identity);
-        }
-
-        // §2.10 Escape: it sits back down in R2 (or the nearest row behind it with a free seat)
-        void HandleResolved(MonsterBrain owner, KillOutcome outcome) {
-            if (outcome != KillOutcome.Escaped && outcome != KillOutcome.Spared) {
-                return;
-            }
-            int column = passenger.Seat != null ? passenger.Seat.Column : standColumn;
-            for (int row = StarerRules.EscapeRow; row <= 9; row++) {
-                BusSeat seat = NearestFreeSeat(row, column);
-                if (seat != null && passenger.MoveToSeat(seat)) {
-                    return;
-                }
-            }
-            BusSeat front = NearestFreeSeat(StarerRules.FrontRow, column);
-            if (front != null) {
-                passenger.MoveToSeat(front);
-            }
-        }
-
-        BusSeat NearestSeat(int row) {
-            IReadOnlyList<BusSeat> seats = shift.Cabin.Seats;
-            for (int i = 0; i < seats.Count; i++) {
-                if (seats[i].Row == row) {
-                    return seats[i];
-                }
-            }
-            return null;
         }
     }
 }

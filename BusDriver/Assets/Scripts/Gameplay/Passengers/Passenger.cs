@@ -642,8 +642,8 @@ namespace BusDriver.Gameplay.Passengers {
             }
         }
 
-        // A seated monster moving itself (§2.10 the Starer's advance and its escape): straight into
-        // another free seat, no walk. False when it isn't sitting aboard or the seat is taken.
+        // A seated monster moving itself (the Starer's silent hop): straight into another free seat,
+        // no walk and no FX. False when it isn't sitting aboard or the seat is taken.
         public bool MoveToSeat(BusSeat seat) {
             if (!IsAboard || State != PassengerState.Seated || seat == null || Cabin == null || !seat.Reserve(this)) {
                 return false;
@@ -670,7 +670,7 @@ namespace BusDriver.Gameplay.Passengers {
             transform.localRotation = localRotation;
         }
 
-        // Stand up and free the seat so the angel (or similar) can walk the aisle.
+        // Stand up and free the seat so a stalking monster can walk the aisle.
         protected void VacateSeat() {
             if (Seat != null) {
                 Seat.Release(this);

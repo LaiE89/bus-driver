@@ -47,7 +47,7 @@ namespace BusDriver.Core.Data {
         [Tooltip("Every passenger look (Data/Looks), in id order")]
         public PassengerLookDefinition[] looks = new PassengerLookDefinition[0];
 
-        [Tooltip("Every monster type (Data/Monsters): starer, whisperer, mimic, weeping_angel")]
+        [Tooltip("Every monster type (Data/Monsters): starer, whisperer, mimic")]
         public MonsterDefinition[] monsters = new MonsterDefinition[0];
 
         [Tooltip("Every scare (Data/Scares)")]

@@ -26,7 +26,6 @@ MonoBehaviour:
   requiredMonsters:
   - starer
   - whisperer
-  - weeping_angel
   monsterPool: []
   minDistinctTypes: 0
   maxPerType: 0

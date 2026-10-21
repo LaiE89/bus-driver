@@ -48,16 +48,11 @@ MonoBehaviour:
     destinationStopId: 
     decoy: 0
     monsterId: starer
-  - lookId: look07
-    boardStopId: campground
-    destinationStopId: 
-    decoy: 0
-    monsterId: weeping_angel
   riderCountMin: 5
   riderCountMax: 5
   decoyCount: 1
-  monsterCountMin: 2
-  monsterCountMax: 2
+  monsterCountMin: 1
+  monsterCountMax: 1
   requiredMonsters: []
   monsterPool: []
   minDistinctTypes: 0
