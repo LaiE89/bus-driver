@@ -11,7 +11,7 @@ namespace BusDriver.Gameplay.Bus {
     // the cabin hides the road completely while the bus keeps moving.
     public class CCTVSystem : MonoBehaviour {
         [SerializeField] Camera homeCamera;
-        [Tooltip("Cycle order: Home → CAM 1 → CAM 2 → CAM 3 → Home (§2.2)")]
+        [Tooltip("Cycle order: Home → CAM 1 → Home (§2.2). One front cabin camera.")]
         [SerializeField] CctvCamera[] cameras = new CctvCamera[0];
 
         // -1 is the home (driver) view

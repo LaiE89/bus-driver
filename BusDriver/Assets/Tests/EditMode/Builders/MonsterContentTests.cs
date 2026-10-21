@@ -30,19 +30,22 @@ namespace BusDriver.Tests.EditMode.Builders {
         const ObserverKinds All = ObserverKinds.Cctv | ObserverKinds.Driver | ObserverKinds.OnFoot | ObserverKinds.Mirror;
 
         [Test]
-        public void Starer_MatchesSection2_10() {
+        public void Starer_MatchesSilentHopKill() {
             MonsterDefinition m = Monster("starer");
-            // D106: no rule may lower it, so its meter only falls through the escape reset
             foreach (ThreatRule rule in m.rules) {
                 Assert.GreaterOrEqual(rule.ratePerSecond, 0f, "the Starer never calms down by being watched");
             }
             AssertRules(m, ThreatCondition.Observed, 0f, ThreatCondition.Always, 10f);
             Assert.AreEqual(All, m.observerKinds);
             Assert.AreEqual(SeatZone.Rear, m.seatZonePreference);
-            Assert.AreEqual(EscapeKind.ObserveFor, m.escape.kind);
-            Assert.AreEqual(1.5f, m.escape.seconds);
+            Assert.AreEqual(EscapeKind.None, m.escape.kind, "no aisle kill sequence");
             Assert.AreEqual("It only moves when you aren't looking.", m.journal.hint);
-            Assert.IsInstanceOf<StarerAdvanceConfig>(m.ability);
+            StarerAdvanceConfig ability = m.Ability<StarerAdvanceConfig>();
+            Assert.IsNotNull(ability);
+            Assert.AreEqual(3f, ability.advanceIntervalSeconds, 0.001f);
+            Assert.AreEqual(2, ability.killFromRow);
+            Assert.IsNull(m.logicPrefab.GetComponent<KillSequence>(), "prefab has no KillSequence");
+            Assert.IsNotNull(m.logicPrefab.GetComponent<StarerAdvance>());
         }
 
         [Test]
@@ -65,27 +68,8 @@ namespace BusDriver.Tests.EditMode.Builders {
         }
 
         [Test]
-        public void WeepingAngel_MatchesMainHunt() {
-            MonsterDefinition m = Monster("weeping_angel");
-            AssertRules(m, ThreatCondition.Observed, 0f, ThreatCondition.Always, 0f);
-            Assert.AreEqual(All, m.observerKinds);
-            Assert.AreEqual(SeatZone.Rear, m.seatZonePreference);
-            Assert.AreEqual(SeatZone.Mid, m.seatZoneFallback);
-            Assert.AreEqual(EscapeKind.None, m.escape.kind);
-            Assert.IsNotNull(m.killScare, "killScare jump scare");
-            Assert.IsNotNull(m.logicPrefab.GetComponent<AngelStalk>(), "prefab carries AngelStalk");
-            Assert.IsNull(m.logicPrefab.GetComponent<KillSequence>(), "no threat telegraph");
-            AngelStalkConfig ability = m.Ability<AngelStalkConfig>();
-            Assert.IsNotNull(ability);
-            Assert.AreEqual(0.55f, ability.walkSpeed, 0.001f);
-            Assert.AreEqual(0.6f, ability.killDistance, 0.001f);
-            Assert.AreEqual(20f, ability.minHuntDelay, 0.001f);
-            Assert.AreEqual(40f, ability.maxHuntDelay, 0.001f);
-        }
-
-        [Test]
         public void EveryMonster_SharesTheFrameworkDefaults_AndHasItsPrefab() {
-            foreach (string id in new[] { "starer", "whisperer", "mimic", "weeping_angel" }) {
+            foreach (string id in new[] { "starer", "whisperer", "mimic" }) {
                 MonsterDefinition m = Monster(id);
                 Assert.AreEqual(10f, m.graceSeconds, id + " grace");
                 Assert.AreEqual(4f, m.killTelegraphSeconds, id + " telegraph");

@@ -15,7 +15,7 @@ MonoBehaviour:
   id: scare.startle_sting
   clips:
   - {fileID: 8300000, guid: 23c9c816246804e67b8b7a629971e8d7, type: 3}
-  volume: 0.35
+  volume: 0.75
   volumeJitter: 0
   pitch: 1
   pitchJitter: 0

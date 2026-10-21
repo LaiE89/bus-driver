@@ -8,80 +8,134 @@ using BusDriver.Core.Util;
 using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Input;
-using BusDriver.Gameplay.Player;
 using BusDriver.UI.Menu;
+using BusDriver.UI.Theme;
 
 namespace BusDriver.UI.Screens {
-    // The Controls screen (was ControlsMenu), a ScreenView in Screens.prefab (T-M1-16): one row per
-    // keyboard/mouse binding of Driving, OnFoot and Global except Look, each with a rebind button
-    // and a reset button, plus reset-all (§4.10). Rows are built at runtime from InputService,
-    // cloned from the prefab's template row, so a new action shows up without a rebuild.
+    // Controls screen (§4.10). Layout mirrors OptionsScreen: Title role header, Body row labels
+    // left of centre with the control at x=240, and Apply / Reset All / Back on the same footer
+    // band. Rebinds preview live; Apply commits to settings, Back discards.
     public class ControlsScreen : ScreenView, IGameBindable {
         public const string LabelTemplateName = "Row Label Template";
         public const string ButtonTemplateName = "Row Button Template";
+        public const string ApplyButtonName = "Apply Button";
         public const string ResetButtonName = "Reset Button";
         public const string BackButtonName = "Back Button";
+        public const string HintName = "Hint";
+        public const string TitleName = "Title";
 
         [SerializeField] ScreenRouter router;
-        [SerializeField] float firstRowY = 360f;
-        // Room for a 44 px row, which is what the 32pt row text needs
-        [SerializeField] float rowPitch = 54f;
-        [SerializeField] float columnOffset = 430f;
+
+        // Same geometry as UIPrefabBuilder.BuildOptions / Row()
+        const float TitleY = 400f;
+        const float HintY = 310f;
+        const float FirstRowY = 250f;
+        // Options uses 80; nine bindings need a slightly tighter pitch to clear the footer
+        const float RowPitch = 60f;
+        const float FooterY = -380f;
+        const float LabelX = -260f;
+        const float ControlX = 240f;
+        static readonly Vector2 LabelSize = new Vector2(460f, 44f);
+        static readonly Vector2 ControlSize = new Vector2(420f, 44f);
+        static readonly Vector2 FooterApplySize = new Vector2(260f, 70f);
+        static readonly Vector2 FooterMidSize = new Vector2(300f, 70f);
+        static readonly Vector2 FooterBackSize = new Vector2(260f, 70f);
 
         sealed class Row {
             public RebindableBinding Binding;
             public TMP_Text KeyText;
             public Button KeyButton;
-            public Button ResetButton;
         }
 
         readonly List<Row> rows = new List<Row>();
         InputService input;
-        SettingsService settings;
         IAudioService audio;
         TMP_Text statusText;
+        Button applyButton;
+        Button resetButton;
+        Button backButton;
         bool built;
+        bool dirty;
 
         public void Bind(GameServices game) {
             input = game.Input;
-            settings = game.Settings;
             audio = game.Audio;
             input.OnBindingsChanged += Refresh;
         }
 
         protected override void Awake() {
             base.Awake();
-            Button reset = ChildButton(ResetButtonName);
-            Button back = ChildButton(BackButtonName);
-            if (reset != null) {
-                reset.onClick.AddListener(ResetKeybinds);
+            applyButton = ChildButton(ApplyButtonName);
+            resetButton = ChildButton(ResetButtonName);
+            backButton = ChildButton(BackButtonName);
+            if (resetButton != null) {
+                resetButton.onClick.AddListener(ResetKeybinds);
             }
-            if (back != null) {
-                back.onClick.AddListener(Back);
+            if (backButton != null) {
+                backButton.onClick.AddListener(Back);
+            }
+            if (applyButton != null) {
+                applyButton.onClick.AddListener(Apply);
             }
         }
 
         public override void OnOpened() {
             Build();
+            if (input != null) {
+                input.BeginBindingEdit();
+            }
+            dirty = false;
             SetStatus("");
             Refresh();
             SelectFirst();
         }
 
-        // Rebinds are saved as they happen; this catches a reset-all
         public override void OnClosed() {
             if (input != null) {
                 input.CancelRebind();
+                input.DiscardBindingEdit();
             }
-            if (settings != null) {
-                settings.Save();
+            dirty = false;
+        }
+
+        public void Apply() {
+            PlayUISound();
+            if (input == null) {
+                return;
             }
+            input.CommitBindingEdit();
+            input.BeginBindingEdit();
+            dirty = false;
+            SetStatus(UIText.ControlsSaved);
         }
 
         public void Back() {
             PlayUISound();
+            if (input != null) {
+                input.DiscardBindingEdit();
+            }
+            dirty = false;
             if (router.Top == this) {
                 router.Pop();
+            }
+        }
+
+        public void ResetKeybinds() {
+            PlayUISound();
+            if (input != null) {
+                input.ResetAll();
+            }
+            dirty = true;
+            SetStatus(UIText.AllControlsReset);
+        }
+
+        public void Refresh() {
+            if (input == null) {
+                return;
+            }
+            for (int i = 0; i < rows.Count; i++) {
+                Row row = rows[i];
+                row.KeyText.text = input.GetBindingDisplayString(row.Binding.Action, row.Binding.BindingIndex).ToUpperInvariant();
             }
         }
 
@@ -96,21 +150,6 @@ namespace BusDriver.UI.Screens {
             }
         }
 
-        public void Refresh() {
-            for (int i = 0; i < rows.Count; i++) {
-                Row row = rows[i];
-                row.KeyText.text = input.GetBindingDisplayString(row.Binding.Action, row.Binding.BindingIndex).ToUpperInvariant();
-            }
-        }
-
-        public void ResetKeybinds() {
-            PlayUISound();
-            if (input != null) {
-                input.ResetAll();
-            }
-            SetStatus(UIText.AllControlsReset);
-        }
-
         void Build() {
             if (built || input == null) {
                 return;
@@ -122,41 +161,106 @@ namespace BusDriver.UI.Screens {
                 Log.Error(LogCat.Input, "ControlsScreen: the prefab lost its template row");
                 return;
             }
+
+            LayoutChrome(labelTemplate, buttonTemplate);
+
             List<RebindableBinding> bindings = input.RebindableBindings();
-            // The screen has room for exactly two columns, so they split whatever the asset has:
-            // the list grows as actions are added and the layout keeps up on its own
-            int perColumn = Mathf.Max(1, (bindings.Count + 1) / 2);
             for (int i = 0; i < bindings.Count; i++) {
-                int column = i / perColumn;
-                float x = column == 0 ? -columnOffset : columnOffset;
-                float y = firstRowY - (i % perColumn) * rowPitch;
-                rows.Add(CreateRow(bindings[i], labelTemplate, buttonTemplate, x, y));
+                rows.Add(CreateRow(bindings[i], labelTemplate, buttonTemplate, FirstRowY - i * RowPitch));
             }
-            float belowRows = firstRowY - perColumn * rowPitch;
-            statusText = CloneLabel(labelTemplate, "Rebind Status", new Vector2(0f, belowRows - 20f), new Vector2(1200f, 44f));
+
+            float belowRows = FirstRowY - Mathf.Max(bindings.Count, 1) * RowPitch;
+            statusText = CloneLabel(labelTemplate, "Rebind Status", new Vector2(0f, belowRows), new Vector2(900f, 44f));
             statusText.alignment = TextAlignmentOptions.Center;
             statusText.text = "";
-            Place(transform.Find(ResetButtonName), new Vector2(0f, belowRows - 110f));
-            Place(transform.Find(BackButtonName), new Vector2(0f, belowRows - 215f));
+            // Body + highlight, same family as Options row labels
+            ThemedText statusTheme = statusText.GetComponent<ThemedText>();
+            if (statusTheme != null) {
+                statusTheme.SetRole(ThemeRole.Body, ThemeColor.Highlight, 0f);
+            }
+
+            PlaceFooter();
 
             labelTemplate.gameObject.SetActive(false);
             buttonTemplate.gameObject.SetActive(false);
         }
 
-        Row CreateRow(RebindableBinding binding, Transform labelTemplate, Transform buttonTemplate, float x, float y) {
-            TMP_Text label = CloneLabel(labelTemplate, binding.ActionId + " label", new Vector2(x - 230f, y), new Vector2(380f, 44f));
+        void LayoutChrome(Transform labelTemplate, Transform buttonTemplate) {
+            // Match Options: Title role at y=400, 1220×160
+            Transform title = transform.Find(TitleName);
+            if (title != null) {
+                Place(title, new Vector2(0f, TitleY), new Vector2(1220f, 160f));
+                ThemedText titleTheme = title.GetComponent<ThemedText>();
+                if (titleTheme != null) {
+                    titleTheme.SetRole(ThemeRole.Title, ThemeColor.Text, 0f);
+                }
+            }
+
+            if (transform.Find(HintName) == null) {
+                TMP_Text hint = CloneLabel(labelTemplate, HintName, new Vector2(0f, HintY), new Vector2(900f, 44f));
+                hint.text = UIText.ControlsHint;
+                hint.alignment = TextAlignmentOptions.Center;
+                ThemedText hintTheme = hint.GetComponent<ThemedText>();
+                if (hintTheme != null) {
+                    hintTheme.SetRole(ThemeRole.Body, ThemeColor.Disabled, 0f);
+                }
+            }
+
+            EnsureApplyButton(buttonTemplate);
+        }
+
+        void PlaceFooter() {
+            // Same band and sizes as Options (Apply | mid | Back)
+            Place(applyButton != null ? applyButton.transform : null, new Vector2(-300f, FooterY), FooterApplySize);
+            Place(resetButton != null ? resetButton.transform : null, new Vector2(0f, FooterY), FooterMidSize);
+            Place(backButton != null ? backButton.transform : null, new Vector2(300f, FooterY), FooterBackSize);
+            SetFooterLabel(applyButton, UIText.Apply);
+            SetFooterLabel(resetButton, UIText.ResetAll);
+            SetFooterLabel(backButton, UIText.Back);
+        }
+
+        void EnsureApplyButton(Transform buttonTemplate) {
+            if (applyButton != null) {
+                return;
+            }
+            // Clone Back so the footer keeps ThemeRole.Button like Options
+            Transform source = backButton != null ? backButton.transform : buttonTemplate;
+            applyButton = CloneButton(source, ApplyButtonName, new Vector2(-300f, FooterY), FooterApplySize);
+            applyButton.onClick.AddListener(Apply);
+        }
+
+        static void SetFooterLabel(Button button, string label) {
+            if (button == null) {
+                return;
+            }
+            TMP_Text text = button.GetComponentInChildren<TMP_Text>(true);
+            if (text != null) {
+                text.text = label;
+            }
+            // Leave ThemeRole.Button alone — Options footer uses the same
+        }
+
+        Row CreateRow(RebindableBinding binding, Transform labelTemplate, Transform buttonTemplate, float y) {
+            // Same as UIPrefabBuilder.Row: Body label at -260, control at +240
+            TMP_Text label = CloneLabel(labelTemplate, binding.ActionId + " label", new Vector2(LabelX, y), LabelSize);
             label.text = binding.Label.ToUpperInvariant();
             label.alignment = TextAlignmentOptions.Right;
+            ThemedText labelTheme = label.GetComponent<ThemedText>();
+            if (labelTheme != null) {
+                labelTheme.SetRole(ThemeRole.Body, ThemeColor.Text, 0f);
+            }
 
             Row row = new Row { Binding = binding };
-            row.KeyButton = CloneButton(buttonTemplate, binding.ActionId + " key", new Vector2(x + 90f, y), new Vector2(240f, 44f));
+            row.KeyButton = CloneButton(buttonTemplate, binding.ActionId + " key", new Vector2(ControlX, y), ControlSize);
             row.KeyText = row.KeyButton.GetComponentInChildren<TMP_Text>(true);
+            if (row.KeyText != null) {
+                ThemedText keyTheme = row.KeyText.GetComponent<ThemedText>();
+                if (keyTheme != null) {
+                    // Body on the key caption so rows read as Options labels, not menu buttons
+                    keyTheme.SetRole(ThemeRole.Body, ThemeColor.Text, 0f);
+                }
+            }
             row.KeyButton.onClick.AddListener(() => StartRebind(row));
-
-            // Wide enough for RESET at the row's text size, and clear of the key button
-            row.ResetButton = CloneButton(buttonTemplate, binding.ActionId + " reset", new Vector2(x + 325f, y), new Vector2(180f, 44f));
-            row.ResetButton.GetComponentInChildren<TMP_Text>(true).text = UIText.Reset;
-            row.ResetButton.onClick.AddListener(() => ResetRow(row));
             return row;
         }
 
@@ -174,12 +278,14 @@ namespace BusDriver.UI.Screens {
             clone.SetActive(true);
             Place(clone.transform, position, size);
             Button button = clone.GetComponent<Button>();
-            // Drop the persistent listeners the template was baked with
             button.onClick = new Button.ButtonClickedEvent();
             return button;
         }
 
         static void Place(Transform target, Vector2 position, Vector2? size = null) {
+            if (target == null) {
+                return;
+            }
             RectTransform rect = target as RectTransform;
             if (rect == null) {
                 return;
@@ -202,6 +308,7 @@ namespace BusDriver.UI.Screens {
             SetStatus(string.Format(UIText.PressAKey, row.Binding.Label));
             input.StartRebind(row.Binding.ActionId, row.Binding.BindingIndex, result => {
                 if (result.Success) {
+                    dirty = true;
                     SetStatus("");
                 }else if (result.Cancelled) {
                     SetStatus("");
@@ -215,15 +322,6 @@ namespace BusDriver.UI.Screens {
             });
         }
 
-        void ResetRow(Row row) {
-            PlayUISound();
-            if (input != null) {
-                input.ResetBinding(row.Binding.ActionId);
-            }
-            SetStatus("");
-        }
-
-        // Controller-ready rule 4 (§4.10): focus is always on a Selectable
         void SelectFirst() {
             if (rows.Count > 0 && EventSystem.current != null) {
                 EventSystem.current.SetSelectedGameObject(rows[0].KeyButton.gameObject);
@@ -242,8 +340,9 @@ namespace BusDriver.UI.Screens {
             }
         }
 
-        // Tests: the rows as built
         internal int RowCount { get { return rows.Count; } }
+        internal bool IsDirty { get { return dirty; } }
+
         internal string KeyTextFor(string actionId, int bindingIndex) {
             for (int i = 0; i < rows.Count; i++) {
                 if (rows[i].Binding.ActionId == actionId && rows[i].Binding.BindingIndex == bindingIndex) {

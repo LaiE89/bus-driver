@@ -41,7 +41,7 @@ namespace BusDriver.Editor.Builders {
             New("PassengerOdd", new Color(0.25f, 0.2f, 0.22f)),
             New("Player", new Color(0.35f, 0.55f, 0.85f)),
             New("Face", new Color(0.04f, 0.04f, 0.04f)),
-            // The PR #5 angel's face, kept for its greybox AngelWeep tell (§4.14)
+            // Greybox weep-pose face material (§4.14)
             New("Face2", new Color(0.934f, 0f, 0f)),
             // Route 1 profiles (§3.4, T-M2-03)
             New("Gravel", new Color(0.3f, 0.29f, 0.27f)),

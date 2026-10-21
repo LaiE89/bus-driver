@@ -16,7 +16,6 @@ namespace BusDriver.Tests.EditMode.Core {
         public void EveryMonsterIdMapsToItsOwnKind() {
             Assert.AreEqual(DialogueKind.Starer, PassengerDialogue.KindFor(MonsterIds.Starer));
             Assert.AreEqual(DialogueKind.Whisperer, PassengerDialogue.KindFor(MonsterIds.Whisperer));
-            Assert.AreEqual(DialogueKind.WeepingAngel, PassengerDialogue.KindFor(MonsterIds.WeepingAngel));
         }
 
         // D34: it is pretending to be a passenger, so it has to sound like one
@@ -46,7 +45,7 @@ namespace BusDriver.Tests.EditMode.Core {
         [Test]
         public void MonsterLinesAreNeverFormatStrings() {
             Random rng = Stream();
-            DialogueKind[] kinds = { DialogueKind.Starer, DialogueKind.Whisperer, DialogueKind.WeepingAngel };
+            DialogueKind[] kinds = { DialogueKind.Starer, DialogueKind.Whisperer };
             foreach (DialogueKind kind in kinds) {
                 for (int i = 0; i < 50; i++) {
                     Assert.IsFalse(PassengerDialogue.Greeting(kind, "Oak Hill", rng).Contains("Oak Hill"));

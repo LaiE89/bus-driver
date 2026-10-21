@@ -92,16 +92,15 @@ namespace BusDriver.Editor.Builders {
             S(SoundIds.MonExpel, AudioGroup.Scares, true, false),
             S(SoundIds.MonStarerSting, AudioGroup.Scares, false, false),
             S(SoundIds.MonStarerKill, AudioGroup.Scares, false, false),
-            S(SoundIds.MonWhisperLoop, AudioGroup.Voice, true, true, "[whispering]"),
-            S(SoundIds.MonWhisperFeedLoop, AudioGroup.Voice, false, true),
+            Clip(S(SoundIds.MonWhisperLoop, AudioGroup.SfxCabin, false, true, "[whispering]"),
+                "Assets/Generated/Audio/193818__geoneo0__four_voices_whispering_6_wecho.wav", 1f),
+            Clip(S(SoundIds.MonWhisperFeedLoop, AudioGroup.SfxCabin, false, true, "[whispering on the feed]"),
+                "Assets/Generated/Audio/193818__geoneo0__four_voices_whispering_6_wecho.wav", 0.94f),
             S(SoundIds.MonWhisperDriver, AudioGroup.Voice, false, false, "[whisper] driver…"),
             S(SoundIds.MonWhispererKill, AudioGroup.Scares, false, false),
             S(SoundIds.MonMimicSting, AudioGroup.Scares, false, false),
             S(SoundIds.MonMimicKill, AudioGroup.Scares, false, false),
             S(SoundIds.MonMimicReveal, AudioGroup.Scares, true, false),
-            S(SoundIds.MonAngelScrape, AudioGroup.SfxCabin, true, true, "[stone scraping]"),
-            S(SoundIds.MonAngelSting, AudioGroup.Scares, false, false),
-            S(SoundIds.MonAngelKill, AudioGroup.Scares, false, false),
             S(SoundIds.ScareStartleSting, AudioGroup.Scares, false, false),
             S(SoundIds.ScareLightsOut, AudioGroup.Scares, false, false),
             S(SoundIds.HalFootstepsBehind, AudioGroup.SfxCabin, true, false, "[footsteps behind you]"),
@@ -144,9 +143,10 @@ namespace BusDriver.Editor.Builders {
             definition.id = spec.Id;
             AudioClip clip = null;
             if (!string.IsNullOrEmpty(spec.Clip)) {
-                clip = AssetDatabase.LoadAssetAtPath<AudioClip>(ClipsFolder + spec.Clip);
+                string path = spec.Clip.StartsWith("Assets/") ? spec.Clip : ClipsFolder + spec.Clip;
+                clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
                 if (clip == null) {
-                    Debug.LogError($"AudioSeed: no clip at {ClipsFolder}{spec.Clip} for {spec.Id}");
+                    Debug.LogError($"AudioSeed: no clip at {path} for {spec.Id}");
                 }
             }
             definition.clips = clip != null ? new[] { clip } : new AudioClip[0];

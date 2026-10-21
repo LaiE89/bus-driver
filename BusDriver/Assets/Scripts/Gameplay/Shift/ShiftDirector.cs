@@ -211,8 +211,7 @@ namespace BusDriver.Gameplay.Shift {
                 result.walletBeforeCents = shift.Setup.Run.walletCents;
             }
             result.FillMoneyStats();
-            // Sanity arrives in M5; until then the night ends where the run stands
-            result.sanityEnd = shift.Setup.Run.sanity;
+            result.sanityEnd = shift.Sanity != null ? shift.Sanity.Value : shift.Setup.Run.sanity;
             if (progress != null) {
                 IReadOnlyList<StopRecord> stops = progress.Stops;
                 for (int i = 0; i < stops.Count; i++) {

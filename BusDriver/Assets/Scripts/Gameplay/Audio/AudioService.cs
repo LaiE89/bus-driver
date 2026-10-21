@@ -111,6 +111,10 @@ namespace BusDriver.Gameplay.Audio {
             lastPlayed[id] = now;
 
             AudioClip clip = definition.clips[definition.clips.Length == 1 ? 0 : random.Next(definition.clips.Length)];
+            if (clip == null) {
+                WarnOnce(id + ":nullclip", $"sound '{id}' clip reference is missing");
+                return SoundHandle.None;
+            }
             float pitch = Mathf.Max(0.05f, definition.pitch + Jitter(definition.pitchJitter));
             AudioSource source = voice.Source;
             source.clip = clip;
@@ -118,7 +122,10 @@ namespace BusDriver.Gameplay.Audio {
             source.pitch = pitch;
             source.panStereo = 0f;
             source.priority = definition.priority;
-            source.spatialBlend = definition.spatial == SoundSpatial.ThreeD ? 1f : 0f;
+            // Play() with no position: keep 3D defs audible as 2D so cabin/scare one-shots are not
+            // lost at world origin when the bus is far down the route
+            bool use3d = definition.spatial == SoundSpatial.ThreeD && positioned;
+            source.spatialBlend = use3d ? 1f : 0f;
             source.minDistance = definition.minDistance;
             source.maxDistance = Mathf.Max(definition.minDistance, definition.maxDistance);
             source.rolloffMode = AudioRolloffMode.Linear;
@@ -162,8 +169,9 @@ namespace BusDriver.Gameplay.Audio {
         public void SetVolume(SoundHandle handle, float volume01) {
             Voice voice = Find(handle);
             if (voice != null) {
-                voice.VolumeScale = Mathf.Clamp01(volume01);
-                voice.Source.volume = voice.BaseVolume * voice.VolumeScale;
+                // Allow >1 so scares / hallucinations can punch through quiet placeholders
+                voice.VolumeScale = Mathf.Clamp(volume01, 0f, 2f);
+                voice.Source.volume = Mathf.Clamp01(voice.BaseVolume * voice.VolumeScale);
             }
         }
 

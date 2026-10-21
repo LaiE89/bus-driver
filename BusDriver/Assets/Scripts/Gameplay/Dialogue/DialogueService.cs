@@ -10,7 +10,8 @@ using UnityEngine;
 namespace BusDriver.Gameplay.Dialogue {
     // One rider speaks at a time (§4.13, was the MVP's DialogueController). Lines arrive from the
     // door, the seat and the drop-off; a line that lands while somebody is talking waits its turn
-    // rather than cutting them off. Holds no UI: DialogueView draws whatever is current. Pausing
+    // rather than cutting them off. Boarding greetings are sticky: they stay after typing until
+    // Clear (accept / refuse). Holds no UI: DialogueView draws whatever is current. Pausing
     // zeroes the time scale, so the typewriter stops with everything else.
     public sealed class DialogueService : MonoBehaviour {
         [Tooltip("Typewriter speed, seconds per character")]
@@ -25,6 +26,8 @@ namespace BusDriver.Gameplay.Dialogue {
         struct Pending {
             public string Speaker;
             public string Text;
+            // Stays on screen after typing until Clear (boarding greetings wait for accept / refuse)
+            public bool Sticky;
         }
 
         readonly Queue<Pending> pending = new Queue<Pending>();
@@ -32,8 +35,11 @@ namespace BusDriver.Gameplay.Dialogue {
         GameServices game;
         ShiftDirector director;
         Coroutine running;
+        bool stickyHold;
 
         public bool IsPlaying { get { return running != null; } }
+        // Panel stays up while typing or holding a sticky finished line
+        public bool IsShowing { get { return IsPlaying || stickyHold; } }
         public string Speaker { get; private set; } = "";
         // What the typewriter has revealed so far
         public string VisibleText { get; private set; } = "";
@@ -66,12 +72,22 @@ namespace BusDriver.Gameplay.Dialogue {
             }
         }
 
-        public void Say(string speaker, string text) {
+        public void Say(string speaker, string text, bool sticky = false) {
             if (string.IsNullOrEmpty(text)) {
                 return;
             }
-            Pending line = new Pending { Speaker = string.IsNullOrEmpty(speaker) ? "" : speaker, Text = text };
-            if (!IsPlaying) {
+            // A sticky line is the door prompt; drop whatever was up so the greeting isn't queued
+            if (sticky) {
+                pending.Clear();
+                StopRunning();
+                stickyHold = false;
+            }
+            Pending line = new Pending {
+                Speaker = string.IsNullOrEmpty(speaker) ? "" : speaker,
+                Text = text,
+                Sticky = sticky,
+            };
+            if (!IsPlaying && !stickyHold) {
                 Begin(line);
                 return;
             }
@@ -86,6 +102,7 @@ namespace BusDriver.Gameplay.Dialogue {
         public void Clear() {
             pending.Clear();
             StopRunning();
+            stickyHold = false;
             Speaker = "";
             VisibleText = "";
             Changed();
@@ -95,6 +112,7 @@ namespace BusDriver.Gameplay.Dialogue {
             // The coroutine is already dead; keep the view from showing a half-typed line
             pending.Clear();
             running = null;
+            stickyHold = false;
             Speaker = "";
             VisibleText = "";
             Changed();
@@ -102,11 +120,12 @@ namespace BusDriver.Gameplay.Dialogue {
 
         void Begin(Pending line) {
             StopRunning();
+            stickyHold = false;
             Speaker = line.Speaker;
-            running = StartCoroutine(TypeLine(line.Text));
+            running = StartCoroutine(TypeLine(line.Text, line.Sticky));
         }
 
-        IEnumerator TypeLine(string text) {
+        IEnumerator TypeLine(string text, bool sticky) {
             visible.Length = 0;
             VisibleText = "";
             Changed();
@@ -121,6 +140,13 @@ namespace BusDriver.Gameplay.Dialogue {
                 if (perCharacter > 0f) {
                     yield return new WaitForSeconds(perCharacter);
                 }
+            }
+            if (sticky) {
+                // Stay until Accept / Refuse / Clear; queued lines wait behind the hold
+                running = null;
+                stickyHold = true;
+                Changed();
+                yield break;
             }
             if (holdSeconds > 0f) {
                 yield return new WaitForSeconds(holdSeconds);
@@ -157,7 +183,7 @@ namespace BusDriver.Gameplay.Dialogue {
         }
 
         void WriteDebug(StringBuilder text) {
-            if (!IsPlaying) {
+            if (!IsShowing) {
                 text.Append("idle");
                 if (pending.Count > 0) {
                     text.Append("  queued ").Append(pending.Count);
@@ -165,7 +191,11 @@ namespace BusDriver.Gameplay.Dialogue {
                 text.Append('\n');
                 return;
             }
-            text.Append(Speaker.Length > 0 ? Speaker : "?").Append(": ").Append(VisibleText).Append('\n');
+            text.Append(Speaker.Length > 0 ? Speaker : "?").Append(": ").Append(VisibleText);
+            if (stickyHold) {
+                text.Append("  [hold]");
+            }
+            text.Append('\n');
             text.Append("queued ").Append(pending.Count).Append('\n');
         }
     }

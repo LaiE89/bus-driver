@@ -2,9 +2,9 @@ using System;
 using UnityEngine;
 
 namespace BusDriver.Core.Data {
-    // How a kill sequence's telegraph is escaped (§2.14, D31, D47): observed continuously for the
-    // seconds (the Starer, the Weeping Angel), unobserved for them (the Mimic), or not at all (the
-    // Whisperer never starts one). The threat is then set to resetThreat.
+    // How a kill sequence's telegraph is escaped (§2.14, D31): observed continuously for the
+    // seconds (the Starer), unobserved for them (the Mimic), or not at all (the Whisperer never
+    // starts one). The threat is then set to resetThreat.
     [Serializable]
     public struct MonsterEscape {
         public EscapeKind kind;
@@ -33,15 +33,17 @@ namespace BusDriver.Core.Data {
 
     // A monster's ability numbers (§4.8 [SerializeReference]). One subclass per ability; the
     // abilities themselves arrive with their monsters (the Starer T-M4-08, the Whisperer T-M5-06,
-    // the Mimic T-M6-02, the Weeping Angel T-M6-05). Data only: nothing writes these during play.
+    // the Mimic T-M6-02). Data only: nothing writes these during play.
     [Serializable]
     public abstract class MonsterAbilityConfig { }
 
-    // §2.10: it creeps forward a row at a time while nobody watches
+    // §2.10: silent one-row teleports while unwatched; a hop from the near-front row kills
     [Serializable]
     public sealed class StarerAdvanceConfig : MonsterAbilityConfig {
-        [Tooltip("Unobserved this long before it may move to its target row, seconds")]
-        public float unobservedBeforeAdvance = 1f;
+        [Tooltip("Seconds looking away between each silent seat hop (after grace)")]
+        public float advanceIntervalSeconds = 3f;
+        [Tooltip("Sitting in this row or closer, the next hop jumpscares and kills (while driving)")]
+        public int killFromRow = 2;
         [Tooltip("The head-track turn rate, degrees per second (the MVP StaringMonster number)")]
         public float headTrackDegreesPerSecond = 25f;
         public float headTrackYawLimit = 110f;
@@ -53,10 +55,12 @@ namespace BusDriver.Core.Data {
     // §2.11: sanity drain per second by stage, and the whisper loop's volume by stage
     [Serializable]
     public sealed class WhispererDrainConfig : MonsterAbilityConfig {
-        [Tooltip("Dormant, Unsettled, Aggressive, Lethal")]
-        public float[] drainPerSecondByStage = { 0f, 0.25f, 0.6f, 1.2f };
-        [Tooltip("Dormant, Unsettled, Aggressive, Lethal")]
-        public float[] whisperVolumeByStage = { 0f, 0.3f, 0.6f, 1f };
+        [Tooltip("Dormant, Unsettled, Aggressive, Lethal — positive = sanity lost per second")]
+        public float[] drainPerSecondByStage = { 0.4f, 0.8f, 1.4f, 2.2f };
+        [Tooltip("Dormant, Unsettled, Aggressive, Lethal — whisper bed volume (very quiet at Dormant)")]
+        public float[] whisperVolumeByStage = { 0.02f, 0.12f, 0.4f, 0.85f };
+        [Tooltip("How fast volume eases toward the current stage target, per second")]
+        public float whisperVolumeLerpPerSecond = 0.35f;
     }
 
     // §2.12 and D22: it copies a seated rider, then replaces them
@@ -79,28 +83,11 @@ namespace BusDriver.Core.Data {
         public float revealSeconds = 2f;
     }
 
-    // Main-branch Weeping Angel numbers: sit delay, aisle walk, proximity kill
-    [Serializable]
-    public sealed class AngelStalkConfig : MonsterAbilityConfig {
-        [Tooltip("The aisle walk, metres per second")]
-        public float walkSpeed = 0.55f;
-        [Tooltip("How close to the hunt target counts as a kill, metres")]
-        public float killDistance = 0.6f;
-        [Tooltip("Seconds after sitting before it may start hunting (low end)")]
-        public float minHuntDelay = 20f;
-        [Tooltip("Seconds after sitting before it may start hunting (high end)")]
-        public float maxHuntDelay = 40f;
-        [Tooltip("How close to a waypoint counts as arrived, metres")]
-        public float aisleReach = 0.08f;
-        [Tooltip("How close to the final hunt target it stops walking, metres")]
-        public float stopDistance = 0.35f;
-    }
-
-    // One monster type (§2.9–§2.12b, §4.8). Seeded once from §2 by DataSeeder, then the source of
+    // One monster type (§2.9–§2.12, §4.8). Seeded once from §2 by DataSeeder, then the source of
     // truth (§0.1); nothing writes it during play (§4.1 rule 2). logicPrefab is the one field the
     // builder owns: PrefabBuilder generates the monster's prefab variant and points it here (D98).
     public sealed class MonsterDefinition : ScriptableObject {
-        [Tooltip("lower_snake_case: starer, whisperer, mimic, weeping_angel")]
+        [Tooltip("lower_snake_case: starer, whisperer, mimic")]
         public string id = "";
         [Tooltip("As the Game Over screen names it: \"The Starer\" → THE STARER GOT YOU (§2.21)")]
         public string displayName = "";

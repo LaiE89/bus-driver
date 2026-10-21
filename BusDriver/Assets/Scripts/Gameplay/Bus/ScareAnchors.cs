@@ -2,19 +2,19 @@ using UnityEngine;
 
 namespace BusDriver.Gameplay.Bus {
     // The bus's named scare anchors (§4.8): DriverShoulder, DriverWindow, CabinCenter and CctvLens:<n>
-    // (n = 1..3, the CCTV camera). Each anchor's +Z faces what it frames. PrefabBuilder fills the
+    // (n = 1, the front CCTV). Each anchor's +Z faces what it frames. PrefabBuilder fills the
     // references, so ScarePlayer resolves a step's anchor string without a lookup by name.
     public sealed class ScareAnchors : MonoBehaviour {
         public const string DriverShoulder = "DriverShoulder";
         public const string DriverWindow = "DriverWindow";
         public const string CabinCenter = "CabinCenter";
-        // "CctvLens" alone means the scare's own camera; "CctvLens:2" means CAM 2
+        // "CctvLens" alone means the scare's own camera; "CctvLens:1" means CAM 1
         public const string CctvLens = "CctvLens";
 
         [SerializeField] Transform driverShoulder;
         [SerializeField] Transform driverWindow;
         [SerializeField] Transform cabinCenter;
-        [Tooltip("In front of CAM 1, CAM 2, CAM 3")]
+        [Tooltip("In front of CAM 1 (front cabin camera)")]
         [SerializeField] Transform[] cctvLens = new Transform[0];
 
         public int LensCount { get { return cctvLens.Length; } }
@@ -46,7 +46,7 @@ namespace BusDriver.Gameplay.Bus {
             }
             int n;
             return anchor != null && anchor.StartsWith(CctvLens + ":", System.StringComparison.Ordinal)
-                && int.TryParse(anchor.Substring(CctvLens.Length + 1), out n) && n >= 1 && n <= 3;
+                && int.TryParse(anchor.Substring(CctvLens.Length + 1), out n) && n == 1;
         }
 
         Transform Lens(int index) {

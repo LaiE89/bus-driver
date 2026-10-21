@@ -78,7 +78,10 @@ namespace BusDriver.Tests.PlayMode.Flow {
             string error;
             game.Input.TryApplyBinding("CycleCamera", index, "<Keyboard>/c", out error);
             Assert.AreEqual("C", controls.KeyTextFor("Driving/CycleCamera", index));
+            // Preview only until Apply — Back would discard; Apply commits then Reset works on disk
+            controls.Apply();
             controls.ResetKeybinds();
+            controls.Apply();
             Assert.AreEqual("SPACE", controls.KeyTextFor("Driving/CycleCamera", index));
         }
     }

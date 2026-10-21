@@ -38,7 +38,6 @@ namespace BusDriver.Gameplay.Debug {
             GodMode god = new GodMode();
             debug.AddCheat(new DebugCheat(Death, "God mode on/off", () => ToggleGodMode(shift, god)));
             debug.AddCheat(new DebugCheat(Death, "Kill me: monster", () => shift.Death.Die(DeathCause.MonsterKill, KillerId(shift))));
-            debug.AddCheat(new DebugCheat(Death, "Kill me: sanity", () => shift.Death.Die(DeathCause.SanityZero)));
             debug.AddCheat(new DebugCheat(Death, "Kill me: fall", () => shift.Death.Die(DeathCause.Fall)));
             debug.AddCheat(new DebugCheat(Night, "Win the night", () => shift.Director.WinNightForDebug()));
         }

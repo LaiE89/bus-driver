@@ -38,11 +38,29 @@ namespace BusDriver.Gameplay.Input {
         static readonly string[] UnbindablePaths = { "<Mouse>/delta", "<Mouse>/position", "<Mouse>/scroll", "<Pointer>/delta", "<Pointer>/position" };
         static readonly string[] RebindableMaps = { BusDriverActions.DrivingMap, BusDriverActions.OnFootMap, BusDriverActions.GlobalMap };
 
+        // Controls screen: only these actions get a row. Drive / steer / look / pause stay fixed.
+        static readonly string[] PlayerRebindableActions = {
+            "Handbrake", "CycleCamera", "LeaveSeat", "Doors",
+            "Item1", "Item2", "Item3",
+            "Interact", "Kick",
+        };
+
+        // Shared mouse buttons by default: rebinding one updates every id in the group so Interact
+        // stays with AcceptRider (right click) and Reject stays with RefuseRider (left click).
+        static readonly string[][] LinkedRebindGroups = {
+            new[] { "OnFoot/Interact", "Driving/AcceptRider" },
+            new[] { "OnFoot/Kick", "Driving/RefuseRider" },
+        };
+
         readonly SettingsService settings;
         InputActionRebindingExtensions.RebindingOperation rebind;
         InputContext overrideContext;
         bool hasOverride;
         string appliedOverridesJson;
+        // Controls screen edit session: live overrides update for preview/clash checks, but
+        // settings.json is only written on CommitBindingEdit (Apply). Discard restores the baseline.
+        bool bindingEditOpen;
+        string bindingEditBaselineJson = "";
 
         public BusDriverActions Actions { get; }
         public InputActionAsset Asset { get { return Actions.Asset; } }
@@ -50,11 +68,48 @@ namespace BusDriver.Gameplay.Input {
         public InputContext Context { get; private set; } = InputContext.None;
         public InputContext EffectiveContext { get { return hasOverride ? overrideContext : Context; } }
         public bool IsRebinding { get { return rebind != null; } }
+        public bool IsEditingBindings { get { return bindingEditOpen; } }
 
         // The effective context changed (CursorService listens)
         public event Action<InputContext> OnContextChanged;
         // A binding or override set changed (prompts rebuild their text)
         public event Action OnBindingsChanged;
+
+        // ------------------------------------------------------------------ binding edit session
+
+        // Open a Controls-screen session. Rebinds preview on the live asset but do not hit disk
+        // until CommitBindingEdit. Nested begins are ignored.
+        public void BeginBindingEdit() {
+            if (bindingEditOpen) {
+                return;
+            }
+            CancelRebind();
+            bindingEditOpen = true;
+            bindingEditBaselineJson = SaveOverrides() ?? "";
+        }
+
+        // Write the current overrides to settings.json and end the session
+        public void CommitBindingEdit() {
+            if (!bindingEditOpen) {
+                Persist();
+                return;
+            }
+            bindingEditOpen = false;
+            Persist();
+        }
+
+        // Restore the overrides from when BeginBindingEdit ran and end the session
+        public void DiscardBindingEdit() {
+            if (!bindingEditOpen) {
+                return;
+            }
+            CancelRebind();
+            bindingEditOpen = false;
+            LoadOverrides(bindingEditBaselineJson);
+            if (settings != null) {
+                settings.Current.bindingOverridesJson = bindingEditBaselineJson ?? "";
+            }
+        }
 
         // settings may be null in tests; nothing is then persisted
         public InputService(InputActionAsset asset, SettingsService settings) {
@@ -217,27 +272,27 @@ namespace BusDriver.Gameplay.Input {
 
         // ------------------------------------------------------------------ rebinding
 
-        // Every keyboard/mouse binding of Driving, OnFoot and Global except Look (§4.10), composite
-        // parts one row each
+        // Keyboard/mouse bindings the player may change on the Controls screen. Linked siblings
+        // (AcceptRider, RefuseRider) are not listed; rebinding Interact / Reject updates them.
         public List<RebindableBinding> RebindableBindings() {
             List<RebindableBinding> rows = new List<RebindableBinding>();
             for (int m = 0; m < RebindableMaps.Length; m++) {
                 InputActionMap map = Asset.FindActionMap(RebindableMaps[m], true);
                 for (int a = 0; a < map.actions.Count; a++) {
                     InputAction action = map.actions[a];
-                    if (action.name == "Look") {
+                    if (!IsPlayerRebindable(action.name)) {
                         continue;
                     }
                     for (int b = 0; b < action.bindings.Count; b++) {
                         InputBinding binding = action.bindings[b];
-                        if (binding.isComposite || !InGroup(binding, KeyboardMouseGroup)) {
+                        if (binding.isComposite || binding.isPartOfComposite || !InGroup(binding, KeyboardMouseGroup)) {
                             continue;
                         }
                         rows.Add(new RebindableBinding {
                             Action = action,
                             BindingIndex = b,
                             ActionId = map.name + "/" + action.name,
-                            Label = binding.isPartOfComposite ? $"{action.name} ({binding.name})" : action.name,
+                            Label = DisplayLabel(action.name),
                         });
                     }
                 }
@@ -245,8 +300,45 @@ namespace BusDriver.Gameplay.Input {
             return rows;
         }
 
+        static bool IsPlayerRebindable(string actionName) {
+            return Array.IndexOf(PlayerRebindableActions, actionName) >= 0;
+        }
+
+        static string DisplayLabel(string actionName) {
+            switch (actionName) {
+                case "CycleCamera": return "Camera";
+                case "LeaveSeat": return "Leave seat";
+                case "Kick": return "Reject";
+                default: return actionName;
+            }
+        }
+
         static bool InGroup(InputBinding binding, string group) {
             return !string.IsNullOrEmpty(binding.groups) && Array.IndexOf(binding.groups.Split(InputBinding.Separator), group) >= 0;
+        }
+
+        static string[] LinkedIdsFor(string actionId) {
+            for (int g = 0; g < LinkedRebindGroups.Length; g++) {
+                if (Array.IndexOf(LinkedRebindGroups[g], actionId) >= 0) {
+                    return LinkedRebindGroups[g];
+                }
+            }
+            return null;
+        }
+
+        static bool AreLinked(string actionIdA, string actionIdB) {
+            string[] group = LinkedIdsFor(actionIdA);
+            return group != null && Array.IndexOf(group, actionIdB) >= 0;
+        }
+
+        static int KeyboardMouseBindingIndex(InputAction action) {
+            for (int b = 0; b < action.bindings.Count; b++) {
+                InputBinding binding = action.bindings[b];
+                if (!binding.isComposite && !binding.isPartOfComposite && InGroup(binding, KeyboardMouseGroup)) {
+                    return b;
+                }
+            }
+            return -1;
         }
 
         // Validates and applies one keyboard/mouse binding. Refused: mouse movement, anything that
@@ -270,10 +362,56 @@ namespace BusDriver.Gameplay.Input {
                 error = "Already used by " + clash.name;
                 return false;
             }
+            // Linked siblings take the same path; refuse if any of them would clash too
+            string sourceId = action.actionMap.name + "/" + action.name;
+            string[] linked = LinkedIdsFor(sourceId);
+            if (linked != null) {
+                for (int i = 0; i < linked.Length; i++) {
+                    if (linked[i] == sourceId) {
+                        continue;
+                    }
+                    InputAction other = Actions.Find(linked[i]);
+                    if (other == null) {
+                        continue;
+                    }
+                    int otherIndex = KeyboardMouseBindingIndex(other);
+                    if (otherIndex < 0) {
+                        continue;
+                    }
+                    clash = FindClash(other, otherIndex, path);
+                    if (clash != null) {
+                        error = "Already used by " + clash.name;
+                        return false;
+                    }
+                }
+            }
             action.ApplyBindingOverride(bindingIndex, path);
+            ApplyLinkedOverrides(action, path);
             error = null;
             Persist();
             return true;
+        }
+
+        // Keep Interact↔AcceptRider and Reject↔RefuseRider on the same key / mouse button
+        void ApplyLinkedOverrides(InputAction source, string path) {
+            string sourceId = source.actionMap.name + "/" + source.name;
+            string[] linked = LinkedIdsFor(sourceId);
+            if (linked == null) {
+                return;
+            }
+            for (int i = 0; i < linked.Length; i++) {
+                if (linked[i] == sourceId) {
+                    continue;
+                }
+                InputAction other = Actions.Find(linked[i]);
+                if (other == null) {
+                    continue;
+                }
+                int index = KeyboardMouseBindingIndex(other);
+                if (index >= 0) {
+                    other.ApplyBindingOverride(index, path);
+                }
+            }
         }
 
         public static bool IsBindablePath(string path, out string error) {
@@ -306,6 +444,12 @@ namespace BusDriver.Gameplay.Input {
                     InputAction other = map.actions[a];
                     for (int b = 0; b < other.bindings.Count; b++) {
                         if (other == action && b == bindingIndex) {
+                            continue;
+                        }
+                        // Linked siblings share a path on purpose (Interact / AcceptRider, etc.)
+                        string otherId = other.actionMap.name + "/" + other.name;
+                        string selfId = action.actionMap.name + "/" + action.name;
+                        if (AreLinked(selfId, otherId)) {
                             continue;
                         }
                         InputBinding binding = other.bindings[b];
@@ -399,12 +543,28 @@ namespace BusDriver.Gameplay.Input {
             if (action == null) {
                 return;
             }
+            ResetKeyboardMouseOverrides(action);
+            string[] linked = LinkedIdsFor(actionId);
+            if (linked != null) {
+                for (int i = 0; i < linked.Length; i++) {
+                    if (linked[i] == actionId) {
+                        continue;
+                    }
+                    InputAction other = Actions.Find(linked[i]);
+                    if (other != null) {
+                        ResetKeyboardMouseOverrides(other);
+                    }
+                }
+            }
+            Persist();
+        }
+
+        static void ResetKeyboardMouseOverrides(InputAction action) {
             for (int b = 0; b < action.bindings.Count; b++) {
                 if (InGroup(action.bindings[b], KeyboardMouseGroup)) {
                     action.RemoveBindingOverride(b);
                 }
             }
-            Persist();
         }
 
         public void ResetAll() {
@@ -432,13 +592,16 @@ namespace BusDriver.Gameplay.Input {
             RaiseBindingsChanged();
         }
 
-        // Rebinds are rare, so each one is written to settings.json straight away
+        // Updates the live asset and settings.Current. Disk write is deferred while a Controls
+        // edit session is open so Apply / Back can commit or discard.
         void Persist() {
             string json = SaveOverrides();
             appliedOverridesJson = json;
             if (settings != null) {
                 settings.Current.bindingOverridesJson = json;
-                settings.Save();
+                if (!bindingEditOpen) {
+                    settings.Save();
+                }
             }
             RaiseBindingsChanged();
         }

@@ -110,7 +110,7 @@ namespace BusDriver.Gameplay.Attention {
             mirrorCamera = camera;
         }
 
-        // The Weeping Angel counts as seen when its body root is in view too (§2.12b)
+        // Some stalkers count as seen when their body root is in view, not only the head
         public void SetObserveBodyToo(Passenger passenger, bool on) {
             int i = IndexOf(passenger);
             if (i < 0) {

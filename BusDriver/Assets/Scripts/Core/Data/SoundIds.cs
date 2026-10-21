@@ -39,9 +39,6 @@ namespace BusDriver.Core.Data {
         public const string MonMimicSting = "mon.mimic.sting";
         public const string MonMimicKill = "mon.mimic.kill";
         public const string MonMimicReveal = "mon.mimic.reveal";
-        public const string MonAngelScrape = "mon.angel.scrape";
-        public const string MonAngelSting = "mon.angel.sting";
-        public const string MonAngelKill = "mon.angel.kill";
         public const string ScareStartleSting = "scare.startle_sting";
         public const string ScareLightsOut = "scare.lights_out";
         public const string HalFootstepsBehind = "hal.footsteps_behind";
@@ -75,7 +72,7 @@ namespace BusDriver.Core.Data {
             PlayerFootstepBus, PlayerFootstepGravel, PaxFootstep, PaxMutterLoop, PaxDeath, PaxKickOut,
             MonTelegraphRumble, MonExpel, MonStarerSting, MonStarerKill, MonWhisperLoop, MonWhisperFeedLoop,
             MonWhisperDriver, MonWhispererKill, MonMimicSting, MonMimicKill, MonMimicReveal,
-            MonAngelScrape, MonAngelSting, MonAngelKill, ScareStartleSting, ScareLightsOut,
+            ScareStartleSting, ScareLightsOut,
             HalFootstepsBehind, HalDoorChime, HalWindowKnock, HalStaticBurst, HalWhisperDriver,
             SanHeartbeatLoop, DeathFallWind, DeathFallImpact, DeathBlackout, ItemCoffee, ItemEarplugs,
             UiClick, UiHover, UiPurchase, UiError, UiMoneyUp, UiMoneyDown, UiNightCard, UiTypeTick,

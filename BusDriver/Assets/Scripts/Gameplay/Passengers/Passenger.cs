@@ -123,9 +123,9 @@ namespace BusDriver.Gameplay.Passengers {
         RiderRecord Record { get { return Shift != null && Shift.Riders != null ? Shift.Riders.For(this) : null; } }
 
         // A rider with no night behind them says nothing at all, rather than guessing a kind
-        void Speak(string line) {
+        void Speak(string line, bool sticky = false) {
             if (Shift != null && Shift.Dialogue != null) {
-                Shift.Dialogue.Say(DisplayName, line);
+                Shift.Dialogue.Say(DisplayName, line, sticky);
             }
         }
 
@@ -162,13 +162,14 @@ namespace BusDriver.Gameplay.Passengers {
             }
         }
 
-        // Stepping aboard: humans name the stop they want, monsters say whatever they say
+        // Stepping aboard: humans name the stop they want, monsters say whatever they say.
+        // Sticky so the box stays up until Accept / Refuse at the door.
         void SayGreeting() {
             RiderRecord record = Record;
             StopRecord destination = record != null && Shift.Progress != null
                 ? Shift.Progress.Find(record.DestinationStopId)
                 : null;
-            Speak(PassengerDialogue.Greeting(Kind(record), destination != null ? destination.DisplayName : "", DialogueRng()));
+            Speak(PassengerDialogue.Greeting(Kind(record), destination != null ? destination.DisplayName : "", DialogueRng()), sticky: true);
         }
 
         // Stepping off. A rider the bus carried past their stop complains about that instead of
@@ -189,13 +190,17 @@ namespace BusDriver.Gameplay.Passengers {
         }
 
         // The driver walked back for a chat. Ignored while anyone is mid-sentence, so holding the
-        // button cannot stack up a queue of lines.
+        // button cannot stack up a queue of lines. Talking to a human restores a little sanity.
         public bool Chat() {
             if (State != PassengerState.Seated || Shift == null || Shift.Dialogue == null || Shift.Dialogue.IsPlaying) {
                 return false;
             }
             Speak(PassengerDialogue.Seated(Kind(Record), DialogueRng()));
             OnChatted();
+            RiderRecord record = Record;
+            if (record != null && !record.IsMonster && Shift.Sanity != null && Shift.Balance != null) {
+                Shift.Sanity.Apply(Shift.Balance.chatSanityRestore, SanityReason.Chat);
+            }
             return true;
         }
 
@@ -642,8 +647,8 @@ namespace BusDriver.Gameplay.Passengers {
             }
         }
 
-        // A seated monster moving itself (§2.10 the Starer's advance and its escape): straight into
-        // another free seat, no walk. False when it isn't sitting aboard or the seat is taken.
+        // A seated monster moving itself (the Starer's silent hop): straight into another free seat,
+        // no walk and no FX. False when it isn't sitting aboard or the seat is taken.
         public bool MoveToSeat(BusSeat seat) {
             if (!IsAboard || State != PassengerState.Seated || seat == null || Cabin == null || !seat.Reserve(this)) {
                 return false;
@@ -670,7 +675,7 @@ namespace BusDriver.Gameplay.Passengers {
             transform.localRotation = localRotation;
         }
 
-        // Stand up and free the seat so the angel (or similar) can walk the aisle.
+        // Stand up and free the seat so a stalking monster can walk the aisle.
         protected void VacateSeat() {
             if (Seat != null) {
                 Seat.Release(this);
