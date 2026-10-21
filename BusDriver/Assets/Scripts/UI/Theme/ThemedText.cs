@@ -13,6 +13,9 @@ namespace BusDriver.UI.Theme {
         [Tooltip("Use a palette colour instead of the role's colour (e.g. Danger for a warning)")]
         [SerializeField] bool usePaletteColor;
         [SerializeField] ThemeColor paletteColor = ThemeColor.Text;
+        [Tooltip("When set, use this size instead of the role's")]
+        [SerializeField] bool overrideSize;
+        [SerializeField] float sizeOverride = 18f;
 
         TMP_Text text;
         UITheme subscribed;
@@ -28,6 +31,7 @@ namespace BusDriver.UI.Theme {
             theme = newTheme;
             role = newRole;
             usePaletteColor = false;
+            overrideSize = false;
             Resubscribe();
             Apply();
         }
@@ -35,6 +39,12 @@ namespace BusDriver.UI.Theme {
         public void SetPaletteColor(ThemeColor color) {
             usePaletteColor = true;
             paletteColor = color;
+            Apply();
+        }
+
+        public void SetSizeOverride(float size) {
+            overrideSize = true;
+            sizeOverride = size;
             Apply();
         }
 
@@ -65,7 +75,7 @@ namespace BusDriver.UI.Theme {
             if (style.font != null) {
                 text.font = style.font;
             }
-            text.fontSize = style.size;
+            text.fontSize = overrideSize ? sizeOverride : style.size;
             text.characterSpacing = style.spacing;
             text.color = usePaletteColor ? theme.Palette(paletteColor) : style.color;
         }

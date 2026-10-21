@@ -8,8 +8,9 @@ using UnityEngine;
 
 namespace BusDriver.UI.Hud {
     // The HUD canvas (§4.13): speed and gear while driving, the crosshair on foot, STOP REQUESTED
-    // / last-stop note at the top, and the prompt for both. The CCTV feed's own overlay is
-    // CctvOverlayView. Prompt keys come from the bindings (controller-ready rule 3).
+    // / last-stop note at the top, the prompt for both, and a bottom-left brake / camera reminder.
+    // The CCTV feed's own overlay is CctvOverlayView. Prompt keys come from the bindings
+    // (controller-ready rule 3).
     public sealed class HudView : MonoBehaviour, IShiftBindable {
         [Header("Panels")]
         [SerializeField] GameObject driverPanel;
@@ -20,6 +21,7 @@ namespace BusDriver.UI.Hud {
         [SerializeField] TMP_Text statusText;
         [SerializeField] TMP_Text speedText;
         [SerializeField] TMP_Text gearText;
+        [SerializeField] TMP_Text controlsText;
 
         GameServices game;
         BusController bus;
@@ -36,6 +38,7 @@ namespace BusDriver.UI.Hud {
         string doorsKey = "";
         string acceptRiderKey = "";
         string refuseRiderKey = "";
+        string controlsHint = "";
 
         public void Bind(ShiftServices shift) {
             game = shift.Game;
@@ -77,6 +80,7 @@ namespace BusDriver.UI.Hud {
             bool onFoot = mode.Mode == PlayerMode.OnFoot;
             driverPanel.SetActive(!cctv.IsViewingCCTV && !onFoot);
             onFootPanel.SetActive(onFoot);
+            RefreshControlsVisibility();
         }
 
         public void RefreshControlsHint() {
@@ -89,6 +93,23 @@ namespace BusDriver.UI.Hud {
             doorsKey = Key("Doors");
             acceptRiderKey = Key("AcceptRider");
             refuseRiderKey = Key("RefuseRider");
+            // Bottom-left reminder: handbrake and CCTV cycle (bindings follow rebinds)
+            controlsHint = $"{Key("Handbrake")}  Brake\n{Key("CycleCamera")}  Camera";
+            if (controlsText != null) {
+                controlsText.text = controlsHint;
+            }
+            RefreshControlsVisibility();
+        }
+
+        void RefreshControlsVisibility() {
+            if (controlsText == null || mode == null) {
+                return;
+            }
+            // Driving reminders only: hidden on foot and while paused
+            bool show = mode.Mode != PlayerMode.OnFoot && (game == null || !game.Pause.IsPaused);
+            if (controlsText.gameObject.activeSelf != show) {
+                controlsText.gameObject.SetActive(show);
+            }
         }
 
         string Key(string actionId) {
@@ -101,6 +122,7 @@ namespace BusDriver.UI.Hud {
             }
             promptText.text = BuildPrompt();
             statusText.text = BuildStatus();
+            RefreshControlsVisibility();
             if (driverPanel.activeSelf) {
                 speedText.text = $"{Mathf.RoundToInt(bus.SpeedKmh)} km/h";
                 gearText.text = bus.IsParked ? "P" : GearLabel(bus.CurrentGear);

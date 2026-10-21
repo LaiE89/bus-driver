@@ -118,12 +118,22 @@ namespace BusDriver.Editor.Builders {
             TMP_Text status = UIBuild.Label("StatusText", hudCanvas.transform, "", ThemeRole.Hud, TextAlignmentOptions.Top, new Vector2(0.5f, 1f), new Vector2(0f, -50f), new Vector2(900f, 100f));
             UIBuild.Theme(status, ThemeRole.Hud).SetPaletteColor(ThemeColor.Highlight);
 
+            // Bottom-left: handbrake + camera cycle. On the HUD canvas (not DriverPanel) so it
+            // stays up while viewing CCTV. Small muted type so it doesn't fight the speedo.
+            TMP_Text controls = UIBuild.Label("ControlsText", hudCanvas.transform, "", ThemeRole.Caption,
+                TextAlignmentOptions.BottomLeft, new Vector2(0f, 0f), new Vector2(40f, 30f), new Vector2(420f, 56f));
+            ThemedText controlsTheme = UIBuild.Theme(controls, ThemeRole.Caption);
+            controlsTheme.SetPaletteColor(ThemeColor.Disabled);
+            controlsTheme.SetSizeOverride(18f);
+            controls.gameObject.SetActive(false);
+
             SetRef(hud, "driverPanel", driverPanel.gameObject);
             SetRef(hud, "onFootPanel", onFootPanel.gameObject);
             SetRef(hud, "promptText", prompt);
             SetRef(hud, "statusText", status);
             SetRef(hud, "speedText", speed);
             SetRef(hud, "gearText", gear);
+            SetRef(hud, "controlsText", controls);
 
             BuildDialogue(hudCanvas.transform);
 
