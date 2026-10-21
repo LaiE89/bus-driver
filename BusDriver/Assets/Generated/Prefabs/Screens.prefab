@@ -3698,9 +3698,6 @@ MonoBehaviour:
   hidesScreensBelow: 1
   cancelPops: 1
   router: {fileID: 6309574837965293953}
-  firstRowY: 360
-  rowPitch: 54
-  columnOffset: 430
 --- !u!1 &2303563250261666472
 GameObject:
   m_ObjectHideFlags: 0
@@ -11474,8 +11471,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 460}
-  m_SizeDelta: {x: 1220, y: 140}
+  m_AnchoredPosition: {x: 0, y: 400}
+  m_SizeDelta: {x: 1220, y: 160}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1928354180069197538
 CanvasRenderer:
@@ -11593,6 +11590,8 @@ MonoBehaviour:
   role: 0
   usePaletteColor: 0
   paletteColor: 0
+  overrideSize: 0
+  sizeOverride: 18
 --- !u!1 &7471812576067819103
 GameObject:
   m_ObjectHideFlags: 0

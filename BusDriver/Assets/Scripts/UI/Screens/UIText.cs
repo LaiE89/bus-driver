@@ -72,5 +72,7 @@ namespace BusDriver.UI.Screens {
         // Rebinding (§4.10)
         public const string PressAKey = "Press a key or mouse button for {0}. Esc cancels.";
         public const string AllControlsReset = "All controls reset";
+        public const string ControlsHint = "Click a binding to change it. Apply to save.";
+        public const string ControlsSaved = "Controls saved";
     }
 }

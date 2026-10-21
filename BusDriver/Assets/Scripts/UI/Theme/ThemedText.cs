@@ -48,6 +48,20 @@ namespace BusDriver.UI.Theme {
             Apply();
         }
 
+        // Swap role / colour / size without replacing the theme asset (Controls screen chrome)
+        public void SetRole(ThemeRole newRole, ThemeColor color, float size) {
+            role = newRole;
+            usePaletteColor = true;
+            paletteColor = color;
+            if (size > 0f) {
+                overrideSize = true;
+                sizeOverride = size;
+            }else {
+                overrideSize = false;
+            }
+            Apply();
+        }
+
         void OnEnable() {
             Resubscribe();
             Apply();

@@ -369,15 +369,16 @@ namespace BusDriver.Editor.Builders {
         static ControlsScreen BuildControls(Transform parent, ScreenRouter router) {
             ControlsScreen controls;
             RectTransform root = ScreenRoot("ControlsScreen", parent, ScreenBackground, out controls);
-            UIBuild.Label("Title", root, UIText.Controls, ThemeRole.Title, TextAlignmentOptions.Center, Center, new Vector2(0f, 460f), new Vector2(1220f, 140f));
-            // The template row the screen clones for every binding (ControlsScreen.Build)
-            UIBuild.Label(ControlsScreen.LabelTemplateName, root, "ACTION", ThemeRole.Body, TextAlignmentOptions.Right, Center, Vector2.zero, new Vector2(380f, 44f));
-            Button rowTemplate = UIBuild.CreateButton(ControlsScreen.ButtonTemplateName, root, "KEY", Center, Vector2.zero, new Vector2(240f, 44f));
-            // A binding row reads as a table, not as a menu button, and the 48pt Button role
-            // overflows a row either way; the 32pt Body role fits the ones ControlsScreen clones
+            // Same title treatment as Options
+            UIBuild.Label("Title", root, UIText.Controls, ThemeRole.Title, TextAlignmentOptions.Center, Center, new Vector2(0f, 400f), new Vector2(1220f, 160f));
+            // Templates match Options Row(): Body label, Body key caption (not Button 48pt)
+            UIBuild.Label(ControlsScreen.LabelTemplateName, root, "ACTION", ThemeRole.Body, TextAlignmentOptions.Right, Center, Vector2.zero, new Vector2(460f, 44f));
+            Button rowTemplate = UIBuild.CreateButton(ControlsScreen.ButtonTemplateName, root, "KEY", Center, Vector2.zero, new Vector2(420f, 44f));
             UIBuild.Theme(rowTemplate.GetComponentInChildren<TMP_Text>(true), ThemeRole.Body);
-            UIBuild.CreateButton(ControlsScreen.ResetButtonName, root, UIText.ResetAll, Center, new Vector2(0f, -110f), new Vector2(440f, 84f));
-            UIBuild.CreateButton(ControlsScreen.BackButtonName, root, UIText.Back, Center, new Vector2(0f, -200f), new Vector2(320f, 84f));
+            // Footer identical to Options: Apply | mid | Back at y=-380
+            UIBuild.CreateButton(ControlsScreen.ApplyButtonName, root, UIText.Apply, Center, new Vector2(-300f, -380f), new Vector2(260f, 70f));
+            UIBuild.CreateButton(ControlsScreen.ResetButtonName, root, UIText.ResetAll, Center, new Vector2(0f, -380f), new Vector2(300f, 70f));
+            UIBuild.CreateButton(ControlsScreen.BackButtonName, root, UIText.Back, Center, new Vector2(300f, -380f), new Vector2(260f, 70f));
             SetRef(controls, "router", router);
             return controls;
         }
