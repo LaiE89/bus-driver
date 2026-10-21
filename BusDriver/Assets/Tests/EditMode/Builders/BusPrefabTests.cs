@@ -35,12 +35,19 @@ namespace BusDriver.Tests.EditMode.Builders {
         }
 
         static Transform Find(GameObject root, string name) {
+            Transform found = FindOrNull(root, name);
+            if (found == null) {
+                Assert.Fail("no " + name + " under " + root.name);
+            }
+            return found;
+        }
+
+        static Transform FindOrNull(GameObject root, string name) {
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true)) {
                 if (t.name == name) {
                     return t;
                 }
             }
-            Assert.Fail("no " + name + " under " + root.name);
             return null;
         }
 
@@ -84,24 +91,29 @@ namespace BusDriver.Tests.EditMode.Builders {
             Assert.AreEqual(70f, driver.fieldOfView, Eps);
             Assert.IsNotNull(head.GetComponentInChildren<AudioListener>(true), "the ears ride on the driver head");
 
-            string[] anchors = { "Anchor_CCTV_Front", "Anchor_CCTV_Mid", "Anchor_CCTV_Rear" };
-            Vector3[] positions = { new Vector3(0.3f, 3.2f, 5.3f), new Vector3(0f, 3.2f, 0.5f), new Vector3(0f, 3.2f, -5.7f) };
-            Vector3[] eulers = { new Vector3(22f, 180f, 0f), new Vector3(28f, 180f, 0f), new Vector3(22f, 0f, 0f) };
-            CctvCamera[] cameras = bus.GetComponentsInChildren<CctvCamera>(true);
-            Assert.AreEqual(3, cameras.Length);
-            for (int i = 0; i < 3; i++) {
-                Transform anchor = Find(bus, anchors[i]);
-                CctvCamera cctv = anchor.GetComponentInChildren<CctvCamera>(true);
-                Assert.IsNotNull(cctv, anchors[i] + " has no CctvCamera");
-                AssertNear(positions[i], Local(bus, cctv.transform), anchors[i]);
-                Assert.Less(Quaternion.Angle(Quaternion.Euler(eulers[i]), Quaternion.Inverse(bus.transform.rotation) * cctv.transform.rotation), 0.01f, anchors[i] + " rotation");
-                Camera cam = cctv.GetComponent<Camera>();
-                Assert.AreEqual(95f, cam.fieldOfView, Eps);
-                Assert.IsFalse(cam.enabled, "CCTV cameras start off");
-                Assert.AreEqual(7f, cctv.ObserveRange, Eps);
-                Assert.AreEqual(i + 1, cctv.HideLayerIndex);
-                Assert.AreEqual(0, cam.cullingMask & Layers.Mask(15 + i + 1), anchors[i] + " must not render its MimicHideCam layer");
+            CCTVSystem system = bus.GetComponentInChildren<CCTVSystem>(true);
+            Assert.IsNotNull(system);
+            Assert.AreEqual(1, system.Cameras.Count, "only the front cabin camera is wired");
+            Transform mid = FindOrNull(bus, "Anchor_CCTV_Mid");
+            Transform rear = FindOrNull(bus, "Anchor_CCTV_Rear");
+            if (mid != null) {
+                Assert.IsFalse(mid.gameObject.activeSelf, "mid CCTV disabled");
             }
+            if (rear != null) {
+                Assert.IsFalse(rear.gameObject.activeSelf, "rear CCTV disabled");
+            }
+            Transform anchor = Find(bus, "Anchor_CCTV_Front");
+            CctvCamera cctv = anchor.GetComponentInChildren<CctvCamera>(true);
+            Assert.IsNotNull(cctv, "Anchor_CCTV_Front has no CctvCamera");
+            Assert.AreSame(cctv, system.Cameras[0]);
+            AssertNear(new Vector3(0.3f, 3.2f, 5.3f), Local(bus, cctv.transform), "Anchor_CCTV_Front");
+            Assert.Less(Quaternion.Angle(Quaternion.Euler(22f, 180f, 0f), Quaternion.Inverse(bus.transform.rotation) * cctv.transform.rotation), 0.01f, "front CCTV rotation");
+            Camera cam = cctv.GetComponent<Camera>();
+            Assert.AreEqual(95f, cam.fieldOfView, Eps);
+            Assert.IsFalse(cam.enabled, "CCTV cameras start off");
+            Assert.AreEqual(14f, cctv.ObserveRange, Eps);
+            Assert.AreEqual(1, cctv.HideLayerIndex);
+            Assert.AreEqual(0, cam.cullingMask & Layers.Mask(15 + 1), "front CCTV must not render its MimicHideCam layer");
         }
 
         [Test]

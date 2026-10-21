@@ -305,11 +305,11 @@ namespace BusDriver.Gameplay.Scares {
             cctv.Show(index);
         }
 
-        // CutToCctv: param "1".."3", else the scare's camera, else the one on screen, else CAM 1
+        // CutToCctv: param "1" (front), else the scare's camera, else the one on screen, else CAM 1
         int CameraFor(Instance instance, ScareStep step) {
             int n;
             if (!string.IsNullOrEmpty(step.param) && int.TryParse(step.param, out n)) {
-                return n - 1;
+                return Mathf.Max(0, n - 1);
             }
             if (instance.Context.CctvIndex >= 0) {
                 return instance.Context.CctvIndex;

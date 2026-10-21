@@ -11,7 +11,7 @@ namespace BusDriver.Core.Data {
     // - CctvStatic: full-screen static at intensity, for duration
     // - LockInput: the player's input is off for duration
     // - ForceHomeView: back to the driver view
-    // - CutToCctv: to camera param ("1".."3"), or the scare's own camera when empty
+        // - CutToCctv: to camera param ("1" = front), or the scare's own camera when empty
     // - ShowScareHead: the scare head at anchor for duration; param "lookAt" turns the driver's
     //   head to it
     // - AllPassengersReact: every rider aboard plays param's ReactionId (TurnToCamera when empty)
