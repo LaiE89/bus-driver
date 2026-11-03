@@ -22,11 +22,11 @@ MonoBehaviour:
   observerKinds: -1
   graceSeconds: 10
   seatZonePreference: 3
-  seatZoneFallback: 0
+  seatZoneFallback: 2
   killTelegraphSeconds: 4
   escape:
-    kind: 1
-    seconds: 1.5
+    kind: 0
+    seconds: 0
     resetThreat: 60
   monsterScare: {fileID: 11400000, guid: 4cfec3d0c737a436eb629b7837d74711, type: 2}
   killScare: {fileID: 11400000, guid: 8bd38dd69ad2848b7b1d3282e67cd90e, type: 2}
@@ -38,7 +38,7 @@ MonoBehaviour:
     tellsText:
     - Its head turns to whichever camera is watching it.
     - The bolder it gets, the stiller it sits and the wider its eyes.
-    - It moves forward a row whenever nobody is looking.
+    - It vanishes into a closer seat whenever nobody is looking.
     hint: It only moves when you aren't looking.
     icon: {fileID: 0}
   logicPrefab: {fileID: 2439779750513369075, guid: 74533426f8229471dbd05a060b350b10, type: 3}
@@ -48,7 +48,8 @@ MonoBehaviour:
     - rid: 1543484118205726720
       type: {class: StarerAdvanceConfig, ns: BusDriver.Core.Data, asm: BusDriver.Core}
       data:
-        unobservedBeforeAdvance: 1
+        advanceIntervalSeconds: 3
+        killFromRow: 2
         headTrackDegreesPerSecond: 25
         headTrackYawLimit: 110
         headTrackPitchLimit: 35

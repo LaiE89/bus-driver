@@ -356,7 +356,7 @@ namespace BusDriver.Editor.Validation {
             if (nights.Length != NightSeed.Count) {
                 problems.Add($"GameRootConfig.nights has {nights.Length} entries; a run is {NightSeed.Count} nights (D6)");
             }
-            string[] monsters = { NightSeed.Starer, NightSeed.Whisperer, NightSeed.Mimic, NightSeed.WeepingAngel };
+            string[] monsters = { NightSeed.Starer, NightSeed.Whisperer, NightSeed.Mimic };
             for (int i = 0; i < nights.Length; i++) {
                 NightDefinition night = nights[i];
                 if (night == null) {

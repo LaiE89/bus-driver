@@ -11,7 +11,6 @@ namespace BusDriver.Editor.Builders {
         public const string Starer = MonsterIds.Starer;
         public const string Whisperer = MonsterIds.Whisperer;
         public const string Mimic = MonsterIds.Mimic;
-        public const string WeepingAngel = MonsterIds.WeepingAngel;
 
         public static string RelativePath(int nightIndex) {
             return Folder + "/Night" + nightIndex + ".asset";
@@ -39,7 +38,7 @@ namespace BusDriver.Editor.Builders {
             night.maxPerType = 0;
             night.mimicBoardFirstStop = "";
             night.mimicBoardLastStop = "";
-            string[] all = { Starer, Whisperer, Mimic, WeepingAngel };
+            string[] all = { Starer, Whisperer, Mimic };
             switch (index) {
                 case 1:
                     night.threatRateMultiplier = 1f;
@@ -54,11 +53,10 @@ namespace BusDriver.Editor.Builders {
                         Rider("gas_station", "look04", "campground"),
                         Rider("campground", "look05", "church"),
                         Rider("gas_station", "look06", "", DecoyKind.None, Starer),
-                        Rider("campground", "look07", "", DecoyKind.None, WeepingAngel),
                     };
                     night.riderCountMin = night.riderCountMax = 5;
                     night.decoyCount = 1;
-                    night.monsterCountMin = night.monsterCountMax = 2;
+                    night.monsterCountMin = night.monsterCountMax = 1;
                     night.quotaCents = 1050;
                     break;
                 case 2:
@@ -79,7 +77,7 @@ namespace BusDriver.Editor.Builders {
                     night.decoyCount = 2;
                     night.monsterCountMin = night.monsterCountMax = 2;
                     night.requiredMonsters = new[] { Mimic };
-                    night.monsterPool = new[] { Starer, Whisperer, WeepingAngel };
+                    night.monsterPool = new[] { Starer, Whisperer };
                     night.monsterBoardFirstStop = "farm_gate";
                     night.monsterBoardLastStop = "church";
                     night.mimicBoardFirstStop = "gas_station";

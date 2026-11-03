@@ -15,17 +15,17 @@ MonoBehaviour:
   id: hal.door_chime
   clips:
   - {fileID: 8300000, guid: f53be867439b64bfdb7ddd56a486f26b, type: 3}
-  volume: 0.35
+  volume: 0.75
   volumeJitter: 0
   pitch: 1
   pitchJitter: 0
-  group: 3
-  spatial: 1
+  group: 6
+  spatial: 0
   minDistance: 1
   maxDistance: 25
   loop: 0
   maxVoices: 4
-  priority: 128
+  priority: 48
   cooldown: 0
   caption: '[door chime]'
   placeholder: 1

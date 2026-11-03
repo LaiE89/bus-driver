@@ -375,7 +375,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Bus.CctvCamera
   label: CAM 1  FRONT
-  observeRange: 7
+  observeRange: 14
   hideLayerIndex: 1
 --- !u!1 &407007857183024960
 GameObject:
@@ -2931,8 +2931,6 @@ MonoBehaviour:
   cabinCenter: {fileID: 6824808930248821269}
   cctvLens:
   - {fileID: 5301739143825506334}
-  - {fileID: 5391501345809489052}
-  - {fileID: 8117401841098295363}
 --- !u!1 &1809322170743595297
 GameObject:
   m_ObjectHideFlags: 0
@@ -4824,7 +4822,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6193965830017974789
 Transform:
   m_ObjectHideFlags: 0
@@ -9324,7 +9322,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5391501345809489052
 Transform:
   m_ObjectHideFlags: 0
@@ -10702,7 +10700,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7866596765245646879
 Transform:
   m_ObjectHideFlags: 0
@@ -14828,7 +14826,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8117401841098295363
 Transform:
   m_ObjectHideFlags: 0
@@ -15626,5 +15624,3 @@ MonoBehaviour:
   homeCamera: {fileID: 4552736681754855803}
   cameras:
   - {fileID: 4178067253849580570}
-  - {fileID: 1110829014783984562}
-  - {fileID: 8952031816431732712}

@@ -28,7 +28,6 @@ MonoBehaviour:
   - starer
   - whisperer
   - mimic
-  - weeping_angel
   minDistinctTypes: 3
   maxPerType: 0
   monsterBoardFirstStop: farm_gate

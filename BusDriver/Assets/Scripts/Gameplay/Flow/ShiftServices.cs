@@ -10,6 +10,7 @@ using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
+using BusDriver.Gameplay.Sanity;
 using BusDriver.Gameplay.Scares;
 using BusDriver.Gameplay.Shift;
 using BusDriver.Gameplay.Views;
@@ -67,6 +68,8 @@ namespace BusDriver.Gameplay.Flow {
         // The night's money (§2.7, §4.6)
         public ShiftLedger Ledger;
         public EconomyRules Economy;
+        // Hidden sanity (§2.15, §4.6)
+        public SanitySystem Sanity;
         // The night's monsters and the kill-sequence slot (§4.6)
         public MonsterSystem Monsters;
         // Scares (§2.17, §4.6): the director gates them, the player runs their steps, the overlay

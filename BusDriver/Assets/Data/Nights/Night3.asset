@@ -28,7 +28,6 @@ MonoBehaviour:
   monsterPool:
   - starer
   - whisperer
-  - weeping_angel
   minDistinctTypes: 0
   maxPerType: 0
   monsterBoardFirstStop: farm_gate

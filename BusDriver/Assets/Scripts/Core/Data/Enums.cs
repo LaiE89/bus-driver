@@ -16,6 +16,11 @@ namespace BusDriver.Core.Data {
     [Flags] public enum ObserverKinds : int { None = 0, Cctv = 1, Driver = 2, OnFoot = 4, Mirror = 8 }
     public enum DeathCause : int { None = 0, MonsterKill = 1, SanityZero = 2, Fall = 3, Abandoned = 4 }
     public enum SanityTier : int { T0 = 0, T1 = 1, T2 = 2, T3 = 3, T4 = 4 }
+    // Why sanity moved (§2.15). Append-only.
+    public enum SanityReason : int {
+        None = 0, Baseline = 1, Tunnel = 2, DoorsOpen = 3, Kick = 4, DeathWitness = 5,
+        Scare = 6, Chat = 7, Whisperer = 8, Cheat = 9, Coffee = 10, Carry = 11
+    }
     public enum ScareTier : int { Ambient = 0, Startle = 1, Monster = 2, Kill = 3 }
     public enum ScareStepKind : int {
         PlaySound = 1, ShowOverlay = 2, CameraShake = 3, FlickerCabinLights = 4, CctvStatic = 5, LockInput = 6,

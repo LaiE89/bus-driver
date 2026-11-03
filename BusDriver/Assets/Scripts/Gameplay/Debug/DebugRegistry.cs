@@ -42,6 +42,15 @@ namespace BusDriver.Gameplay.Debug {
             Changed();
         }
 
+        // Inserts at the top of the readout (sanity, and anything else that must be visible first)
+        public void RegisterFirst(IDebugSection section) {
+            if (section == null || sections.Contains(section)) {
+                return;
+            }
+            sections.Insert(0, section);
+            Changed();
+        }
+
         public void AddCheat(DebugCheat cheat) {
             if (cheat == null) {
                 return;
@@ -53,6 +62,10 @@ namespace BusDriver.Gameplay.Debug {
         // A section written by a lambda, for services whose readout is a line or two
         public void Register(string title, Action<StringBuilder> write) {
             Register(new DelegateSection(title, write));
+        }
+
+        public void RegisterFirst(string title, Action<StringBuilder> write) {
+            RegisterFirst(new DelegateSection(title, write));
         }
 
         void Changed() {

@@ -35,7 +35,7 @@ namespace BusDriver.UI.Hud {
 
         // OnChanged fires per character, so the panel is only toggled when it actually changes
         void Refresh() {
-            bool play = dialogue != null && dialogue.IsPlaying;
+            bool play = dialogue != null && dialogue.IsShowing;
             if (play != shown) {
                 shown = play;
                 if (panel != null) {

@@ -80,9 +80,14 @@ namespace BusDriver.Gameplay.Death {
             return preventers.Contains(preventer);
         }
 
-        // True when the death started
+        // True when the death started. SanityZero never kills: sanity can bottom out and only
+        // worsen hallucinations / drains; monsters and the cliff still end the run.
         public bool Die(DeathCause cause, string sourceId = "") {
             if (IsDying || cause == DeathCause.None || shift == null) {
+                return false;
+            }
+            if (cause == DeathCause.SanityZero) {
+                Log.Info(LogCat.Death, "Die(SanityZero) ignored: sanity at 0 does not end the run");
                 return false;
             }
             if (shift.Director.State != ShiftState.Driving) {

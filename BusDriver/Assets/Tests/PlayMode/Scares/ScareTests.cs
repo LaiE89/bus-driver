@@ -78,7 +78,7 @@ namespace BusDriver.Tests.PlayMode.Scares {
                 Step(0f, ScareStepKind.CameraShake, 0.4f, 0.8f),
                 Step(0f, ScareStepKind.FlickerCabinLights, 0.4f),
                 Step(0f, ScareStepKind.LockInput, 0.8f),
-                Step(0f, ScareStepKind.CutToCctv, param: "2"),
+                Step(0f, ScareStepKind.CutToCctv, param: "1"),
                 Step(0f, ScareStepKind.ShowScareHead, 0.5f, anchor: "CctvLens"),
                 Step(0.1f, ScareStepKind.CctvStatic, 0.3f, 1f),
                 Step(0.1f, ScareStepKind.AllPassengersReact, 0.3f),
@@ -108,7 +108,7 @@ namespace BusDriver.Tests.PlayMode.Scares {
                 sawShake |= shift.Shake.Amplitude > 0.7f;
                 sawFlicker |= shift.CabinLights.IsFlickering;
                 sawOff |= shift.CabinLights.Level == 0f;
-                sawCut |= shift.Cctv.ActiveIndex == 1;
+                sawCut |= shift.Cctv.ActiveIndex == 0;
                 sawHome |= sawCut && shift.Cctv.ActiveIndex == -1;
                 sawLock |= shift.Game.Input.Context == InputContext.Cinematic;
                 sawHead |= ScareHeads() == 1;
@@ -121,7 +121,7 @@ namespace BusDriver.Tests.PlayMode.Scares {
             Assert.IsTrue(sawShake, "CameraShake");
             Assert.IsTrue(sawFlicker, "FlickerCabinLights");
             Assert.IsTrue(sawOff, "CabinLightsOff");
-            Assert.IsTrue(sawCut, "CutToCctv to CAM 2");
+            Assert.IsTrue(sawCut, "CutToCctv to front CAM");
             Assert.IsTrue(sawHome, "ForceHomeView");
             Assert.IsTrue(sawLock, "LockInput");
             Assert.IsTrue(sawHead, "ShowScareHead");
@@ -144,9 +144,9 @@ namespace BusDriver.Tests.PlayMode.Scares {
 
             // An interrupted scare puts things back too
             ScareHandle cut = shift.ScarePlayer.Begin(Scare("test.cut", ScareTier.Startle,
-                Step(0f, ScareStepKind.CutToCctv, param: "3"), Step(0f, ScareStepKind.CabinLightsOff, 5f), Step(0f, ScareStepKind.LockInput, 5f)), default(ScareContext));
+                Step(0f, ScareStepKind.CutToCctv, param: "1"), Step(0f, ScareStepKind.CabinLightsOff, 5f), Step(0f, ScareStepKind.LockInput, 5f)), default(ScareContext));
             yield return null;
-            Assert.AreEqual(2, shift.Cctv.ActiveIndex);
+            Assert.AreEqual(0, shift.Cctv.ActiveIndex);
             Assert.AreEqual(0f, shift.CabinLights.Level);
             shift.ScarePlayer.Interrupt(cut);
             Assert.IsFalse(shift.ScarePlayer.IsRunning(cut));

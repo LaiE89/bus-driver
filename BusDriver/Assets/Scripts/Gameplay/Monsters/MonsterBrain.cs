@@ -78,8 +78,23 @@ namespace BusDriver.Gameplay.Monsters {
             meter.Init(this);
             meter.OnStageChanged += HandleStageChanged;
             system.Register(this);
+            EnsureAbilityParts();
+            parts = GetComponents<IMonsterPart>();
             for (int i = 0; i < parts.Length; i++) {
                 parts[i].Bind(services, this);
+            }
+        }
+
+        // Prefabs built before an ability existed still get the component at bind time
+        void EnsureAbilityParts() {
+            if (definition == null) {
+                return;
+            }
+            if (definition.Ability<StarerAdvanceConfig>() != null && GetComponent<StarerAdvance>() == null) {
+                gameObject.AddComponent<StarerAdvance>();
+            }
+            if (definition.Ability<WhispererDrainConfig>() != null && GetComponent<WhispererDrain>() == null) {
+                gameObject.AddComponent<WhispererDrain>();
             }
         }
 

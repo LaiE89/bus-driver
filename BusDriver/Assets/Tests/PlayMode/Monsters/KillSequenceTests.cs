@@ -37,14 +37,17 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             result[0] = Object.FindAnyObjectByType<ShiftContext>().Shift;
         }
 
-        internal static MonsterBrain SpawnSeated(ShiftServices shift, string monsterId, BusSeat seat, string lookId) {
+        internal static MonsterBrain SpawnSeated(ShiftServices shift, string monsterId, BusSeat seat, string lookId,
+            bool requireKillSequence = true) {
             Passenger rider = shift.DebugRiders.SpawnSeated(new RiderSpec {
                 lookId = lookId, boardStopId = "campground", destinationStopId = "", monsterId = monsterId,
             }, seat);
             Assert.IsNotNull(rider, "no rider spawned in " + (seat != null ? seat.name : "a free seat"));
             MonsterBrain brain = rider.GetComponent<MonsterBrain>();
             Assert.IsNotNull(brain);
-            Assert.IsNotNull(brain.Kill, monsterId + " has a KillSequence on its prefab");
+            if (requireKillSequence) {
+                Assert.IsNotNull(brain.Kill, monsterId + " has a KillSequence on its prefab");
+            }
             return brain;
         }
 
@@ -83,11 +86,11 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             shift.Death.AddPreventer(spare);
             shift.Cctv.ShowHome();
 
-            MonsterBrain first = SpawnSeated(shift, "starer", Seat(shift, 8, 0), "look07");
-            MonsterBrain second = SpawnSeated(shift, "starer", Seat(shift, 9, 3), "look08");
+            // Mimic still uses a KillSequence; the Starer kills via seat hops instead
+            MonsterBrain first = SpawnSeated(shift, "mimic", Seat(shift, 8, 0), "look07");
+            MonsterBrain second = SpawnSeated(shift, "mimic", Seat(shift, 9, 3), "look08");
             Time.timeScale = 3f;
             yield return FlowTestUtil.WaitFor(() => !first.Meter.Core.InGrace && !second.Meter.Core.InGrace, 30f, "the grace periods");
-            Assert.IsFalse(first.IsObserved || second.IsObserved, "the driver's view doesn't reach the rear rows");
 
             first.Meter.Core.SetValue(100f);
             yield return null;
@@ -123,32 +126,31 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             yield return StartNight(saveRoot, started);
             ShiftServices shift = started[0];
             shift.Cctv.ShowHome();
-            MonsterBrain starer = SpawnSeated(shift, "starer", Seat(shift, 5, 1), "look07");
+            // Mimic escapes by staying unobserved (§2.12)
+            MonsterBrain mimic = SpawnSeated(shift, "mimic", Seat(shift, 5, 1), "look07");
             float threatAtEscape = -1f;
             float telegraphAtEscape = -1f;
-            starer.Kill.OnResolved += (brain, outcome) => {
+            mimic.Kill.OnResolved += (brain, outcome) => {
                 threatAtEscape = brain.Threat;
-                telegraphAtEscape = starer.Kill.TelegraphElapsed;
+                telegraphAtEscape = mimic.Kill.TelegraphElapsed;
             };
             Time.timeScale = 2f;
-            yield return FlowTestUtil.WaitFor(() => !starer.Meter.Core.InGrace, 30f, "the grace period");
+            yield return FlowTestUtil.WaitFor(() => !mimic.Meter.Core.InGrace, 30f, "the grace period");
 
-            starer.Meter.Core.SetValue(100f);
-            yield return FlowTestUtil.WaitFor(() => starer.Kill.InTelegraph, 5f, "the telegraph");
-            bool[] found = new bool[1];
-            yield return ObserveOnCctv(shift, starer, found);
-            Assert.IsTrue(found[0], "a CCTV camera sees the telegraphing Starer");
+            mimic.Meter.Core.SetValue(100f);
+            yield return FlowTestUtil.WaitFor(() => mimic.Kill.InTelegraph, 5f, "the telegraph");
+            Assert.IsFalse(mimic.IsObserved, "home view: Mimic escapes by looking away");
 
-            yield return FlowTestUtil.WaitFor(() => !starer.Kill.IsRunning, 30f, "the escape");
-            Assert.AreEqual(KillOutcome.Escaped, starer.Kill.LastOutcome, "watched for 1.5 s, it backs down (D31)");
-            Assert.AreEqual(starer.Definition.escape.resetThreat, threatAtEscape, 0.001f, "the threat goes back to 60");
-            Assert.GreaterOrEqual(telegraphAtEscape, starer.Definition.escape.seconds, "it took 1.5 s of watching");
-            Assert.Less(telegraphAtEscape, starer.Definition.killTelegraphSeconds, "within the telegraph");
+            yield return FlowTestUtil.WaitFor(() => !mimic.Kill.IsRunning, 30f, "the escape");
+            Assert.AreEqual(KillOutcome.Escaped, mimic.Kill.LastOutcome, "unwatched for 2 s, it backs down");
+            Assert.AreEqual(mimic.Definition.escape.resetThreat, threatAtEscape, 0.001f, "the threat goes back to 60");
+            Assert.GreaterOrEqual(telegraphAtEscape, mimic.Definition.escape.seconds, "it took the escape seconds");
+            Assert.Less(telegraphAtEscape, mimic.Definition.killTelegraphSeconds, "within the telegraph");
             Assert.IsNull(shift.Monsters.KillOwner);
             Assert.IsFalse(shift.Scares.TelegraphActive);
             Assert.IsFalse(shift.Death.IsDying);
             Assert.AreEqual(ShiftState.Driving, shift.Director.State);
-            Assert.AreEqual(RiderStatus.Aboard, shift.Riders.For(starer.Passenger).Status, "still aboard");
+            Assert.AreEqual(RiderStatus.Aboard, shift.Riders.For(mimic.Passenger).Status, "still aboard");
         }
     }
 }

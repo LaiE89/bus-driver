@@ -257,7 +257,17 @@ namespace BusDriver.Tests.EditMode.Input {
         public void AKeyUsedOnlyInAnotherContextIsAllowed() {
             InputService input = new InputService(copy, null);
             string error;
-            Assert.IsTrue(input.TryApplyBinding("Interact", KeyboardIndex(input.Actions.Interact), "<Keyboard>/q", out error), error);
+            // F is free in OnFoot; AcceptRider is linked to Interact, so the key must also be
+            // free in Driving (Q is Doors and would be refused via that link)
+            Assert.IsTrue(input.TryApplyBinding("Interact", KeyboardIndex(input.Actions.Interact), "<Keyboard>/f", out error), error);
+        }
+
+        [Test]
+        public void InteractCannotTakeAKeyThatAcceptRiderWouldClashWith() {
+            InputService input = new InputService(copy, null);
+            string error;
+            Assert.IsFalse(input.TryApplyBinding("Interact", KeyboardIndex(input.Actions.Interact), "<Keyboard>/q", out error));
+            Assert.AreEqual("Already used by Doors", error);
         }
 
         [Test]
@@ -274,20 +284,50 @@ namespace BusDriver.Tests.EditMode.Input {
         }
 
         [Test]
-        public void RebindableRowsCoverEveryKeyboardBindingButLook() {
+        public void RebindableRowsAreOnlyThePlayerAllowedActions() {
             InputService input = new InputService(copy, null);
-            List<string> labels = new List<string>();
+            List<string> ids = new List<string>();
             foreach (RebindableBinding row in input.RebindableBindings()) {
-                labels.Add(row.ActionId + ":" + row.Label);
+                ids.Add(row.ActionId);
             }
-            CollectionAssert.Contains(labels, "Driving/Throttle:Throttle (positive)");
-            CollectionAssert.Contains(labels, "Driving/Throttle:Throttle (negative)");
-            CollectionAssert.Contains(labels, "OnFoot/Move:Move (up)");
-            CollectionAssert.Contains(labels, "Global/Pause:Pause");
-            foreach (string label in labels) {
-                StringAssert.DoesNotContain("Look", label);
-                StringAssert.DoesNotStartWith("UI/", label);
-            }
+            CollectionAssert.AreEquivalent(new[] {
+                "Driving/Handbrake",
+                "Driving/CycleCamera",
+                "Driving/LeaveSeat",
+                "Driving/Doors",
+                "Driving/Item1",
+                "Driving/Item2",
+                "Driving/Item3",
+                "OnFoot/Interact",
+                "OnFoot/Kick",
+            }, ids);
+            CollectionAssert.DoesNotContain(ids, "Driving/Throttle");
+            CollectionAssert.DoesNotContain(ids, "Driving/AcceptRider");
+            CollectionAssert.DoesNotContain(ids, "Driving/RefuseRider");
+            CollectionAssert.DoesNotContain(ids, "Global/Pause");
+        }
+
+        [Test]
+        public void RebindingInteractAlsoUpdatesAcceptRider() {
+            InputService input = new InputService(copy, null);
+            string error;
+            int interact = KeyboardIndex(input.Actions.Interact);
+            Assert.IsTrue(input.TryApplyBinding("Interact", interact, "<Keyboard>/f", out error), error);
+            StringAssert.AreEqualIgnoringCase("F", input.GetDisplayString("Interact"));
+            StringAssert.AreEqualIgnoringCase("F", input.GetDisplayString("AcceptRider"));
+            input.ResetBinding("OnFoot/Interact");
+            StringAssert.AreEqualIgnoringCase("Right Button", input.GetDisplayString("Interact"));
+            StringAssert.AreEqualIgnoringCase("Right Button", input.GetDisplayString("AcceptRider"));
+        }
+
+        [Test]
+        public void RebindingRejectAlsoUpdatesRefuseRider() {
+            InputService input = new InputService(copy, null);
+            string error;
+            int kick = KeyboardIndex(input.Actions.Kick);
+            Assert.IsTrue(input.TryApplyBinding("Kick", kick, "<Keyboard>/g", out error), error);
+            StringAssert.AreEqualIgnoringCase("G", input.GetDisplayString("Kick"));
+            StringAssert.AreEqualIgnoringCase("G", input.GetDisplayString("RefuseRider"));
         }
 
         [Test]
@@ -297,6 +337,29 @@ namespace BusDriver.Tests.EditMode.Input {
             input.TryApplyBinding("CycleCamera", KeyboardIndex(input.Actions.CycleCamera), "<Keyboard>/c", out error);
             input.ResetAll();
             StringAssert.AreEqualIgnoringCase("Space", input.GetDisplayString("CycleCamera"));
+        }
+
+        [Test]
+        public void BindingEditSession_DiscardRestoresBaseline() {
+            InputService input = new InputService(copy, null);
+            string error;
+            input.BeginBindingEdit();
+            Assert.IsTrue(input.TryApplyBinding("CycleCamera", KeyboardIndex(input.Actions.CycleCamera), "<Keyboard>/c", out error), error);
+            StringAssert.AreEqualIgnoringCase("C", input.GetDisplayString("CycleCamera"));
+            input.DiscardBindingEdit();
+            StringAssert.AreEqualIgnoringCase("Space", input.GetDisplayString("CycleCamera"));
+            Assert.IsFalse(input.IsEditingBindings);
+        }
+
+        [Test]
+        public void BindingEditSession_CommitKeepsChanges() {
+            InputService input = new InputService(copy, null);
+            string error;
+            input.BeginBindingEdit();
+            Assert.IsTrue(input.TryApplyBinding("CycleCamera", KeyboardIndex(input.Actions.CycleCamera), "<Keyboard>/c", out error), error);
+            input.CommitBindingEdit();
+            StringAssert.AreEqualIgnoringCase("C", input.GetDisplayString("CycleCamera"));
+            Assert.IsFalse(input.IsEditingBindings);
         }
     }
 }

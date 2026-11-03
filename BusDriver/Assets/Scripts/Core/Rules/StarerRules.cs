@@ -1,29 +1,30 @@
 using System;
 
 namespace BusDriver.Core.Rules {
-    // The Starer's numbers (§2.10) as pure functions, so they are unit-tested
+    // The Starer's advance numbers: silent one-row hops while unwatched, then a kill hop from the
+    // near-front row (no aisle telegraph).
     public static class StarerRules {
         public const int FrontRow = 1;
-        // The row it escapes back into (§2.10 Kill sequence)
-        public const int EscapeRow = 2;
+        // Sitting here (or closer), the next hop kills instead of moving
+        public const int DefaultKillFromRow = 2;
 
-        // targetRow = boardRow − round((boardRow − 1) × threat / 100): R1 at Lethal. Halves round
-        // up, not to even, so the row changes at the same threat on every platform.
-        public static int TargetRow(int boardRow, float threat) {
-            if (boardRow <= FrontRow) {
-                return FrontRow;
-            }
-            float t = Math.Max(0f, Math.Min(100f, threat));
-            int advance = (int)Math.Floor((boardRow - 1) * t / 100f + 0.5f);
-            return Math.Max(FrontRow, boardRow - advance);
+        // One seat row closer to the driver, or FrontRow when already there
+        public static int NextRow(int currentRow) {
+            return Math.Max(FrontRow, currentRow - 1);
         }
 
-        // It only moves forward, and only when it sits behind its target (a larger row number)
-        public static bool ShouldAdvance(int currentRow, int targetRow, float secondsUnobserved, float unobservedBeforeAdvance) {
-            return currentRow > targetRow && secondsUnobserved >= unobservedBeforeAdvance;
+        // True once the player has looked away long enough for another hop
+        public static bool ShouldHop(float secondsUnobserved, float advanceIntervalSeconds) {
+            return secondsUnobserved >= advanceIntervalSeconds && advanceIntervalSeconds > 0f;
         }
 
-        // Stillness = stage / 3 (§2.10); stage is ThreatStage as 0..3
+        // At or ahead of the kill row: the next hop is a jumpscare kill (while driving)
+        public static bool IsKillHop(int currentRow, int killFromRow) {
+            int from = killFromRow < FrontRow ? FrontRow : killFromRow;
+            return currentRow <= from;
+        }
+
+        // Stillness = stage / 3; stage is ThreatStage as 0..3
         public static float Stillness(int stage) {
             return Math.Max(0, Math.Min(3, stage)) / 3f;
         }

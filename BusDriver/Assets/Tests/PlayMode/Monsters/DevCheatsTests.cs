@@ -65,7 +65,7 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             Assert.AreEqual(50f, starer.Threat, 0.001f);
 
             Run(shift, "God mode on/off");
-            Assert.IsFalse(shift.Death.Die(DeathCause.SanityZero), "god mode ignores a death");
+            Assert.IsFalse(shift.Death.Die(DeathCause.Fall), "god mode ignores a death");
             Assert.IsFalse(shift.Death.IsDying);
 
             Time.timeScale = 3f;

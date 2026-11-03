@@ -56,14 +56,12 @@ namespace BusDriver.Tests.PlayMode.Attention {
             return root.TransformPoint(cabin.SeatLocal(seat)) + root.up * Passenger.SeatedHeadHeight;
         }
 
-        // A free seat CAM 2 frames within its range, and too far from CAM 1 for it to count
-        static BusSeat SeatOnlyCam2Counts(ShiftServices shift) {
-            CctvCamera cam1 = shift.Cctv.Cameras[0];
-            CctvCamera cam2 = shift.Cctv.Cameras[1];
+        // A free seat the front CAM frames within its range
+        static BusSeat SeatFrontCamSees(ShiftServices shift) {
+            CctvCamera cam = shift.Cctv.Cameras[0];
             foreach (BusSeat seat in shift.Cabin.Seats) {
                 Vector3 head = SeatedHead(shift.Cabin, seat);
-                if (seat.IsFree && PlayerAttention.Sees(cam2.Camera, head, cam2.ObserveRange)
-                    && (head - cam1.transform.position).magnitude > cam1.ObserveRange + 0.5f) {
+                if (seat.IsFree && PlayerAttention.Sees(cam.Camera, head, cam.ObserveRange)) {
                     return seat;
                 }
             }
@@ -85,8 +83,8 @@ namespace BusDriver.Tests.PlayMode.Attention {
             PlayerAttention attention = shift.Attention;
             CCTVSystem cctv = shift.Cctv;
 
-            BusSeat seat = SeatOnlyCam2Counts(shift);
-            Assert.IsNotNull(seat, "no seat in CAM 2's frame beyond CAM 1's range");
+            BusSeat seat = SeatFrontCamSees(shift);
+            Assert.IsNotNull(seat, "no seat in the front CAM's frame");
             Passenger rider = shift.DebugRiders.SpawnSeated(new RiderSpec { lookId = "look01", boardStopId = "depot", destinationStopId = "church" }, seat);
             Assert.IsNotNull(rider);
             Assert.Less(Vector3.Distance(SeatedHead(shift.Cabin, seat), rider.Head.position), 0.01f);
@@ -95,18 +93,18 @@ namespace BusDriver.Tests.PlayMode.Attention {
             Assert.AreEqual(AttentionMode.Road, attention.Mode);
             Assert.IsFalse(attention.IsObserved(rider, ObserverKinds.Cctv), "home view: no CCTV observer");
 
-            ShowCamera(cctv, 1);
+            ShowCamera(cctv, 0);
             yield return Frames(2);
             Assert.AreEqual(AttentionMode.Cctv, attention.Mode);
-            Assert.AreEqual(1, attention.CctvIndex);
-            Assert.AreEqual(ObserverKinds.Cctv, attention.ObservedBy(rider), "CAM 2 frames the rider within 7 m");
+            Assert.AreEqual(0, attention.CctvIndex);
+            Assert.AreEqual(ObserverKinds.Cctv, attention.ObservedBy(rider), "front CAM frames the rider");
             yield return new WaitForSeconds(0.5f);
             Assert.Greater(attention.TimeObserved(rider), 0.4f);
             Assert.AreEqual(0f, attention.TimeSinceObserved(rider));
 
-            ShowCamera(cctv, 0);
+            cctv.ShowHome();
             yield return Frames(2);
-            Assert.AreEqual(ObserverKinds.None, attention.ObservedBy(rider), "CAM 1 is out of range");
+            Assert.AreEqual(ObserverKinds.None, attention.ObservedBy(rider), "home view drops the CCTV observer");
             Assert.AreEqual(0f, attention.TimeObserved(rider));
             yield return new WaitForSeconds(0.3f);
             Assert.Greater(attention.TimeSinceObserved(rider), 0.25f);
@@ -115,9 +113,9 @@ namespace BusDriver.Tests.PlayMode.Attention {
             Assert.Greater(attention.TimeSinceObserved(rider, ObserverKinds.OnFoot), attention.TimeSinceObserved(rider, ObserverKinds.Cctv) + 0.4f);
             Assert.AreEqual(float.PositiveInfinity, attention.TimeSinceObserved(null), "an untracked rider has never been seen");
 
-            ShowCamera(cctv, 1);
+            ShowCamera(cctv, 0);
             yield return Frames(2);
-            Assert.IsTrue(attention.IsObserved(rider, ObserverKinds.Cctv), "back on CAM 2");
+            Assert.IsTrue(attention.IsObserved(rider, ObserverKinds.Cctv), "back on the front CAM");
             cctv.ShowHome();
             yield return Frames(2);
             Assert.IsFalse(attention.IsObserved(rider, ObserverKinds.Cctv));
@@ -133,7 +131,7 @@ namespace BusDriver.Tests.PlayMode.Attention {
             for (int i = 0; i < 4; i++) {
                 shift.DebugRiders.SpawnSeated(new RiderSpec { lookId = "look0" + (i + 1), boardStopId = "depot", destinationStopId = "church" });
             }
-            ShowCamera(shift.Cctv, 1);
+            ShowCamera(shift.Cctv, 0);
             yield return Frames(2);
             PlayerAttention attention = shift.Attention;
             attention.Tick(0.016f);
@@ -167,17 +165,18 @@ namespace BusDriver.Tests.PlayMode.Attention {
             }
             Assert.AreEqual(7, occluders, "left, right, roof, floor, front, rear and the driver partition");
 
-            BusSeat seat = SeatOnlyCam2Counts(shift);
+            BusSeat seat = SeatFrontCamSees(shift);
+            Assert.IsNotNull(seat, "no seat in the front CAM's frame");
             Passenger rider = shift.DebugRiders.SpawnSeated(new RiderSpec { lookId = "look02", boardStopId = "depot", destinationStopId = "church" }, seat);
             foreach (Collider collider in rider.GetComponentsInChildren<Collider>(true)) {
                 Assert.AreNotEqual(Layers.Occluder, collider.gameObject.layer, "riders never occlude");
             }
-            ShowCamera(shift.Cctv, 1);
+            ShowCamera(shift.Cctv, 0);
             yield return Frames(2);
             Assert.IsTrue(attention.IsObserved(rider, ObserverKinds.Cctv), "in frame, in range, nothing between");
 
             // A wall of Occluder halfway along the line of sight
-            Vector3 from = shift.Cctv.Cameras[1].transform.position;
+            Vector3 from = shift.Cctv.Cameras[0].transform.position;
             Vector3 to = rider.Head.position;
             GameObject wall = new GameObject("Test Occluder") { layer = Layers.Occluder };
             wall.transform.SetPositionAndRotation((from + to) * 0.5f, Quaternion.LookRotation(to - from));
@@ -197,8 +196,8 @@ namespace BusDriver.Tests.PlayMode.Attention {
             // Anyone standing outside at the kerb is behind the hull shell
             Vector3 outside = shift.Bus.transform.TransformPoint(new Vector3(3.5f, 2f, -2f));
             Assert.IsTrue(Physics.Linecast(from, outside, Layers.Mask(Layers.Occluder), QueryTriggerInteraction.Collide),
-                "the side wall stands between the cabin cameras and the kerb");
-            Assert.IsFalse(PlayerAttention.Sees(shift.Cctv.Cameras[1].Camera, outside, 7f));
+                "the side wall stands between the cabin camera and the kerb");
+            Assert.IsFalse(PlayerAttention.Sees(shift.Cctv.Cameras[0].Camera, outside, 14f));
         }
 
         [UnityTest, Timeout(300000)]

@@ -4,7 +4,7 @@ using BusDriver.Core.Data;
 namespace BusDriver.Core.Rules {
     // Which table a rider draws from. Not serialized content: it only ever comes from a monster
     // id, and the Mimic has no entry on purpose so it draws the human lines (D34).
-    public enum DialogueKind { Human, Starer, Whisperer, WeepingAngel }
+    public enum DialogueKind { Human, Starer, Whisperer }
 
     // Random one-liners for the door, the seat and the drop-off, picked per rider kind so a
     // monster never sounds like a commuter. Every draw takes the caller's stream, so the same
@@ -81,27 +81,6 @@ namespace BusDriver.Core.Rules {
             "Yeah, I know, I should've got the earlier one."
         };
 
-        static readonly string[] angelGreetings = {
-            "...",
-            "Do not look away, driver.",
-            "I have waited at this stop a very long time.",
-            "Such kind eyes. Keep them on the road."
-        };
-
-        static readonly string[] angelFarewells = {
-            "We will ride together again.",
-            "Thank you for not looking.",
-            "..."
-        };
-
-        static readonly string[] angelSeated = {
-            "You left your seat.",
-            "I prefer you where I can see you.",
-            "Go back to the wheel, driver.",
-            "...",
-            "You should not have stopped looking."
-        };
-
         static readonly string[] starerGreetings = {
             "(it does not answer, and steps aboard)",
             "Hhhhhh...",
@@ -146,8 +125,6 @@ namespace BusDriver.Core.Rules {
                     return DialogueKind.Starer;
                 case MonsterIds.Whisperer:
                     return DialogueKind.Whisperer;
-                case MonsterIds.WeepingAngel:
-                    return DialogueKind.WeepingAngel;
                 default:
                     return DialogueKind.Human;
             }
@@ -157,8 +134,6 @@ namespace BusDriver.Core.Rules {
         // never says where they are going.
         public static string Greeting(DialogueKind kind, string destinationName, Random rng) {
             switch (kind) {
-                case DialogueKind.WeepingAngel:
-                    return Pick(angelGreetings, rng);
                 case DialogueKind.Starer:
                     return Pick(starerGreetings, rng);
                 case DialogueKind.Whisperer:
@@ -174,8 +149,6 @@ namespace BusDriver.Core.Rules {
         // The driver walked back and struck up a conversation with a seated rider
         public static string Seated(DialogueKind kind, Random rng) {
             switch (kind) {
-                case DialogueKind.WeepingAngel:
-                    return Pick(angelSeated, rng);
                 case DialogueKind.Starer:
                     return Pick(starerSeated, rng);
                 case DialogueKind.Whisperer:
@@ -189,8 +162,6 @@ namespace BusDriver.Core.Rules {
         // was reached, with None standing in for a stop that was never rated.
         public static string Farewell(DialogueKind kind, ArrivalRating rating, bool kicked, Random rng) {
             switch (kind) {
-                case DialogueKind.WeepingAngel:
-                    return Pick(angelFarewells, rng);
                 case DialogueKind.Starer:
                     return Pick(starerFarewells, rng);
                 case DialogueKind.Whisperer:
@@ -216,8 +187,6 @@ namespace BusDriver.Core.Rules {
         // Turned away at the door: no review, they just have opinions
         public static string Refused(DialogueKind kind, Random rng) {
             switch (kind) {
-                case DialogueKind.WeepingAngel:
-                    return "I will be at the next stop.";
                 case DialogueKind.Starer:
                     return "(it does not move until the door closes)";
                 case DialogueKind.Whisperer:

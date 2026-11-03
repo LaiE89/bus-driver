@@ -6,9 +6,8 @@ using BusDriver.Gameplay.Scares;
 using UnityEngine;
 
 namespace BusDriver.Gameplay.Death {
-    // SanityZero (§2.14): scare.whisperer.kill when a Whisperer is aboard (T-M5-06 seeds it),
-    // otherwise scare.blackout.generic, a 2 s fade to black. The heartbeat that stops is
-    // SanityFx's (T-M5-03), which ends it when the death starts.
+    // Legacy SanityZero presenter (§2.14): Whisperer kill scare or generic blackout. Kept wired
+    // for scare assets / Game Over copy; DeathDirector ignores SanityZero so this never runs.
     public sealed class BlackoutPresenter : DeathPresenter {
         public const string WhispererKill = "scare.whisperer.kill";
         public const string GenericBlackout = "scare.blackout.generic";

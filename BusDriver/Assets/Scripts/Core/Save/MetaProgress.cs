@@ -4,7 +4,7 @@ using BusDriver.Core.Data;
 namespace BusDriver.Core.Save {
     // meta.json data, v1 (§4.9): the only progress that outlives a run (D6)
     public sealed class MetaProgress {
-        // Keyed by monster id: starer, whisperer, mimic, weeping_angel
+        // Keyed by monster id: starer, whisperer, mimic
         public Dictionary<string, JournalEntryState> journal = new Dictionary<string, JournalEntryState>();
         public int runsStarted;
         public int runsWon;

@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using BusDriver.Core.Data;
+using BusDriver.Core.Rules;
 using UnityEditor;
 
 namespace BusDriver.Editor.Builders {
-    // Seed data for Data/Monsters/Starer, Whisperer, Mimic and WeepingAngel (§2.10–§2.12b, §4.8,
-    // T-M4-03): rules, observer kinds, grace, seating, the kill sequence's escape, bounty, ability
-    // numbers and journal text. logicPrefab is filled by PrefabBuilder, not here (D98).
+    // Seed data for Data/Monsters/Starer, Whisperer and Mimic (§2.10–§2.12, §4.8, T-M4-03): rules,
+    // observer kinds, grace, seating, the kill sequence's escape, bounty, ability numbers and
+    // journal text. logicPrefab is filled by PrefabBuilder, not here (D98).
     public static class MonsterSeed {
         public const string Folder = "Monsters";
 
@@ -20,7 +21,6 @@ namespace BusDriver.Editor.Builders {
             new Entry { Id = NightSeed.Starer, File = "Starer", Fill = FillStarer },
             new Entry { Id = NightSeed.Whisperer, File = "Whisperer", Fill = FillWhisperer },
             new Entry { Id = NightSeed.Mimic, File = "Mimic", Fill = FillMimic },
-            new Entry { Id = NightSeed.WeepingAngel, File = "WeepingAngel", Fill = FillAngel },
         };
 
         public static IEnumerable<string> Ids {
@@ -67,21 +67,24 @@ namespace BusDriver.Editor.Builders {
             return new ThreatRule(condition, rate);
         }
 
-        // §2.10, D106: punishes not watching the cabin. Watching only freezes it, so its meter never
-        // falls (except the kill-sequence escape reset). Swap Observed for ObservedByCctv to count the
-        // cameras alone
+        // Punishes not watching the cabin: silent one-row hops while unwatched; a hop from the
+        // near-front row kills while driving (no aisle telegraph). EscapeKind.None = no KillSequence.
         static void FillStarer(MonsterDefinition m) {
             m.displayName = "The Starer";
             m.rules = new[] { Rule(ThreatCondition.Observed, 0f), Rule(ThreatCondition.Always, 10f) };
             m.seatZonePreference = SeatZone.Rear;
-            m.escape = new MonsterEscape(EscapeKind.ObserveFor, 1.5f, 60f);
-            m.ability = new StarerAdvanceConfig();
+            m.seatZoneFallback = SeatZone.Mid;
+            m.escape = new MonsterEscape(EscapeKind.None, 0f, 60f);
+            m.ability = new StarerAdvanceConfig {
+                advanceIntervalSeconds = 3f,
+                killFromRow = StarerRules.DefaultKillFromRow,
+            };
             m.journal = new MonsterJournal {
                 sightingText = "A rider at the back who never takes their eyes off you.",
                 tellsText = new[] {
                     "Its head turns to whichever camera is watching it.",
                     "The bolder it gets, the stiller it sits and the wider its eyes.",
-                    "It moves forward a row whenever nobody is looking.",
+                    "It vanishes into a closer seat whenever nobody is looking.",
                 },
                 hint = "It only moves when you aren't looking.",
             };
@@ -126,24 +129,6 @@ namespace BusDriver.Editor.Builders {
                     "One of the cameras never shows it.",
                 },
                 hint = "Count the faces. Then look away.",
-            };
-        }
-
-        // Main-branch Weeping Angel: no threat kill — proximity hunt only (kill scare is presentation)
-        static void FillAngel(MonsterDefinition m) {
-            m.displayName = "The Weeping Angel";
-            m.rules = new[] { Rule(ThreatCondition.Observed, 0f), Rule(ThreatCondition.Always, 0f) };
-            m.seatZonePreference = SeatZone.Rear;
-            m.seatZoneFallback = SeatZone.Mid;
-            m.escape = new MonsterEscape(EscapeKind.None, 0f, 60f);
-            m.ability = new AngelStalkConfig();
-            m.journal = new MonsterJournal {
-                sightingText = "A rider who hides their face in their hands and weeps.",
-                tellsText = new[] {
-                    "It never moves while anyone is watching. Not even a breath.",
-                    "Unwatched, it stands and comes down the aisle.",
-                },
-                hint = "Watching only holds it. Throw it out.",
             };
         }
 

@@ -38,13 +38,13 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             result[0] = Object.FindAnyObjectByType<ShiftContext>().Shift;
         }
 
-        // A free seat CAM 2 frames within its range
-        static BusSeat SeatCam2Sees(ShiftServices shift) {
-            CctvCamera cam2 = shift.Cctv.Cameras[1];
+        // A free seat the front CAM frames within its range
+        static BusSeat SeatFrontCamSees(ShiftServices shift) {
+            CctvCamera cam = shift.Cctv.Cameras[0];
             Transform root = shift.Cabin.PassengerRoot;
             foreach (BusSeat seat in shift.Cabin.Seats) {
                 Vector3 head = root.TransformPoint(shift.Cabin.SeatLocal(seat)) + root.up * Passenger.SeatedHeadHeight;
-                if (seat.IsFree && PlayerAttention.Sees(cam2.Camera, head, cam2.ObserveRange)) {
+                if (seat.IsFree && PlayerAttention.Sees(cam.Camera, head, cam.ObserveRange)) {
                     return seat;
                 }
             }
@@ -80,8 +80,8 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             Assert.IsNotNull(starer, "no Starer definition in GameRootConfig");
             Assert.AreEqual(1f, shift.Night.threatRateMultiplier, "night 1's threat multiplier");
 
-            BusSeat seat = SeatCam2Sees(shift);
-            Assert.IsNotNull(seat, "no seat in CAM 2's frame");
+            BusSeat seat = SeatFrontCamSees(shift);
+            Assert.IsNotNull(seat, "no seat in the front CAM's frame");
             Passenger rider = shift.DebugRiders.SpawnSeated(new RiderSpec {
                 lookId = "look06", boardStopId = "gas_station", destinationStopId = "", monsterId = "starer",
             }, seat);
@@ -106,10 +106,9 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             yield return new WaitForSeconds(3f);
             Assert.AreEqual(0f, brain.Threat, "the meter holds during grace");
 
-            // Watched on CAM 2 first. Unwatched, it would climb fast enough to advance out of CAM 2's
-            // frame (T-M4-08), and then the camera couldn't find it again
-            ShowCamera(shift.Cctv, 1);
-            yield return FlowTestUtil.WaitFor(() => brain.IsObserved, 5f, "CAM 2 to see the Starer");
+            // Watched on the front CAM. Unwatched, it would climb and advance down the aisle.
+            ShowCamera(shift.Cctv, 0);
+            yield return FlowTestUtil.WaitFor(() => brain.IsObserved, 5f, "front CAM to see the Starer");
             yield return FlowTestUtil.WaitFor(() => !brain.Meter.Core.InGrace, 30f, "the end of the grace period");
             yield return null;
             Assert.AreEqual(ObserverKinds.Cctv, brain.ObservedBy);

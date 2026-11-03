@@ -12,6 +12,7 @@ using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
+using BusDriver.Gameplay.Sanity;
 using BusDriver.Gameplay.Scares;
 using BusDriver.Gameplay.Shift;
 using BusDriver.Gameplay.Views;
@@ -44,6 +45,8 @@ namespace BusDriver.Gameplay.Flow {
         [SerializeField] ManifestSpawner manifest;
         [Tooltip("What riders say at the door, in their seat and on the way off (§4.13)")]
         [SerializeField] DialogueService dialogue;
+        [Tooltip("Hidden sanity (§2.15)")]
+        [SerializeField] SanitySystem sanity;
         [Tooltip("The night's monsters and the kill-sequence slot (§4.6)")]
         [SerializeField] MonsterSystem monsters;
         [Tooltip("Plays scare steps (§4.6)")]
@@ -133,7 +136,10 @@ namespace BusDriver.Gameplay.Flow {
             }
             // 6. ShiftLedger (built in BuildServices), EconomyRules
             shift.Economy.Init(shift);
-            // 7. Sanity arrives with M5
+            // 7. SanitySystem, SanityFx
+            if (shift.Sanity != null) {
+                shift.Sanity.Init(shift);
+            }
             // 8. ScarePlayer, ScareDirector
             shift.ScarePlayer.Init(shift);
             shift.Scares.Init(shift);
@@ -197,6 +203,7 @@ namespace BusDriver.Gameplay.Flow {
                 Views = views,
                 Manifest = manifest,
                 Dialogue = dialogue,
+                Sanity = ResolveSanity(),
                 Monsters = monsters,
                 ScarePlayer = scarePlayer,
                 Scares = scares,
@@ -220,6 +227,20 @@ namespace BusDriver.Gameplay.Flow {
             return balance;
         }
 
+        // Night_Systems may predate the SanitySystem field; add it so older scenes still run
+        SanitySystem ResolveSanity() {
+            if (sanity == null) {
+                sanity = GetComponent<SanitySystem>();
+            }
+            if (sanity == null) {
+                sanity = gameObject.AddComponent<SanitySystem>();
+            }
+            if (GetComponent<SanityFx>() == null) {
+                gameObject.AddComponent<SanityFx>();
+            }
+            return sanity;
+        }
+
         NightDefinition ResolveNight(NightSetup setup) {
             GameRootConfig config = Game != null ? Game.Config : null;
             NightDefinition night = config != null ? config.Night(setup.NightIndex) : null;
@@ -233,6 +254,18 @@ namespace BusDriver.Gameplay.Flow {
         // The first F1 section (T-M1-18). ShiftClockDriver registers "Clock", RouteTracker "Route"
         // and RouteProgress "Stops".
         void RegisterDebugSections(ShiftServices shift) {
+            // Sanity first so F1 always shows the hidden score near the top
+            shift.Debug.RegisterFirst("Sanity", text => {
+                if (shift.Sanity == null) {
+                    text.Append("sanity (not ready)\n");
+                    return;
+                }
+                text.Append("SANITY ").Append(shift.Sanity.Value.ToString("0.0"))
+                    .Append(" / 100   tier ").Append(shift.Sanity.Tier).Append('\n');
+                if (shift.Sanity.Core != null) {
+                    text.Append("drain/s ").Append(shift.Sanity.Core.DrainSum().ToString("+0.00;-0.00")).Append('\n');
+                }
+            });
             shift.Debug.Register("Run", text => {
                 text.Append("seed ").Append(shift.Setup.Run.seed)
                     .Append("  night ").Append(shift.Setup.NightIndex)

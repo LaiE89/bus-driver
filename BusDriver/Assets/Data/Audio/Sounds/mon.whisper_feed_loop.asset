@@ -14,18 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: mon.whisper_feed_loop
   clips:
-  - {fileID: 8300000, guid: 1e6458f0555a7429a9cbed818db9d558, type: 3}
-  volume: 0.35
+  - {fileID: 8300000, guid: b2b5b356ebc6e424391a80e277062b49, type: 3}
+  volume: 1
   volumeJitter: 0
-  pitch: 1
+  pitch: 0.94
   pitchJitter: 0
-  group: 5
+  group: 3
   spatial: 0
   minDistance: 1
   maxDistance: 25
   loop: 1
   maxVoices: 1
-  priority: 64
+  priority: 20
   cooldown: 0
-  caption: 
-  placeholder: 1
+  caption: '[whispering on the feed]'
+  placeholder: 0

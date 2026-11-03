@@ -108,11 +108,14 @@ namespace BusDriver.Tests.PlayMode.Death {
 
             screen.NewRunButton.onClick.Invoke();
             yield return FlowTestUtil.WaitForDriving(game);
-            Shift().Death.Die(DeathCause.SanityZero);
+            Assert.IsFalse(Shift().Death.Die(DeathCause.SanityZero), "sanity at 0 does not end the run");
+            Assert.IsFalse(Shift().Death.IsDying);
+            Assert.AreEqual(ShiftState.Driving, Shift().Director.State);
+
+            Shift().Death.Die(DeathCause.Fall);
             yield return WaitForGameOver();
             screen = Object.FindAnyObjectByType<GameOverScreen>();
-            Assert.AreEqual("YOUR MIND WENT DARK", screen.CauseText);
-            Assert.AreEqual("The dark gets in. Coffee helps.", screen.HintText, "no Whisperer aboard");
+            Assert.IsNotNull(screen);
 
             screen.MainMenuButton.onClick.Invoke();
             yield return FlowTestUtil.WaitForMenu(game);

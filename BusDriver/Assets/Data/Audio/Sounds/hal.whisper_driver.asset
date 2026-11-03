@@ -15,7 +15,7 @@ MonoBehaviour:
   id: hal.whisper_driver
   clips:
   - {fileID: 8300000, guid: 6797095a793f94e2f9569f7a2e1ccb32, type: 3}
-  volume: 0.35
+  volume: 0.75
   volumeJitter: 0
   pitch: 1
   pitchJitter: 0
@@ -25,7 +25,7 @@ MonoBehaviour:
   maxDistance: 25
   loop: 0
   maxVoices: 4
-  priority: 64
+  priority: 40
   cooldown: 0
   caption: "[whisper] driver\u2026"
   placeholder: 1
