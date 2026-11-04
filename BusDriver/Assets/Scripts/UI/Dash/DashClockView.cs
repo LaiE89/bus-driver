@@ -18,6 +18,13 @@ namespace BusDriver.UI.Dash {
         protected override void OnBind(ShiftServices shift) {
             clock = shift.Clock;
             Refresh();
+            // The driver no longer has a clock on the dash. The text still updates for tests.
+            if (Canvas != null) {
+                Canvas drawn = Canvas.GetComponent<Canvas>();
+                if (drawn != null) {
+                    drawn.enabled = false;
+                }
+            }
         }
 
         void Update() {
