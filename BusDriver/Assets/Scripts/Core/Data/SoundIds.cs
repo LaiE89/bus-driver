@@ -4,6 +4,8 @@ namespace BusDriver.Core.Data {
     // SoundDefinition. Ids are never renamed; a new sound gets a new id (Appendix A.3).
     public static class SoundIds {
         public const string BusEngineLoop = "bus.engine_loop";
+        public const string BusEngineIdleLoop = "bus.engine_idle_loop";
+        public const string BusEngineThrottleLoop = "bus.engine_throttle_loop";
         public const string BusAccel = "bus.accel";
         public const string BusDecel = "bus.decel";
         public const string BusHandbrake = "bus.handbrake";
@@ -69,7 +71,7 @@ namespace BusDriver.Core.Data {
         public const string MusGameoverSting = "mus.gameover_sting";
 
         public static readonly string[] All = {
-            BusEngineLoop, BusAccel, BusDecel, BusHandbrake, BusDoorOpen, BusDoorClose, BusFareTap, BusStopRequest, BusRumbleStrip,
+            BusEngineLoop, BusEngineIdleLoop, BusEngineThrottleLoop, BusAccel, BusDecel, BusHandbrake, BusDoorOpen, BusDoorClose, BusFareTap, BusStopRequest, BusRumbleStrip,
             BusCrashMinor, BusCrashMajor, BusHorn, CctvSwitch, CctvStaticLoop,
             AmbWind, AmbForestNight, AmbTunnel, AmbCabinHum, AmbLampBuzz,
             PlayerFootstepBus, PlayerFootstepGravel, PaxFootstep, PaxMutterLoop, PaxDeath, PaxKickOut,

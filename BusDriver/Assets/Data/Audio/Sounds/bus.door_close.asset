@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: bus.door_close
   clips:
-  - {fileID: 8300000, guid: 2ea660eb5a44349189d1010597cab172, type: 3}
-  volume: 0.35
+  - {fileID: 8300000, guid: 7c4020ff379f4a448b323613c922cc6b, type: 3}
+  volume: 0.9
   volumeJitter: 0
   pitch: 1
   pitchJitter: 0
@@ -28,4 +28,4 @@ MonoBehaviour:
   priority: 128
   cooldown: 0
   caption: 
-  placeholder: 1
+  placeholder: 0

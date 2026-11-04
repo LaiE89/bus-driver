@@ -29,6 +29,8 @@ namespace BusDriver.Gameplay.Bus {
         public float SteerAngle { get; private set; }
         public bool IsParked { get { return locks != DriveLock.None; } }
         public bool IsHandbrake { get { return handbrakeInput; } }
+        // The smoothed pedal 0..1 actually driving the wheels (either gear); BusEngineSound revs on it
+        public float Throttle { get { return smoothThrottle; } }
         public bool IsGrounded { get; private set; }
         // Kinematic and ignoring input, so the player can walk around inside
         public bool IsFrozen { get; private set; }

@@ -41,36 +41,62 @@ namespace BusDriver.Editor.Builders {
             public bool ThreeD;
             public bool Loop;
             public string Caption;
-            // An existing clip under Audio/Clips; empty means a generated placeholder
-            public string Clip;
+            // Existing clips under Audio/Clips, one picked per play; empty means a generated placeholder
+            public string[] Clips;
             public float Volume;
             public float Pitch;
+            public float VolumeJitter;
+            public float PitchJitter;
         }
 
         static SoundSpec S(string id, AudioGroup group, bool threeD, bool loop, string caption = "") {
-            return new SoundSpec { Id = id, Group = group, ThreeD = threeD, Loop = loop, Caption = caption, Clip = "", Volume = PlaceholderVolume, Pitch = 1f };
+            return new SoundSpec { Id = id, Group = group, ThreeD = threeD, Loop = loop, Caption = caption, Clips = new string[0], Volume = PlaceholderVolume, Pitch = 1f };
         }
 
         // An entry of the deleted Sound Controller prefab, with its clip, volume and pitch as they were
         static SoundSpec Clip(SoundSpec spec, string clip, float volume, float pitch = 1f) {
-            spec.Clip = clip;
+            spec.Clips = new[] { clip };
             spec.Volume = volume;
             spec.Pitch = pitch;
             return spec;
         }
 
+        // A real recording (audio.zip, 2026-11-04) with one or more variations
+        static SoundSpec Clips(SoundSpec spec, float volume, params string[] clips) {
+            spec.Clips = clips;
+            spec.Volume = volume;
+            spec.Pitch = 1f;
+            return spec;
+        }
+
+        static SoundSpec Jitter(SoundSpec spec, float volumeJitter, float pitchJitter) {
+            spec.VolumeJitter = volumeJitter;
+            spec.PitchJitter = pitchJitter;
+            return spec;
+        }
+
+        static readonly string[] Coins = {
+            "Bus/sfx_coinpayment_nl_01.wav", "Bus/sfx_coinpayment_nl_02.wav", "Bus/sfx_coinpayment_nl_03.wav",
+            "Bus/sfx_coinpayment_nl_04.wav", "Bus/sfx_coinpayment_nl_05.wav",
+        };
+        static readonly string[] Jumpscares = {
+            "Scares/sfx_jumpscare_nl_01.wav", "Scares/sfx_jumpscare_nl_02.wav", "Scares/sfx_jumpscare_nl_03.wav",
+        };
+
         // Appendix A.3, row by row. Sound Controller.prefab held seven entries: Bus Engine, Brake,
         // Card Tap, Camera, Wind Ambience, UI Click and Dialogue.
         static readonly SoundSpec[] Sounds = {
-            Clip(S(SoundIds.BusEngineLoop, AudioGroup.SfxBus, false, true), "Bus/amb_driving_lp_01.ogg", 0.05f),
+            Clip(S(SoundIds.BusEngineLoop, AudioGroup.SfxBus, false, true), "Bus/amb_driving_lp_01.ogg", 0.105f),
+            Clip(S(SoundIds.BusEngineIdleLoop, AudioGroup.SfxBus, false, true), "Bus/amb_idling_lp.ogg", 0.1f),
+            Clip(S(SoundIds.BusEngineThrottleLoop, AudioGroup.SfxBus, false, true), "Bus/amb_fullthrottle_lp_01.ogg", 0.12f),
             S(SoundIds.BusAccel, AudioGroup.SfxBus, false, false),
             S(SoundIds.BusDecel, AudioGroup.SfxBus, false, false),
             Clip(S(SoundIds.BusHandbrake, AudioGroup.SfxBus, false, false), "Bus/sfx_airbrake.wav", 0.1f),
-            S(SoundIds.BusDoorOpen, AudioGroup.SfxBus, true, false),
-            S(SoundIds.BusDoorClose, AudioGroup.SfxBus, true, false),
-            Clip(S(SoundIds.BusFareTap, AudioGroup.SfxCabin, true, false), "Bus/sfx_cardtap_nl_01.wav", 1f),
+            Clip(S(SoundIds.BusDoorOpen, AudioGroup.SfxBus, true, false), "Bus/sfx_dooropen_nl_01.wav", 0.8f),
+            Clip(S(SoundIds.BusDoorClose, AudioGroup.SfxBus, true, false), "Bus/sfx_doorclose_nl_01.wav", 0.9f),
+            Jitter(Clips(S(SoundIds.BusFareTap, AudioGroup.SfxCabin, true, false), 1f, Coins), 0.1f, 0.04f),
             // 2D on purpose: a stop bell has to cut through the cabin wherever the bus is
-            S(SoundIds.BusStopRequest, AudioGroup.SfxCabin, false, false, "[stop requested]"),
+            Clip(S(SoundIds.BusStopRequest, AudioGroup.SfxCabin, false, false, "[stop requested]"), "Bus/sfx_stoprequested_nl.wav", 0.45f),
             S(SoundIds.BusRumbleStrip, AudioGroup.SfxBus, false, true),
             S(SoundIds.BusCrashMinor, AudioGroup.SfxBus, false, false),
             S(SoundIds.BusCrashMajor, AudioGroup.SfxBus, false, false),
@@ -91,17 +117,17 @@ namespace BusDriver.Editor.Builders {
             S(SoundIds.MonTelegraphRumble, AudioGroup.Scares, false, false),
             S(SoundIds.MonExpel, AudioGroup.Scares, true, false),
             S(SoundIds.MonStarerSting, AudioGroup.Scares, false, false),
-            S(SoundIds.MonStarerKill, AudioGroup.Scares, false, false),
+            Clips(S(SoundIds.MonStarerKill, AudioGroup.Scares, false, false), 1f, Jumpscares),
             S(SoundIds.MonWhisperLoop, AudioGroup.Voice, true, true, "[whispering]"),
             S(SoundIds.MonWhisperFeedLoop, AudioGroup.Voice, false, true),
             S(SoundIds.MonWhisperDriver, AudioGroup.Voice, false, false, "[whisper] driver…"),
-            S(SoundIds.MonWhispererKill, AudioGroup.Scares, false, false),
+            Clips(S(SoundIds.MonWhispererKill, AudioGroup.Scares, false, false), 1f, Jumpscares),
             S(SoundIds.MonMimicSting, AudioGroup.Scares, false, false),
-            S(SoundIds.MonMimicKill, AudioGroup.Scares, false, false),
+            Clips(S(SoundIds.MonMimicKill, AudioGroup.Scares, false, false), 1f, Jumpscares),
             S(SoundIds.MonMimicReveal, AudioGroup.Scares, true, false),
             S(SoundIds.MonAngelScrape, AudioGroup.SfxCabin, true, true, "[stone scraping]"),
             S(SoundIds.MonAngelSting, AudioGroup.Scares, false, false),
-            S(SoundIds.MonAngelKill, AudioGroup.Scares, false, false),
+            Clips(S(SoundIds.MonAngelKill, AudioGroup.Scares, false, false), 1f, Jumpscares),
             S(SoundIds.ScareStartleSting, AudioGroup.Scares, false, false),
             S(SoundIds.ScareLightsOut, AudioGroup.Scares, false, false),
             S(SoundIds.HalFootstepsBehind, AudioGroup.SfxCabin, true, false, "[footsteps behind you]"),
@@ -142,20 +168,22 @@ namespace BusDriver.Editor.Builders {
 
         static void FillSound(SoundDefinition definition, SoundSpec spec) {
             definition.id = spec.Id;
-            AudioClip clip = null;
-            if (!string.IsNullOrEmpty(spec.Clip)) {
-                clip = AssetDatabase.LoadAssetAtPath<AudioClip>(ClipsFolder + spec.Clip);
+            List<AudioClip> clips = new List<AudioClip>();
+            foreach (string path in spec.Clips) {
+                AudioClip clip = AssetDatabase.LoadAssetAtPath<AudioClip>(ClipsFolder + path);
                 if (clip == null) {
-                    Debug.LogError($"AudioSeed: no clip at {ClipsFolder}{spec.Clip} for {spec.Id}");
+                    Debug.LogError($"AudioSeed: no clip at {ClipsFolder}{path} for {spec.Id}");
+                }else {
+                    clips.Add(clip);
                 }
             }
-            definition.clips = clip != null ? new[] { clip } : new AudioClip[0];
+            definition.clips = clips.ToArray();
             // PlaceholderAudioBuilder fills in a generated clip while this stays on
-            definition.placeholder = clip == null;
+            definition.placeholder = clips.Count == 0;
             definition.volume = spec.Volume;
-            definition.volumeJitter = 0f;
+            definition.volumeJitter = spec.VolumeJitter;
             definition.pitch = spec.Pitch;
-            definition.pitchJitter = 0f;
+            definition.pitchJitter = spec.PitchJitter;
             definition.group = spec.Group;
             definition.spatial = spec.ThreeD ? SoundSpatial.ThreeD : SoundSpatial.TwoD;
             definition.minDistance = 1f;

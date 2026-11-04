@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using BusDriver.Core.Data;
+using BusDriver.Gameplay.Audio;
+using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Views;
 
@@ -30,6 +33,16 @@ namespace BusDriver.Gameplay.Bus {
         bool lockHeld;
         float openAmount;
         Passenger doorwayUser;
+        IAudioService audio;
+        BusCabin cabin;
+        // Which way the panels were last heading, so each change of direction plays its sound once
+        bool movingOpen;
+
+        // ShiftContext, step 3 (after the cabin): bus.door_open / bus.door_close play at the door step
+        public void Init(ShiftServices shift) {
+            audio = shift.Game != null ? shift.Game.Audio : null;
+            cabin = shift.Cabin;
+        }
 
         public bool TryOpen() {
             if (!bus.IsStopped) {
@@ -84,6 +97,7 @@ namespace BusDriver.Gameplay.Bus {
 
             // Closing is deferred rather than refused, whoever is in the doorway finishes first
             bool open = lockHeld && (IsOpenWanted || doorwayUser != null);
+            PlayMoveSound(open);
             bool wasFullyOpen = openAmount >= 1f;
             openAmount = Mathf.MoveTowards(openAmount, open ? 1f : 0f, Time.deltaTime / slideTime);
             if (!wasFullyOpen && openAmount >= 1f && OnFullyOpened != null) {
@@ -98,6 +112,22 @@ namespace BusDriver.Gameplay.Bus {
                 bus.SetDriveLock(DriveLock.DoorsOpen, false);
                 OnChanged?.Invoke(false);
             }
+        }
+
+        void PlayMoveSound(bool open) {
+            if (open == movingOpen) {
+                return;
+            }
+            movingOpen = open;
+            // Closing from fully closed (a hold released before the panels moved) makes no sound
+            if (!open && openAmount <= 0f) {
+                return;
+            }
+            if (audio == null) {
+                return;
+            }
+            Vector3 at = cabin != null ? cabin.DoorStepWorld : transform.position;
+            audio.PlayAt(open ? SoundIds.BusDoorOpen : SoundIds.BusDoorClose, at);
         }
     }
 }

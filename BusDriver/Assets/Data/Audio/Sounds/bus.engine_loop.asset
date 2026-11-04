@@ -15,7 +15,7 @@ MonoBehaviour:
   id: bus.engine_loop
   clips:
   - {fileID: 8300000, guid: 5fdcd35124752354dbadece96ee266ce, type: 3}
-  volume: 0.05
+  volume: 0.105
   volumeJitter: 0
   pitch: 1
   pitchJitter: 0

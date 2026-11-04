@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: mon.starer.kill
   clips:
-  - {fileID: 8300000, guid: 934880764ec7e4b27afcc49903715f81, type: 3}
-  volume: 0.35
+  - {fileID: 8300000, guid: ef9769446c2a44f3a2dac9eabe1408ac, type: 3}
+  - {fileID: 8300000, guid: 6c85c9396ba0480485b7d0cdeba7fd0f, type: 3}
+  - {fileID: 8300000, guid: b9639a2c782d4b87b2dd0ee89d3cb1d9, type: 3}
+  volume: 1
   volumeJitter: 0
   pitch: 1
   pitchJitter: 0
@@ -28,4 +30,4 @@ MonoBehaviour:
   priority: 64
   cooldown: 0
   caption: 
-  placeholder: 1
+  placeholder: 0

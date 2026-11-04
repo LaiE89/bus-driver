@@ -284,6 +284,7 @@ Decisions are never edited once made. To change one, add a new row that supersed
 | D106 | **The Starer is faster, and watching only freezes it.** (1) Night 1's scripted Starer boards at `gas_station`, one stop earlier than `campground`. (2) Its rules are `Observed → 0/s`, then `Always → +10/s`: about 10 s of being unwatched takes it from 0 to Lethal. (3) Being observed (any observer kind it counts: Cctv, Driver, OnFoot, Mirror) no longer lowers its threat; it only stops the rise, so its meter never decreases, except the kill-sequence escape, which still sets it to 60 (without that reset the kill would restart at once). Counting only the cameras is a one-field edit in `Starer.asset` (`Observed` → `ObservedByCctv`). This supersedes the Starer rules in §2.10 and D43's "the Starer boards at `campground`… still in its grace period or Dormant at the bend… reaches Lethal around the church". An ignored Starer now kills about 26 s after it sits down, well before the cliff, and each escape buys only 4 s of looking away. `Night1_DemoRun_WithKick` now makes its kick stop at `gas_station` (amends D105) | 2026-09-30 | user |
 | D107 | **The GPS shows the next stop's scheduled time, not an Early/On time/Late label.** The text column reads the next stop, its distance, `ETA 12:41 AM`, `SCHED 12:42 AM` and the clock; the player compares ETA and schedule themselves. `RouteMapView.ratingText` became `scheduleText` (`FormerlySerializedAs`, so Dash.prefab needs no rebuild) and the early/late/on-time colours were removed. Amends §4.13 and §2.23; arrival ratings still exist for tips and the Summary (§2.4, §2.21) | 2026-09-30 | user |
 | D108 | **The game fits the delivered bus art, not the other way round.** `Bus_Asset_001` (`Assets/Art/Vehicles/Bus/SK_Bus_00.fbx`) didn't match A.2's greybox numbers, and the user chose to move the logic to the model: (1) every bus number now comes from `BusLayout` (Editor/Builders), measured off the FBX: hull 11.9 × 2.9 × 3.1 m, floor 0.80, axles +3.0/−2.9, track ±1.30 front / ±1.13 rear, the driver's head (−0.8, 2.1, 4.6), the door leaves at z 4.2–5.4. (2) **33 seats in 8 rows** replace 36 in 9: side-facing pairs over each axle (R1, R7), four forward-facing rows (R2–R6) and a five-seat rear bench (R8, with a new column `C` = index 4, so `L2`/`L1`/`R1`/`R2` keep 0–3). The zones become Front R1–R3, Mid R4–R6, Rear R7–R8. (3) **Wheel radius 0.55** (the model's wheel centres; its tyres are 0.59, so they sit a little into the road), and every torque in `BusTuning` was scaled by 1.1 so the forces at the road are unchanged. (4) CCTV cameras hang where the artist put them, just under the 0.4 m lower ceiling, pitched 30°/34°/30° (was 22°/28°/22°). (5) `AnimatedBusView` (T-M10-05) drives the rig's bones; `BusArtViewBuilder` builds it into `Bus.prefab` whenever the FBX exists (the greybox otherwise) and bakes the ~200 chassis-bound skinned parts into one static mesh per material. (6) `BusArtImport` (Tools ▸ Bus Driver ▸ Art ▸ Import Bus) converts the delivery's `_BC`/`_N`/`_ORM`/`_O` textures to A.0's `_BaseColor`/`_Normal`/`_MaskMap`, from originals kept in `Art/_Source`. (7) The delivery's door animation FBX has no keys, so the leaves are turned in code (88°). The artist's fix list is in `Assets/Art/Vehicles/Bus/README.md` | 2026-11-03 | user |
+| D109 | **First real audio pass (`audio.zip`).** The engine is three crossfaded loops in `BusEngineSound`: `bus.engine_idle_loop` (new) for the whole Intro and Driving states, `bus.engine_loop` (driving) fading in up to 12 km/h, and `bus.engine_throttle_loop` (new) following `BusController.Throttle`; the engine stops on Depot, Summary and from Dying on, so a kill sting plays over silence. `BusDoors` plays `bus.door_open` / `bus.door_close` at the door step each time the panels change direction. `bus.fare_tap` picks one of five coin clips; `bus.stop_request` gets its bell. The three `sfx_jumpscare_nl` takes (one at random) replace the generated placeholders on every monster kill only; the non-lethal stings (`mon.*.sting`: the Starer's CCTV lens scare, the Angel's closer scare, the Mimic's) and `scare.startle_sting` keep their placeholders (user, 2026-11-04). The long loops are OGG q6 (D41), the one-shots WAV. Not used yet: `sfx_bonebreak_nl_*` (dropped) and the stop-name announcements (`sfx_<stop>stop_nl.wav`, waiting for the full set) | 2026-11-04 | user |
 
 ---
 
@@ -4177,11 +4178,14 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 
 | Id | Group | 2D/3D | Loop | Existing clip / notes | Caption |
 |---|---|---|---|---|---|
-| `bus.engine_loop` | SfxBus | 2D | ✓ | `amb_driving_lp_01.wav` (pitch follows speed) | |
+| `bus.engine_loop` | SfxBus | 2D | ✓ | `amb_driving_lp_01.ogg`, the driving layer: fades in with speed, pitch follows speed (D109) | |
+| `bus.engine_idle_loop` | SfxBus | 2D | ✓ | `amb_idling_lp.ogg`, runs from the intro to the end of the drive, ducks under the other two layers (D109) | |
+| `bus.engine_throttle_loop` | SfxBus | 2D | ✓ | `amb_fullthrottle_lp_01.ogg`, fades in with the throttle pedal, pitch follows speed (D109) | |
 | `bus.accel` / `bus.decel` | SfxBus | 2D | | Placeholders | |
 | `bus.handbrake` | SfxBus | 2D | | `sfx_airbrake.wav`. Plays once when a handbrake stop reaches 0 km/h (the PR #5 behaviour) | |
-| `bus.door_open` / `bus.door_close` | SfxBus | 3D | | | |
-| `bus.fare_tap` | SfxCabin | 3D | | `sfx_cardtap_nl_01.wav` | |
+| `bus.door_open` / `bus.door_close` | SfxBus | 3D | | `sfx_dooropen_nl_01.wav` / `sfx_doorclose_nl_01.wav`, at the door step when the panels start moving | |
+| `bus.fare_tap` | SfxCabin | 3D | | `sfx_coinpayment_nl_01…05.wav` (one at random) | |
+| `bus.stop_request` | SfxCabin | 2D | | `sfx_stoprequested_nl.wav` | `[stop requested]` |
 | `bus.rumble_strip` | SfxBus | 2D | ✓ | | |
 | `bus.crash_minor` / `bus.crash_major` | SfxBus | 2D | | | |
 | `bus.horn` | SfxBus | 2D | | | `[horn]` |
@@ -4194,15 +4198,15 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 | `pax.death` / `pax.kick_out` | SfxCabin | 3D | | | |
 | `mon.telegraph_rumble` | Scares | 2D | | | |
 | `mon.expel` | Scares | 3D | | | |
-| `mon.starer.sting` / `mon.starer.kill` | Scares | 2D | | | |
+| `mon.starer.sting` / `mon.starer.kill` | Scares | 2D | | — / `sfx_jumpscare_nl_01…03.wav` (one at random; D109) | |
 | `mon.whisper_loop` | Voice | 3D | ✓ | | `[whispering]` |
 | `mon.whisper_feed_loop` | Voice | 2D | ✓ | | |
 | `mon.whisper.driver` | Voice | 2D (hard pan) | | | `[whisper] driver…` |
-| `mon.whisperer.kill` | Scares | 2D | | | |
-| `mon.mimic.sting` / `mon.mimic.kill` | Scares | 2D | | | |
+| `mon.whisperer.kill` | Scares | 2D | | `sfx_jumpscare_nl_01…03.wav` (one at random; D109) | |
+| `mon.mimic.sting` / `mon.mimic.kill` | Scares | 2D | | — / `sfx_jumpscare_nl_01…03.wav` (one at random; D109) | |
 | `mon.mimic.reveal` | Scares | 3D | | | |
 | `mon.angel.scrape` | SfxCabin | 3D | ✓ | Stone scraping while it moves | `[stone scraping]` |
-| `mon.angel.sting` / `mon.angel.kill` | Scares | 2D | | | |
+| `mon.angel.sting` / `mon.angel.kill` | Scares | 2D | | — / `sfx_jumpscare_nl_01…03.wav` (one at random; D109) | |
 | `scare.startle_sting` / `scare.lights_out` | Scares | 2D | | | |
 | `hal.footsteps_behind` | SfxCabin | 3D | | | `[footsteps behind you]` |
 | `hal.door_chime` | SfxCabin | 3D | | | `[door chime]` |

@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: bus.stop_request
   clips:
-  - {fileID: 8300000, guid: 7e4c9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 3}
-  volume: 0.7
+  - {fileID: 8300000, guid: 8e55439a087f4e1eb2b5f61678a18ee2, type: 3}
+  volume: 0.45
   volumeJitter: 0
   pitch: 1
   pitchJitter: 0
@@ -28,4 +28,4 @@ MonoBehaviour:
   priority: 128
   cooldown: 0
   caption: '[stop requested]'
-  placeholder: 1
+  placeholder: 0

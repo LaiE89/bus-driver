@@ -113,6 +113,9 @@ namespace BusDriver.Gameplay.Flow {
             shift.Clock.Init(shift);
             // 3. The bus, CCTV, the mode switch and the input adapters
             shift.Cabin.Init(shift);
+            if (shift.Doors != null) {
+                shift.Doors.Init(shift);
+            }
             shift.Cctv.Init(shift);
             shift.Mode.Init(shift);
             shift.BusInput.Init(shift);

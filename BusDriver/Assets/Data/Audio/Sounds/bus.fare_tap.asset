@@ -14,11 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: bus.fare_tap
   clips:
-  - {fileID: 8300000, guid: eb78901d87f998648bd29ae06abde7ca, type: 3}
+  - {fileID: 8300000, guid: bd05b4294a924b918e9486f70c1f2aa7, type: 3}
+  - {fileID: 8300000, guid: 8d14deafd0ec4d8695859512aacd3d7b, type: 3}
+  - {fileID: 8300000, guid: 08058e89804144a680e24969d47b8d1b, type: 3}
+  - {fileID: 8300000, guid: 32eb0e1a240c403799e1ef664ec20f8c, type: 3}
+  - {fileID: 8300000, guid: cd465359173247e19672414f98d0c583, type: 3}
   volume: 1
-  volumeJitter: 0
+  volumeJitter: 0.1
   pitch: 1
-  pitchJitter: 0
+  pitchJitter: 0.04
   group: 3
   spatial: 1
   minDistance: 1
