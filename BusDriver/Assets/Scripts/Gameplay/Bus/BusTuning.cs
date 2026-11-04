@@ -13,7 +13,9 @@ namespace BusDriver.Gameplay.Bus {
         public int solverIterations = 12;
 
         [Header("Wheels")]
-        public float wheelRadius = 0.5f;
+        // The art bus's wheel centres sit at 0.55 (BusLayout). The radius was 0.5 before, and every
+        // torque below was scaled by 0.55 / 0.5 with it, so the forces at the road are unchanged.
+        public float wheelRadius = 0.55f;
         public float wheelMass = 120f;
         public float wheelDampingRate = 1f;
         public float forceAppPointDistance = 0.4f;
@@ -32,7 +34,7 @@ namespace BusDriver.Gameplay.Bus {
         public float rearSidewaysStiffness = 1.6f;
 
         [Header("Drive (per rear wheel)")]
-        public float maxMotorTorque = 5200f;
+        public float maxMotorTorque = 5720f;
         // Torque multiplier over speed / maxSpeed — firm launch, then taper
         public AnimationCurve torqueCurve = new AnimationCurve(
             new Keyframe(0f, 0.85f),
@@ -40,22 +42,22 @@ namespace BusDriver.Gameplay.Bus {
             new Keyframe(0.7f, 0.7f),
             new Keyframe(1f, 0.2f));
         public float maxSpeedKmh = 70f;
-        public float reverseTorque = 2400f;
+        public float reverseTorque = 2640f;
         public float reverseMaxSpeedKmh = 12f;
         // How fast motor torque can climb / fall (Nm per second, per wheel)
-        public float motorTorqueRise = 9000f;
-        public float motorTorqueFall = 7000f;
+        public float motorTorqueRise = 9900f;
+        public float motorTorqueFall = 7700f;
 
         [Header("Brakes (per wheel)")]
-        public float frontBrakeTorque = 4500f;
-        public float rearBrakeTorque = 3200f;
-        public float handbrakeTorque = 12000f;
+        public float frontBrakeTorque = 4950f;
+        public float rearBrakeTorque = 3520f;
+        public float handbrakeTorque = 13200f;
         // Gentle drag when rolling with no pedal — natural coast-down
-        public float coastBrakeTorque = 450f;
-        public float autoHoldTorque = 2500f;
+        public float coastBrakeTorque = 495f;
+        public float autoHoldTorque = 2750f;
         public float autoHoldSpeed = 0.4f;
-        public float brakeTorqueRise = 9000f;
-        public float brakeTorqueFall = 12000f;
+        public float brakeTorqueRise = 9900f;
+        public float brakeTorqueFall = 13200f;
 
         [Header("Input smoothing")]
         // How fast pedal input ramps 0→1 (units per second)

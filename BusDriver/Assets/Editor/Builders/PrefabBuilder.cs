@@ -37,26 +37,20 @@ namespace BusDriver.Editor.Builders {
         public const string DriverAvatarName = "DriverAvatar";
         public const string OnFootCameraName = "OnFootCamera";
 
-        // Bus body; the root origin is at ground level under the middle of the bus (Appendix A.2)
-        const float BusWidth = 2.55f;
-        const float BusLength = 12f;
-        const float BusHeight = 3f;
-        const float HullBottom = 0.45f;
-        const float FloorTop = HullBottom + 0.1f;
+        // Bus body; the root origin is at ground level under the middle of the bus. Every number
+        // is the artist's model's (BusLayout, Appendix A.2).
+        const float BusWidth = BusLayout.Width;
+        const float BusLength = BusLayout.Length;
+        const float BusHeight = BusLayout.Height;
+        const float HullBottom = BusLayout.HullBottom;
+        const float FloorTop = BusLayout.FloorTop;
         const float Panel = 0.08f;
-        public const float FrontAxleZ = 3.3f;
-        public const float RearAxleZ = -2.7f;
-        public const float TrackHalf = 1.05f;
-        public const float DoorBack = 4.1f;
-        public const float DoorFront = 5.5f;
-        const float DoorZ = 4.8f;
-        public const float SeatTop = 1.06f;
-        // Row R1 is the front row (§2.6); rows are 1 m apart back to R9
-        public const float FrontRowZ = 2.8f;
-        public const int Rows = 9;
-        public static readonly string[] SeatColumns = { "L2", "L1", "R1", "R2" };
-        public static readonly float[] SeatColumnX = { -1f, -0.6f, 0.6f, 1f };
-        public static readonly Vector3 DriverHeadPos = new Vector3(-0.7f, 1.9f, 4.6f);
+        public const float FrontAxleZ = BusLayout.FrontAxleZ;
+        public const float RearAxleZ = BusLayout.RearAxleZ;
+        public const float DoorBack = BusLayout.DoorBack;
+        public const float DoorFront = BusLayout.DoorFront;
+        const float DoorZ = BusLayout.DoorZ;
+        public static readonly Vector3 DriverHeadPos = BusLayout.DriverHeadPos;
 
         public struct CctvSpec {
             public string Anchor;
@@ -68,9 +62,9 @@ namespace BusDriver.Editor.Builders {
 
         // Appendix A.2; every CCTV camera has FOV 95. MVP labels, with MID added between them.
         public static readonly CctvSpec[] Cctv = {
-            new CctvSpec { Anchor = "Anchor_CCTV_Front", CameraName = "CAM 1 Front", Label = "CAM 1  FRONT", Position = new Vector3(0.3f, 3.2f, 5.3f), Euler = new Vector3(22f, 180f, 0f) },
-            new CctvSpec { Anchor = "Anchor_CCTV_Mid", CameraName = "CAM 2 Mid", Label = "CAM 2  MID", Position = new Vector3(0f, 3.2f, 0.5f), Euler = new Vector3(28f, 180f, 0f) },
-            new CctvSpec { Anchor = "Anchor_CCTV_Rear", CameraName = "CAM 3 Rear", Label = "CAM 3  REAR", Position = new Vector3(0f, 3.2f, -5.7f), Euler = new Vector3(22f, 0f, 0f) },
+            new CctvSpec { Anchor = "Anchor_CCTV_Front", CameraName = "CAM 1 Front", Label = "CAM 1  FRONT", Position = BusLayout.CctvFront, Euler = new Vector3(BusLayout.CctvFrontPitch, 180f, 0f) },
+            new CctvSpec { Anchor = "Anchor_CCTV_Mid", CameraName = "CAM 2 Mid", Label = "CAM 2  MID", Position = BusLayout.CctvMid, Euler = new Vector3(BusLayout.CctvMidPitch, 180f, 0f) },
+            new CctvSpec { Anchor = "Anchor_CCTV_Rear", CameraName = "CAM 3 Rear", Label = "CAM 3  REAR", Position = BusLayout.CctvRear, Euler = new Vector3(BusLayout.CctvRearPitch, 0f, 0f) },
         };
         public const float CctvFov = 95f;
         public const float CctvObserveRange = 7f;
@@ -99,11 +93,7 @@ namespace BusDriver.Editor.Builders {
         }
 
         public static string SeatName(int row, int column) {
-            return $"Anchor_Seat_R{row}_{SeatColumns[column]}";
-        }
-
-        public static float RowZ(int row) {
-            return FrontRowZ - (row - 1);
+            return BusLayout.SeatName(row, column);
         }
 
         // ================================================================== bus
@@ -126,7 +116,7 @@ namespace BusDriver.Editor.Builders {
             // One hull collider. Interior and visual parts carry no colliders, they would
             // join the compound collider and distort the inertia tensor.
             BoxCollider hull = bus.AddComponent<BoxCollider>();
-            hull.center = new Vector3(0f, HullBottom + BusHeight * 0.5f, 0f);
+            hull.center = new Vector3(0f, HullBottom + BusHeight * 0.5f, BusLayout.CenterZ);
             hull.size = new Vector3(BusWidth, BusHeight, BusLength);
             hull.sharedMaterial = MaterialLibraryBuilder.HullPhysics();
 
@@ -137,7 +127,11 @@ namespace BusDriver.Editor.Builders {
             BusDoors doors = bus.AddComponent<BusDoors>();
             BusCabin cabin = bus.AddComponent<BusCabin>();
 
-            GreyboxBusView view = BuildBusView(root, tuning);
+            // The artist's model when it's in Assets/Art, the greybox otherwise (§4.14)
+            Transform[] dash = BuildDashAnchors(root);
+            BusViewBase view = BusArtViewBuilder.ArtAvailable()
+                ? BusArtViewBuilder.Build(root, dash)
+                : BuildBusView(root, tuning, dash);
 
             Transform com = Group("COM", root).transform;
             com.localPosition = new Vector3(0f, 0.9f, 0.2f);
@@ -147,9 +141,10 @@ namespace BusDriver.Editor.Builders {
 
             List<Object> seats = BuildSeats(root);
             Transform aisleAtDoor = Node(root, "Anchor_AisleAtDoor", new Vector3(0f, FloorTop, DoorZ));
-            Transform doorStep = Node(root, "Anchor_DoorStep", new Vector3(1f, FloorTop, DoorZ));
+            // In the door well, which is lower than the cabin floor
+            Transform doorStep = Node(root, "Anchor_DoorStep", new Vector3(1.05f, BusLayout.DoorWellTop, DoorZ));
             // Height is found with a raycast at run time: road or kerb
-            Transform doorOutside = Node(root, "DoorOutside", new Vector3(1.9f, 0f, DoorZ));
+            Transform doorOutside = Node(root, "DoorOutside", new Vector3(BusWidth * 0.5f + 0.55f, 0f, DoorZ));
             Transform standPoint = Node(root, "StandPoint", new Vector3(0.15f, FloorTop, 4.5f));
             DriverSeat driverSeat;
             GameObject interior = BuildInteriorColliders(root, out driverSeat);
@@ -187,47 +182,66 @@ namespace BusDriver.Editor.Builders {
             SetRef(cabin, "doorStep", doorStep);
             SetRef(cabin, "doorOutside", doorOutside);
             SetRef(cabin, "standPoint", standPoint);
+            // The rear bench's platform: its riders step up from the aisle's end, not along it
+            SetBool(cabin, "aisleEnds", true);
+            SetFloat(cabin, "aisleEndZ", BusLayout.AisleEndZ);
 
             SaveOrOverwritePrefab(bus, BusPath);
             Object.DestroyImmediate(bus);
         }
 
-        // 36 seats on the seat surface, +Z the way a seated passenger faces. Created rear to front,
-        // as the MVP did, so seat choice by index doesn't change.
+        // 33 seats on their cushions (BusLayout), +Z the way a seated passenger faces. Created rear
+        // to front, as the MVP did, so seat choice by index doesn't change.
         static List<Object> BuildSeats(Transform root) {
             Transform seatRoot = Group("Seats", root).transform;
             List<Object> seats = new List<Object>();
-            for (int row = Rows; row >= 1; row--) {
-                for (int column = 0; column < SeatColumns.Length; column++) {
-                    Transform seat = Node(seatRoot, SeatName(row, column), new Vector3(SeatColumnX[column], SeatTop, RowZ(row)));
-                    BusSeat busSeat = seat.gameObject.AddComponent<BusSeat>();
-                    SetInt(busSeat, "row", row);
-                    SetInt(busSeat, "column", column);
-                    seats.Add(busSeat);
-                }
+            foreach (BusLayout.Seat spec in BusLayout.Seats) {
+                Transform seat = Node(seatRoot, SeatName(spec.Row, spec.Column), spec.Position, new Vector3(0f, spec.Yaw, 0f));
+                BusSeat busSeat = seat.gameObject.AddComponent<BusSeat>();
+                SetInt(busSeat, "row", spec.Row);
+                SetInt(busSeat, "column", spec.Column);
+                seats.Add(busSeat);
             }
             return seats;
         }
 
         // Saved inactive and only switched on while the bus is frozen for walking, so these
         // never join the hull's compound collider or change the driving inertia tensor.
-        // Unscaled empties with sized BoxColliders, floor top at 0.55.
+        // Unscaled empties with sized BoxColliders, cabin floor top at 0.8.
         static GameObject BuildInteriorColliders(Transform root, out DriverSeat driverSeat) {
             Transform interior = Group("InteriorColliders", root).transform;
-            InteriorBox(interior, "Floor", new Vector3(0f, 0.35f, 0f), new Vector3(BusWidth, 0.4f, BusLength));
-            InteriorBox(interior, "Wall L", new Vector3(-1.29f, 1.95f, 0f), new Vector3(0.2f, 2.8f, BusLength));
-            InteriorBox(interior, "Wall R Rear", new Vector3(1.29f, 1.95f, -0.95f), new Vector3(0.2f, 2.8f, 10.1f));
-            InteriorBox(interior, "Wall R Front", new Vector3(1.29f, 1.95f, 5.75f), new Vector3(0.2f, 2.8f, 0.5f));
-            // Separate so a later step can let the player off the bus by disabling it
-            InteriorBox(interior, "Doorway Blocker", new Vector3(1.29f, 1.95f, DoorZ), new Vector3(0.2f, 2.8f, DoorFront - DoorBack));
-            InteriorBox(interior, "Rear", new Vector3(0f, 1.95f, -5.95f), new Vector3(BusWidth, 2.8f, 0.1f));
-            InteriorBox(interior, "Front Dash", new Vector3(0f, 1.95f, 5.6f), new Vector3(BusWidth, 2.8f, 0.8f));
-            // One long box per side, an 0.8 m aisle with no gaps between rows to snag on
-            InteriorBox(interior, "Bench L", new Vector3(-0.8175f, 1.175f, -1.425f), new Vector3(0.835f, 1.25f, 8.95f));
-            InteriorBox(interior, "Bench R", new Vector3(0.8175f, 1.175f, -1.425f), new Vector3(0.835f, 1.25f, 8.95f));
-            InteriorBox(interior, "Arch FL", new Vector3(-TrackHalf, 0.875f, FrontAxleZ), new Vector3(0.45f, 0.65f, 1.4f));
-            InteriorBox(interior, "Arch FR", new Vector3(TrackHalf, 0.875f, FrontAxleZ), new Vector3(0.45f, 0.65f, 1.4f));
-            driverSeat = InteriorBox(interior, "Driver Seat", new Vector3(-0.7f, 1.25f, 4.675f), new Vector3(0.6f, 1.4f, 1.05f)).AddComponent<DriverSeat>();
+            float inner = BusLayout.InnerHalfWidth;
+            float wallY = (FloorTop + BusLayout.Ceiling) * 0.5f;
+            float wallH = BusLayout.Ceiling - FloorTop;
+            float rearZ = BusLayout.InnerRearZ;
+            float frontZ = BusLayout.DashZ;
+            // The cabin floor, and the door well beside it on the kerb side
+            InteriorSpan(interior, "Floor", -inner, BusLayout.DoorWellInnerX, FloorTop - 0.4f, FloorTop, rearZ, frontZ);
+            InteriorSpan(interior, "Floor R Rear", BusLayout.DoorWellInnerX, inner, FloorTop - 0.4f, FloorTop, rearZ, DoorBack);
+            InteriorSpan(interior, "Floor R Front", BusLayout.DoorWellInnerX, inner, FloorTop - 0.4f, FloorTop, DoorFront, frontZ);
+            InteriorSpan(interior, "Door Well", BusLayout.DoorWellInnerX, inner, BusLayout.DoorWellTop - 0.4f, BusLayout.DoorWellTop, DoorBack, DoorFront);
+            InteriorSpan(interior, "Wall L", -inner - 0.2f, -inner, FloorTop, BusLayout.Ceiling, rearZ, frontZ);
+            InteriorSpan(interior, "Wall R Rear", inner, inner + 0.2f, FloorTop, BusLayout.Ceiling, rearZ, DoorBack);
+            InteriorSpan(interior, "Wall R Front", inner, inner + 0.2f, FloorTop, BusLayout.Ceiling, DoorFront, frontZ);
+            // Separate so a later step can let the player off the bus by disabling it. It stands at
+            // the edge of the door well, so the player can't drop into it and get stuck.
+            InteriorSpan(interior, "Doorway Blocker", BusLayout.DoorWellInnerX - 0.1f, BusLayout.DoorWellInnerX + 0.1f,
+                BusLayout.DoorWellTop, BusLayout.Ceiling, DoorBack, DoorFront);
+            InteriorSpan(interior, "Rear", -inner, inner, FloorTop, BusLayout.Ceiling, rearZ - 0.1f, rearZ);
+            InteriorSpan(interior, "Front Dash", -inner, inner, FloorTop, BusLayout.Ceiling, frontZ, frontZ + 0.4f);
+            // Three boxes per side over the seats, no gaps between rows to snag on: the front arch
+            // seats, the forward rows, the rear arch seats (BusLayout says why these widths). The
+            // rear bench spans the width on its platform.
+            foreach (float side in new[] { -1f, 1f }) {
+                string name = side < 0f ? "L" : "R";
+                BenchSpan(interior, "Bench " + name + " Front Arch", side, BusLayout.ArchBenchInnerX, BusLayout.FrontArchRearZ, BusLayout.BenchFrontZ);
+                BenchSpan(interior, "Bench " + name, side, BusLayout.BenchInnerX, BusLayout.RearArchFrontZ, BusLayout.FrontArchRearZ);
+                BenchSpan(interior, "Bench " + name + " Rear Arch", side, BusLayout.ArchBenchInnerX, BusLayout.BenchRearZ, BusLayout.RearArchFrontZ);
+            }
+            InteriorSpan(interior, "Rear Bench", -inner, inner, FloorTop, BusLayout.BenchTop, rearZ, BusLayout.RearBenchFrontZ);
+            InteriorSpan(interior, "Driver Partition", -inner, BusLayout.DriverPartitionInnerX, FloorTop, BusLayout.DriverPartitionTop,
+                BusLayout.DriverPartitionZ - 0.05f, BusLayout.DriverPartitionZ + 0.05f);
+            driverSeat = InteriorBox(interior, "Driver Seat", BusLayout.DriverSeatCenter, BusLayout.DriverSeatSize).AddComponent<DriverSeat>();
             SetLayerRecursively(interior.gameObject, Layers.BusInterior);
             interior.gameObject.SetActive(false);
             return interior.gameObject;
@@ -240,6 +254,19 @@ namespace BusDriver.Editor.Builders {
             return go;
         }
 
+        // From the aisle-side edge |innerX| out to the wall, on the given side (−1 left, +1 right)
+        static void BenchSpan(Transform parent, string name, float side, float innerX, float z0, float z1) {
+            float a = side * innerX;
+            float b = side * BusLayout.InnerHalfWidth;
+            InteriorSpan(parent, name, Mathf.Min(a, b), Mathf.Max(a, b), FloorTop, BusLayout.BenchTop, z0, z1);
+        }
+
+        // A box given by its extents, which is how the model's measurements read
+        static GameObject InteriorSpan(Transform parent, string name, float x0, float x1, float y0, float y1, float z0, float z1) {
+            return InteriorBox(parent, name, new Vector3((x0 + x1) * 0.5f, (y0 + y1) * 0.5f, (z0 + z1) * 0.5f),
+                new Vector3(x1 - x0, y1 - y0, z1 - z0));
+        }
+
         static void BuildWheelColliders(Transform root, BusTuning tuning, out WheelCollider[] front, out WheelCollider[] rear) {
             Transform wheels = Group("Wheels", root).transform;
             // The collider sits at the top of the suspension travel. Placed so the tyre
@@ -249,11 +276,22 @@ namespace BusDriver.Editor.Builders {
             rear = new WheelCollider[2];
             // Created FL, RL, FR, RR, the MVP's order
             for (int i = 0; i < 2; i++) {
-                float x = i == 0 ? -TrackHalf : TrackHalf;
+                float sign = i == 0 ? -1f : 1f;
                 string side = i == 0 ? "L" : "R";
-                front[i] = CreateWheelCollider(wheels, "WC_F" + side, new Vector3(x, colliderY, FrontAxleZ), tuning);
-                rear[i] = CreateWheelCollider(wheels, "WC_R" + side, new Vector3(x, colliderY, RearAxleZ), tuning);
+                front[i] = CreateWheelCollider(wheels, "WC_F" + side, new Vector3(sign * BusLayout.FrontTrackHalf, colliderY, FrontAxleZ), tuning);
+                rear[i] = CreateWheelCollider(wheels, "WC_R" + side, new Vector3(sign * BusLayout.RearTrackHalf, colliderY, RearAxleZ), tuning);
             }
+        }
+
+        // FL, FR, RL, RR wheel centres at rest: where the colliders put the wheels
+        public static Vector3[] WheelRestCentres(BusTuning tuning) {
+            float y = tuning.wheelRadius;
+            return new[] {
+                new Vector3(-BusLayout.FrontTrackHalf, y, FrontAxleZ),
+                new Vector3(BusLayout.FrontTrackHalf, y, FrontAxleZ),
+                new Vector3(-BusLayout.RearTrackHalf, y, RearAxleZ),
+                new Vector3(BusLayout.RearTrackHalf, y, RearAxleZ),
+            };
         }
 
         static WheelCollider CreateWheelCollider(Transform wheels, string name, Vector3 localPos, BusTuning tuning) {
@@ -313,10 +351,10 @@ namespace BusDriver.Editor.Builders {
         }
 
         static void BuildLights(Transform root, BusViewBase view) {
-            float frontZ = BusLength * 0.5f + 0.1f;
+            Vector3 lamp = BusLayout.HeadlightLeft;
             for (int i = 0; i < 2; i++) {
                 Transform anchor = Node(root, i == 0 ? "Anchor_Headlight_L" : "Anchor_Headlight_R",
-                    new Vector3(i == 0 ? -0.9f : 0.9f, 1.2f, frontZ), new Vector3(6f, 0f, 0f));
+                    new Vector3(i == 0 ? lamp.x : -lamp.x, lamp.y, lamp.z), new Vector3(6f, 0f, 0f));
                 Light headlight = anchor.gameObject.AddComponent<Light>();
                 headlight.type = LightType.Spot;
                 headlight.range = 60f;
@@ -330,9 +368,10 @@ namespace BusDriver.Editor.Builders {
 
             // Dim and sickly, but bright enough that the desaturated CCTV feed still reads
             Transform cabinLights = Group("CabinLights", root).transform;
-            foreach (float z in new[] { -4f, 0f, 3.5f }) {
+            // Under the ceiling, where the model's own preview lights hang
+            foreach (float z in BusLayout.CabinLightZ) {
                 Light cabin = Group("Cabin Light", cabinLights).AddComponent<Light>();
-                cabin.transform.localPosition = new Vector3(0f, 3.2f, z);
+                cabin.transform.localPosition = new Vector3(0f, BusLayout.CabinLightY, z);
                 cabin.type = LightType.Point;
                 cabin.range = 5f;
                 cabin.intensity = 2.2f;
@@ -340,7 +379,7 @@ namespace BusDriver.Editor.Builders {
                 cabin.shadows = LightShadows.None;
             }
             Light dash = Group("Dash Light", cabinLights).AddComponent<Light>();
-            dash.transform.localPosition = new Vector3(-0.7f, 1.7f, 5.35f);
+            dash.transform.localPosition = BusLayout.DashLight;
             dash.type = LightType.Point;
             dash.range = 1.2f;
             dash.intensity = 0.12f;
@@ -372,7 +411,8 @@ namespace BusDriver.Editor.Builders {
                 lens.localRotation = Quaternion.LookRotation(rotation * Vector3.back, Vector3.up);
                 lenses[i] = lens;
             }
-            Transform center = Node(group, "Anchor_Scare_CabinCenter", new Vector3(0f, 1.6f, 0f));
+            // 1.05 m above the cabin floor, as it was over the MVP's floor
+            Transform center = Node(group, "Anchor_Scare_CabinCenter", new Vector3(0f, FloorTop + 1.05f, 0f));
             ScareAnchors anchors = group.gameObject.AddComponent<ScareAnchors>();
             SetRef(anchors, "driverShoulder", shoulder);
             SetRef(anchors, "driverWindow", window);
@@ -387,14 +427,18 @@ namespace BusDriver.Editor.Builders {
             Transform shell = Group("OccluderShell", root).transform;
             float halfW = BusWidth * 0.5f;
             float midY = HullBottom + BusHeight * 0.5f;
-            OccluderBox(shell, "Left", new Vector3(-halfW + 0.05f, midY, 0f), new Vector3(0.1f, BusHeight, BusLength));
-            OccluderBox(shell, "Right", new Vector3(halfW - 0.05f, midY, 0f), new Vector3(0.1f, BusHeight, BusLength));
-            OccluderBox(shell, "Roof", new Vector3(0f, HullBottom + BusHeight - 0.05f, 0f), new Vector3(BusWidth, 0.1f, BusLength));
-            OccluderBox(shell, "Floor", new Vector3(0f, HullBottom + 0.05f, 0f), new Vector3(BusWidth, 0.1f, BusLength));
-            OccluderBox(shell, "Front", new Vector3(0f, midY, BusLength * 0.5f - 0.05f), new Vector3(BusWidth, BusHeight, 0.1f));
-            OccluderBox(shell, "Rear", new Vector3(0f, midY, -BusLength * 0.5f + 0.05f), new Vector3(BusWidth, BusHeight, 0.1f));
-            // Behind the driver's seat, up to the seat back: seated heads (y 2.0) stay visible over it
-            OccluderBox(shell, "Driver Partition", new Vector3(-0.7f, 1.0f, 4.05f), new Vector3(1.2f, 0.9f, 0.05f));
+            float z = BusLayout.CenterZ;
+            OccluderBox(shell, "Left", new Vector3(-halfW + 0.05f, midY, z), new Vector3(0.1f, BusHeight, BusLength));
+            OccluderBox(shell, "Right", new Vector3(halfW - 0.05f, midY, z), new Vector3(0.1f, BusHeight, BusLength));
+            OccluderBox(shell, "Roof", new Vector3(0f, HullBottom + BusHeight - 0.05f, z), new Vector3(BusWidth, 0.1f, BusLength));
+            OccluderBox(shell, "Floor", new Vector3(0f, HullBottom + 0.05f, z), new Vector3(BusWidth, 0.1f, BusLength));
+            OccluderBox(shell, "Front", new Vector3(0f, midY, BusLayout.FrontZ - 0.05f), new Vector3(BusWidth, BusHeight, 0.1f));
+            OccluderBox(shell, "Rear", new Vector3(0f, midY, BusLayout.RearZ + 0.05f), new Vector3(BusWidth, BusHeight, 0.1f));
+            // The rail and divider behind the driver's seat: seated heads (y 2.3) stay visible over it
+            float partitionX0 = -BusLayout.InnerHalfWidth;
+            float partitionX1 = BusLayout.DriverPartitionInnerX;
+            OccluderBox(shell, "Driver Partition", new Vector3((partitionX0 + partitionX1) * 0.5f, (FloorTop + BusLayout.DriverPartitionTop) * 0.5f, BusLayout.DriverPartitionZ),
+                new Vector3(partitionX1 - partitionX0, BusLayout.DriverPartitionTop - FloorTop, 0.05f));
         }
 
         static void OccluderBox(Transform parent, string name, Vector3 center, Vector3 size) {
@@ -408,34 +452,32 @@ namespace BusDriver.Editor.Builders {
 
         // ------------------------------------------------------------- bus view
 
-        static GreyboxBusView BuildBusView(Transform root, BusTuning tuning) {
+        static GreyboxBusView BuildBusView(Transform root, BusTuning tuning, Transform[] dash) {
             GameObject viewObject = Group("View", root);
             GreyboxBusView view = viewObject.AddComponent<GreyboxBusView>();
             BuildShell(viewObject.transform);
             Transform steeringWheel = BuildInterior(viewObject.transform);
             Transform[] wheels = BuildWheelVisuals(viewObject.transform, tuning);
 
-            Vector3 closed = new Vector3(1.3f, 1.6f, DoorZ);
-            GameObject doorPanel = Box("Door_Panel", viewObject.transform, closed, new Vector3(0.06f, 2.1f, 1.4f), M("Door"));
+            Vector3 closed = new Vector3(BusLayout.DoorPanelX - 0.1f, 1.6f, DoorZ);
+            GameObject doorPanel = Box("Door_Panel", viewObject.transform, closed, new Vector3(0.06f, 2.1f, DoorFront - DoorBack), M("Door"));
 
             // Emissive ceiling panels over the cabin lights; SetInteriorLights dims them
             List<Object> lights = new List<Object>();
             string[] lightNames = { "Light_Cabin_Rear", "Light_Cabin_Mid", "Light_Cabin_Front" };
-            float[] lightZ = { -4f, 0f, 3.5f };
+            float[] lightZ = BusLayout.CabinLightZ;
             for (int i = 0; i < lightNames.Length; i++) {
                 GameObject panel = Box(lightNames[i], viewObject.transform, new Vector3(0f, HullBottom + BusHeight - 0.12f, lightZ[i]),
                     new Vector3(0.5f, 0.03f, 0.9f), M("LampWhite"));
                 lights.Add(panel.GetComponent<Renderer>());
             }
 
-            Transform[] dash = BuildDashAnchors(root);
-
             SetRefArray(view, "wheels", wheels);
             SetRef(view, "steeringWheel", steeringWheel);
             SetRef(view, "doorPanel", doorPanel.transform);
             SetVector(view, "doorClosedLocalPos", closed);
             // Slides back along the outside of the body
-            SetVector(view, "doorOpenLocalPos", new Vector3(1.34f, 1.6f, DoorZ - 1.4f));
+            SetVector(view, "doorOpenLocalPos", new Vector3(BusLayout.DoorPanelX, 1.6f, DoorZ - (DoorFront - DoorBack)));
             SetRefArray(view, "cabinLights", lights.ToArray());
             SetRefArray(view, "dashAnchors", dash);
             return view;
@@ -493,33 +535,40 @@ namespace BusDriver.Editor.Builders {
         static Transform BuildInterior(Transform view) {
             Transform interior = Group("Body_Interior", view).transform;
 
-            // Driver station, left hand side
-            const float driverX = -0.7f;
-            Box("Dashboard", interior, new Vector3(0f, 1.3f, 5.55f), new Vector3(BusWidth - 0.2f, 0.4f, 0.7f), M("Dash"));
-            Box("Binnacle", interior, new Vector3(driverX, 1.58f, 5.5f), new Vector3(0.6f, 0.16f, 0.3f), M("Dash"));
-            GameObject wheel = Prim(PrimitiveType.Cylinder, "SteeringWheel", interior, new Vector3(driverX, 1.42f, 5f), new Vector3(0.5f, 0.015f, 0.5f), M("Dash"));
+            // Driver station, left hand side, on the cabin floor
+            float driverX = DriverHeadPos.x;
+            float seatTop = DriverHeadPos.y - 0.85f;
+            Box("Dashboard", interior, new Vector3(0f, FloorTop + 0.5f, BusLayout.DashZ), new Vector3(BusWidth - 0.2f, 1f, 0.5f), M("Dash"));
+            Box("Binnacle", interior, new Vector3(driverX, 1.72f, 5.45f), new Vector3(0.5f, 0.12f, 0.25f), M("Dash"));
+            GameObject wheel = Prim(PrimitiveType.Cylinder, "SteeringWheel", interior, new Vector3(driverX, 1.71f, 5.17f), new Vector3(0.5f, 0.015f, 0.5f), M("Dash"));
             wheel.transform.localRotation = Quaternion.Euler(-30f, 0f, 0f);
-            Box("Driver Seat Base", interior, new Vector3(driverX, 0.77f, 4.55f), new Vector3(0.4f, 0.45f, 0.4f), M("Dash"));
-            Box("Driver Seat", interior, new Vector3(driverX, 1.05f, 4.55f), new Vector3(0.55f, 0.12f, 0.55f), M("Seat"));
-            Box("Driver Seat Back", interior, new Vector3(driverX, 1.5f, 4.25f), new Vector3(0.55f, 0.9f, 0.1f), M("Seat"));
+            Box("Driver Seat Base", interior, new Vector3(driverX, (FloorTop + seatTop) * 0.5f, 4.45f), new Vector3(0.4f, seatTop - FloorTop, 0.4f), M("Dash"));
+            Box("Driver Seat", interior, new Vector3(driverX, seatTop, 4.45f), new Vector3(0.55f, 0.12f, 0.55f), M("Seat"));
+            Box("Driver Seat Back", interior, new Vector3(driverX, seatTop + 0.45f, 4.1f), new Vector3(0.55f, 0.9f, 0.1f), M("Seat"));
 
-            // Double benches either side of the aisle, one per row
+            // One cushion and back per seat anchor, facing the way its rider does
             Transform benches = Group("Seats", interior).transform;
-            for (int row = Rows; row >= 1; row--) {
-                float z = RowZ(row);
-                foreach (float x in new[] { -0.8f, 0.8f }) {
-                    Box("Seat", benches, new Vector3(x, 1f, z), new Vector3(0.85f, 0.12f, 0.5f), M("Seat"));
-                    Box("Seat Back", benches, new Vector3(x, 1.4f, z - 0.27f), new Vector3(0.85f, 0.75f, 0.08f), M("Seat"));
-                    Box("Seat Leg", benches, new Vector3(x, 0.75f, z), new Vector3(0.1f, 0.4f, 0.1f), M("Dash"));
-                }
+            foreach (BusLayout.Seat spec in BusLayout.Seats) {
+                Quaternion facing = Quaternion.Euler(0f, spec.Yaw, 0f);
+                Vector3 p = spec.Position;
+                Transform seat = Box("Seat", benches, p - new Vector3(0f, 0.06f, 0f), Vector3.one, M("Seat")).transform;
+                seat.localRotation = facing;
+                seat.localScale = new Vector3(0.5f, 0.12f, 0.5f);
+                Transform back = Box("Seat Back", benches, p + facing * new Vector3(0f, 0.4f, -0.29f), Vector3.one, M("Seat")).transform;
+                back.localRotation = facing;
+                back.localScale = new Vector3(0.5f, 0.75f, 0.08f);
             }
 
-            // Boxes over the wheels, which poke up through the floor line
+            // The platforms over the wheels, under the side-facing seats, and under the rear bench
+            float arch = BusLayout.FrontArchPlatformTop;
             foreach (float z in new[] { FrontAxleZ, RearAxleZ }) {
                 foreach (float side in new[] { -1f, 1f }) {
-                    Box("Wheel Arch", interior, new Vector3(side * TrackHalf, 0.875f, z), new Vector3(0.45f, 0.65f, 1.4f), M("BusInterior"));
+                    Box("Wheel Arch", interior, new Vector3(side * 1.025f, (FloorTop + arch) * 0.5f, z), new Vector3(0.65f, arch - FloorTop, 1.2f), M("BusInterior"));
                 }
             }
+            float platformZ = (BusLayout.InnerRearZ + BusLayout.RearPlatformFrontZ) * 0.5f;
+            Box("Rear Platform", interior, new Vector3(0f, (FloorTop + BusLayout.RearPlatformTop) * 0.5f, platformZ),
+                new Vector3(BusLayout.InnerHalfWidth * 2f, BusLayout.RearPlatformTop - FloorTop, BusLayout.RearPlatformFrontZ - BusLayout.InnerRearZ), M("BusInterior"));
             return wheel.transform;
         }
 
@@ -527,12 +576,11 @@ namespace BusDriver.Editor.Builders {
         static Transform[] BuildWheelVisuals(Transform view, BusTuning tuning) {
             Transform group = Group("Wheels", view).transform;
             string[] names = { "Wheel_FL", "Wheel_FR", "Wheel_RL", "Wheel_RR" };
-            float[] xs = { -TrackHalf, TrackHalf, -TrackHalf, TrackHalf };
-            float[] zs = { FrontAxleZ, FrontAxleZ, RearAxleZ, RearAxleZ };
+            Vector3[] centres = WheelRestCentres(tuning);
             Transform[] wheels = new Transform[4];
             float diameter = tuning.wheelRadius * 2f;
             for (int i = 0; i < 4; i++) {
-                Transform wheel = Node(group, names[i], new Vector3(xs[i], tuning.wheelRadius, zs[i]));
+                Transform wheel = Node(group, names[i], centres[i]);
                 // Cylinder axis is Y, lay it along the axle
                 GameObject tyre = Prim(PrimitiveType.Cylinder, "Tyre", wheel, Vector3.zero, new Vector3(diameter, 0.175f, diameter), M("Tyre"));
                 tyre.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
@@ -544,19 +592,20 @@ namespace BusDriver.Editor.Builders {
         }
 
         // Screens on the dash facing the driver (D38): +Z toward the driver's head, local scale x/y
-        // the screen size in metres. Placements are greybox guesses around the MVP dashboard.
+        // the screen size in metres. On the model's monitor, mirror and panels (BusLayout).
         static Transform[] BuildDashAnchors(Transform root) {
             Transform[] anchors = new Transform[4];
-            anchors[(int)DashScreen.Clock] = DashAnchor(root, "Anchor_Dash_Clock", new Vector3(-0.7f, 1.69f, 5.42f), -25f, new Vector2(0.16f, 0.06f));
-            anchors[(int)DashScreen.FareBox] = DashAnchor(root, "Anchor_Dash_FareBox", new Vector3(-1.1f, 1.6f, 5.3f), -20f, new Vector2(0.18f, 0.1f));
-            anchors[(int)DashScreen.Gps] = DashAnchor(root, "Anchor_Dash_Gps", new Vector3(-0.15f, 1.64f, 5.3f), -20f, new Vector2(0.32f, 0.2f));
-            anchors[(int)DashScreen.Mirror] = DashAnchor(root, "Anchor_Dash_Mirror", new Vector3(-0.35f, 2.8f, 5.6f), 15f, new Vector2(0.4f, 0.12f));
+            anchors[(int)DashScreen.Clock] = DashAnchor(root, "Anchor_Dash_Clock", BusLayout.DashClock);
+            anchors[(int)DashScreen.FareBox] = DashAnchor(root, "Anchor_Dash_FareBox", BusLayout.DashFareBox);
+            anchors[(int)DashScreen.Gps] = DashAnchor(root, "Anchor_Dash_Gps", BusLayout.DashGps);
+            anchors[(int)DashScreen.Mirror] = DashAnchor(root, "Anchor_Dash_Mirror", BusLayout.DashMirror);
             return anchors;
         }
 
-        static Transform DashAnchor(Transform root, string name, Vector3 position, float tilt, Vector2 size) {
-            Transform anchor = Node(root, name, position, new Vector3(tilt, 180f, 0f));
-            anchor.localScale = new Vector3(size.x, size.y, 1f);
+        static Transform DashAnchor(Transform root, string name, BusLayout.DashSpot spot) {
+            Transform anchor = Node(root, name, spot.Position);
+            anchor.localRotation = spot.Rotation;
+            anchor.localScale = new Vector3(spot.Size.x, spot.Size.y, 1f);
             return anchor;
         }
 

@@ -175,21 +175,24 @@ Each monster uses the passenger rig and shared animations, **plus**:
 
 ## 5. The bus
 
-### 5.1 Dimensions (must match `Assets/Art/_Reference/REF_Bus.fbx`)
+### 5.1 Dimensions (the delivered `Bus_Asset_001`, now the reference)
+The game was fitted to the first delivered bus (ROADMAP D108), so these are **its** numbers. A re-delivery must keep them, because the physics, the seats and the cameras are built on them.
+
 | Item | Value |
 |---|---|
-| Body | **12.0 m long × 2.55 m wide × 3.0 m tall**; the underside is at 0.45 m |
-| Wheels | radius **0.50 m**; front axle at **z = +3.3**, rear axle at **z = −2.7** |
-| Driver | on the **left** (x ≈ −0.7), at the front |
-| Passenger door | **right side**, front, opening from **z = 4.1 to 5.5** (1.4 m) |
-| Seating | **9 rows × 4 seats** (2 + aisle + 2), from z ≈ −5.2 to +2.8 |
+| Body | **11.9 m long × 2.9 m wide × 3.1 m tall** (z −5.89 to 6.01); the underside is at 0.40 m, the cabin floor at 0.80 m |
+| Wheels | centres at **y 0.55**; front axle at **z = +3.0**, rear axle at **z = −2.9**; front track ±1.30, dual rear tyres at ±0.97 and ±1.30 |
+| Driver | on the **left** (eye point −0.8, 2.1, 4.6), at the front |
+| Passenger door | **right side**, front: two leaves hinged at **z = 4.2 and 5.4**, folding inward; the step inside is at 0.50 m |
+| Seating | **33 seats in 8 rows**: side-facing pairs over each axle, four rows of 2 + aisle + 2, and a five-seat rear bench |
 
-The hull collider and WheelColliders are **fixed by physics tuning**, so the body must visually fit the collider box of the reference.
+Maya's centimetres are fine: the importer converts them. Keep +Y up, +Z forward, the driver on Maya's +X (it becomes −X in Unity).
 
 ### 5.2 Separate meshes (children of the bus FBX)
 - `Body_Exterior`, `Body_Interior` (the interior may be a separate FBX)
 - `Door_Panel` (or `Door_Panel_A`/`_B` for bi-fold; tell us which). The game animates it.
 - `Wheel_FL`, `Wheel_FR`, `Wheel_RL`, `Wheel_RR`. Each pivot is at the **wheel centre**, rolling around X.
+- **Or a rig**, as `Bus_Asset_001` is: keep its joint names (`FL_rot`, `FR_rot`, `RL_rot`, `RR_rot`, `steercolumn`, `door1`, `door2`, `chassis`) and the game drives them. Bind anything that never moves to `chassis`.
 - `SteeringWheel` (pivot at the column, rotates around its own axis)
 - `Dash_GPS_Screen`, `Dash_Clock_Screen`, `FareBox_Display`: flat quads that get **runtime render textures**. Make them a UV 0–1 rectangle and give them a separate material.
 - `Mirror_Cabin`: a flat quad for the Rear-view mirror item (render texture).
@@ -200,7 +203,7 @@ The hull collider and WheelColliders are **fixed by physics tuning**, so the bod
 |---|---|
 | `Anchor_DriverHead` | first-person camera position |
 | `Anchor_CCTV_Front`, `_Mid`, `_Rear` | CCTV camera mounts (the game places cameras here) |
-| `Anchor_Seat_R{row}_{L2,L1,R1,R2}` | 36 seat anchors (e.g. `Anchor_Seat_R3_L1`), on the seat surface, +Z facing the way a seated passenger faces |
+| `Anchor_Seat_R{row}_{L2,L1,R1,R2}`, `Anchor_Seat_R8_C` | 33 seat anchors (e.g. `Anchor_Seat_R3_L1`), on the seat surface, +Z facing the way a seated passenger faces. Optional on a rig: the game takes them from the seat layout |
 | `Anchor_DoorStep`, `Anchor_AisleAtDoor` | the boarding walk path |
 | `Anchor_Headlight_L`, `_R` | headlight spot lights |
 

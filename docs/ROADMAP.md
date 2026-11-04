@@ -283,6 +283,7 @@ Decisions are never edited once made. To change one, add a new row that supersed
 | D105 (agent) | **Night 1 with the Starer, end to end (T-M4-11).** A kick's sanity effect is the pure `Core.Rules.KickRules.SanityDelta(isMonster, balance)` (+10 monster, −8 innocent, from BalanceConfig). There is no SanitySystem before T-M5-02, so `Starer_Kicked_BountyAndSanity` asserts the seam: the rider's status turns Kicked, the ledger gets the 500 ¢ bounty for that rider id (no refund), and `KickRules` gives +10 for it; T-M5-02 applies `KickRules` when a rider's status turns Kicked. The test kicks as a player does (`OnFootKick`: leave the seat at a complete stop, walk down the aisle with `OnFootController.ExternalControl`, a scripted turn toward the rider, then Interact on what `PlayerInteractor` offers). `Night1_DemoRun_WithKick` makes its one kick stop at campground, where the Starer boards: the doors close after boarding, the player walks back and kicks it, sits down, and AutoPilot drives on to the church; it reaches the Summary with one monster kicked, a 500 ¢ bounty, five riders delivered and no errors, and logs the night's length (about 304 s of game time; informational). `docs/playtest.md` is started with the M4 manual checks (readability of the telegraph, the fall cam, scare timing) and the Player.log locations (§4.18) | 2026-09-30 | agent |
 | D106 | **The Starer is faster, and watching only freezes it.** (1) Night 1's scripted Starer boards at `gas_station`, one stop earlier than `campground`. (2) Its rules are `Observed → 0/s`, then `Always → +10/s`: about 10 s of being unwatched takes it from 0 to Lethal. (3) Being observed (any observer kind it counts: Cctv, Driver, OnFoot, Mirror) no longer lowers its threat; it only stops the rise, so its meter never decreases, except the kill-sequence escape, which still sets it to 60 (without that reset the kill would restart at once). Counting only the cameras is a one-field edit in `Starer.asset` (`Observed` → `ObservedByCctv`). This supersedes the Starer rules in §2.10 and D43's "the Starer boards at `campground`… still in its grace period or Dormant at the bend… reaches Lethal around the church". An ignored Starer now kills about 26 s after it sits down, well before the cliff, and each escape buys only 4 s of looking away. `Night1_DemoRun_WithKick` now makes its kick stop at `gas_station` (amends D105) | 2026-09-30 | user |
 | D107 | **The GPS shows the next stop's scheduled time, not an Early/On time/Late label.** The text column reads the next stop, its distance, `ETA 12:41 AM`, `SCHED 12:42 AM` and the clock; the player compares ETA and schedule themselves. `RouteMapView.ratingText` became `scheduleText` (`FormerlySerializedAs`, so Dash.prefab needs no rebuild) and the early/late/on-time colours were removed. Amends §4.13 and §2.23; arrival ratings still exist for tips and the Summary (§2.4, §2.21) | 2026-09-30 | user |
+| D108 | **The game fits the delivered bus art, not the other way round.** `Bus_Asset_001` (`Assets/Art/Vehicles/Bus/SK_Bus_00.fbx`) didn't match A.2's greybox numbers, and the user chose to move the logic to the model: (1) every bus number now comes from `BusLayout` (Editor/Builders), measured off the FBX: hull 11.9 × 2.9 × 3.1 m, floor 0.80, axles +3.0/−2.9, track ±1.30 front / ±1.13 rear, the driver's head (−0.8, 2.1, 4.6), the door leaves at z 4.2–5.4. (2) **33 seats in 8 rows** replace 36 in 9: side-facing pairs over each axle (R1, R7), four forward-facing rows (R2–R6) and a five-seat rear bench (R8, with a new column `C` = index 4, so `L2`/`L1`/`R1`/`R2` keep 0–3). The zones become Front R1–R3, Mid R4–R6, Rear R7–R8. (3) **Wheel radius 0.55** (the model's wheel centres; its tyres are 0.59, so they sit a little into the road), and every torque in `BusTuning` was scaled by 1.1 so the forces at the road are unchanged. (4) CCTV cameras hang where the artist put them, just under the 0.4 m lower ceiling, pitched 30°/34°/30° (was 22°/28°/22°). (5) `AnimatedBusView` (T-M10-05) drives the rig's bones; `BusArtViewBuilder` builds it into `Bus.prefab` whenever the FBX exists (the greybox otherwise) and bakes the ~200 chassis-bound skinned parts into one static mesh per material. (6) `BusArtImport` (Tools ▸ Bus Driver ▸ Art ▸ Import Bus) converts the delivery's `_BC`/`_N`/`_ORM`/`_O` textures to A.0's `_BaseColor`/`_Normal`/`_MaskMap`, from originals kept in `Art/_Source`. (7) The delivery's door animation FBX has no keys, so the leaves are turned in code (88°). The artist's fix list is in `Assets/Art/Vehicles/Bus/README.md` | 2026-11-03 | user |
 
 ---
 
@@ -380,8 +381,8 @@ While a CCTV feed is showing, driving input still works: the bus keeps moving an
 ### 2.6 Passengers
 - **Rider spec** (built from the night's manifest, §2.19): `lookId`, `boardStopId`, `destinationStopId`, `decoy` (a `DecoyKind`, or none), and `monsterId` (null for normal riders).
 - **Spawning:** every rider in the manifest is spawned at night start, standing at their boarding stop in the Waiting state.
-- **Capacity:** 36 seats (9 rows × 4). The manifest generator keeps **at most 10 riders aboard at once** *(BalanceConfig.maxAboard)*.
-- **Seat choice:** a random free seat, drawn from the `seating` RNG stream. A monster may declare a preferred seat zone (§2.9). The **zones** are Front = rows R1–R3, Mid = R4–R6, Rear = R7–R9. R1 is the row nearest the driver.
+- **Capacity:** 33 seats in 8 rows (Appendix A.2, D108). The manifest generator keeps **at most 10 riders aboard at once** *(BalanceConfig.maxAboard)*.
+- **Seat choice:** a random free seat, drawn from the `seating` RNG stream. A monster may declare a preferred seat zone (§2.9). The **zones** are Front = rows R1–R3, Mid = R4–R6, Rear = R7–R8. R1 is the row nearest the driver.
 - **Looks:** each rider shows one of **12 looks** (`look01`–`look12`). No two non-monster riders aboard at the same time share a look (D34), so a duplicate always means the Mimic.
 - **Alighting:** a normal rider gets off automatically at their destination stop, when the doors open there.
 - **Passenger death** happens only to Mimic victims:
@@ -462,7 +463,7 @@ While a CCTV feed is showing, driving input still works: the bus keeps moving an
 |---|---|
 | Rules | `Observed → 0/s` (frozen), then `Always → +10.0/s` (about 10 s from 0 to Lethal while unwatched). Watching only stops the rise: the meter never falls, except the escape reset to 60 (D106) |
 | Observer kinds | Cctv, Driver, OnFoot, Mirror |
-| Seat preference | Rear zone (R7–R9); otherwise any seat |
+| Seat preference | Rear zone (R7–R8); otherwise any seat |
 | Ability: advance | Its target row is `boardRow − round((boardRow − 1) × threat / 100)`, so it reaches R1 at Lethal. When it has been unobserved for ≥ 1 s and its current row is behind the target, it **teleports** to a free seat in the target row, nearest its current column. If that row is full, it tries the next row forward, and if none is free it stays put |
 | Tells | `HeadTrack` is always on while seated: the head turns toward the active observer camera (the existing `StaringMonster` math, 25°/s, yaw ±110°, pitch ±35°). `Stillness` = stage / 3 (idle motion fades out). `EyesWide` = threat / 100 |
 | Monster scare | The first time it enters Aggressive after boarding, the **next CCTV cycle within 20 s** cuts to that camera with its face filling the lens (`scare.starer.lens`). If the player doesn't cycle within 20 s, the scare is skipped |
@@ -504,7 +505,7 @@ While a CCTV feed is showing, driving input still works: the bus keeps moving an
 |---|---|
 | Rules | `Observed → 0/s` (frozen), then `Always → +1.2/s` (about 83 s of being unwatched from 0 to Lethal). Watching never lowers its threat |
 | Observer kinds | Cctv, Driver, OnFoot, Mirror. Observation is checked on `Anchor_Head` **or** the body root, so it still counts as seen when a player on foot is close enough that only part of it is in view |
-| Seat preference | Rear zone (R7–R9); otherwise Mid |
+| Seat preference | Rear zone (R7–R8); otherwise Mid |
 | Ability: stalk | Its **position follows its threat**, and it only moves while unobserved. Dormant (below 25): seated. On reaching Unsettled it stands and steps into the aisle beside its row. From then on its target point is `lerp(aisle at its board row, StandPoint, (threat − 25) / 75)`, rounded to the nearest row, so at Lethal it stands right behind the driver. While unobserved it walks the aisle to the target at 0.55 m/s; **while observed it freezes mid-step**. If it can't make progress for 3 s while unobserved, it teleports to the target. It never sits back down. The walk path (seat → aisle → along the aisle) is ported from the PR #5 `WeepingAngel` |
 | Tells | `Stillness` = 1 at every stage: it's the only rider with no idle motion at all. `AngelWeep` = 1 while seated (head bowed, hands over its face). `AngelReach` = (threat − 25) / 75 while standing (arms rise toward the driver). While it moves, `mon.angel.scrape` plays at its position, so the player **hears** it move while looking elsewhere |
 | Monster scare | The first time it's observed standing in the aisle: a sting, and the cabin lights stutter for 0.3 s (`scare.angel.closer`) |
@@ -4127,14 +4128,16 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 - **Player avatar** (D49): one character in the same rig as the passengers, the driver's uniform. It uses `Idle_Seated` at the wheel and `Idle_Stand` / `Walk` on foot. It is only ever seen on CCTV and in the Mirror, so it's budgeted as a passenger. It sits on the `PlayerAvatar` layer; the view prefab must not change layers.
 
 ### A.2 Bus
-- **Dimensions** (fixed by physics; the view must fit the collider):
-  - body 12.0 × 2.55 × 3.0 m, underside at 0.45 m, floor top at 0.55 m
-  - wheels of radius 0.50, axles at z = +3.3 / −2.7, track ±1.05
-  - the driver on the **left** (x −0.7); the head anchor at (−0.7, 1.9, 4.6)
-  - the door on the **right**, opening from z 4.1 to 5.5 (panel at x 1.3)
-  - **36 seats:** 9 rows × 4, with the seat surface at y 1.06.
-    - Rows **R1 (front, z +2.8) to R9 (rear, z −5.2)**, 1 m apart.
-    - Columns `L2` x −1.0, `L1` x −0.6, `R1` x +0.6, `R2` x +1.0.
+- **Dimensions** (measured off the delivered `SK_Bus_00`, D108; `BusLayout` holds every number). Physics and anchors follow these, so a re-delivery must keep them:
+  - body 11.9 × 2.9 × 3.1 m (z −5.89 … 6.01), underside at 0.40 m, cabin floor top at 0.80 m, the door well at 0.50 m, ceiling 2.9–3.1 m
+  - wheel centres at y 0.55 (tyres modelled at r 0.59; the physics radius is 0.55), axles at z = +3.0 / −2.9, track ±1.30 front, dual rear tyres at ±0.97 / ±1.30 (collider at ±1.13)
+  - the driver on the **left** (x −0.8); the head anchor at (−0.8, 2.1, 4.6)
+  - the door on the **right**: two leaves hinged at z 4.2 and 5.4 (x 1.41), folding inward
+  - **33 seats in 8 rows** (zones: Front R1–R3, Mid R4–R6, Rear R7–R8):
+    - **R1** (z 3.0 / 3.6) and **R7** (z −2.8 / −3.4): two seats each side on the wheel-arch platforms, x ±0.91, facing the aisle; `L2`/`R2` the rear seat of each pair, `L1`/`R1` the front one.
+    - **R2–R6** (z 1.89, 0.89, −0.11, −1.11, −2.06): four facing forward, `L2` x −1.06, `L1` −0.52, `R1` +0.52, `R2` +1.06; cushion top y 1.38.
+    - **R8** (z −4.71): the five-seat rear bench on its platform (y 1.26), `L2` −1.07, `L1` −0.53, `C` 0, `R1` +0.53, `R2` +1.07. Column `C` has index 4.
+  - the aisle is 0.48 m between cushions and flat at 0.80 to z −4.5; riders for R8 step up from z −4.4 (`BusCabin.aisleEndZ`).
 - **Separate meshes** (children):
   - `Body_Exterior`, `Body_Interior`
   - `Door_Panel` (or `Door_Panel_A`/`_B`)
@@ -4142,19 +4145,20 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
   - `SteeringWheel`
   - `Light_Cabin_Front/Mid/Rear` (emissive)
   - `Mirror_Cabin` (a UV 0–1 quad for the Mirror RenderTexture).
+  - **Or a rig** (what `SK_Bus_00` is, D108): skinned meshes on the joints `FL_rot`/`FR_rot`/`RL_rot`/`RR_rot` (wheel spin; a rear joint carries both tyres of its pair), `steercolumn` (rotates about its local X), `door1`/`door2` (the leaves' hinges), everything else on `chassis`. `BusArtViewBuilder` binds those names and bakes the chassis parts into one static mesh per material.
 - **Anchors.** The logic prefab has all of these, and the FBX should contain matching empties so the validator can compare them:
 
   | Anchor | Position |
   |---|---|
-  | `Anchor_DriverHead` | (−0.7, 1.9, 4.6) |
-  | `Anchor_CCTV_Front` | (0.3, 3.2, 5.3), rotation (22, 180, 0) |
-  | `Anchor_CCTV_Mid` | (0, 3.2, 0.5), rotation (28, 180, 0) |
-  | `Anchor_CCTV_Rear` | (0, 3.2, −5.7), rotation (22, 0, 0); all CCTV cameras have FOV 95 |
-  | `Anchor_Seat_R{1..9}_{L2,L1,R1,R2}` | On the seat surface, +Z = the way a seated passenger faces |
-  | `Anchor_DoorStep` | (1.0, 0.55, 4.8) |
-  | `Anchor_AisleAtDoor` | (0, 0.55, 4.8) |
-  | `Anchor_Headlight_L/R` | (±0.9, 1.2, 6.1) |
-  | `Anchor_Dash_Clock`, `Anchor_Dash_FareBox`, `Anchor_Dash_Gps`, `Anchor_Dash_Mirror` | Each sits at the centre of a flat screen area. Its local scale x/y is the screen size in metres, with +Z facing the driver (D38) |
+  | `Anchor_DriverHead` | (−0.8, 2.1, 4.6) |
+  | `Anchor_CCTV_Front` | (0.25, 3.06, 5.24), rotation (30, 180, 0) |
+  | `Anchor_CCTV_Mid` | (0, 3.08, 0.5), rotation (34, 180, 0) |
+  | `Anchor_CCTV_Rear` | (0, 3.08, −5.08), rotation (30, 0, 0); all CCTV cameras have FOV 95 |
+  | `Anchor_Seat_R{1..8}_{L2,L1,R1,R2}`, `Anchor_Seat_R8_C` | On the seat surface, +Z = the way a seated passenger faces |
+  | `Anchor_DoorStep` | (1.05, 0.5, 4.8), in the door well |
+  | `Anchor_AisleAtDoor` | (0, 0.8, 4.8) |
+  | `Anchor_Headlight_L/R` | (∓1.0, 1.1, 6.0) |
+  | `Anchor_Dash_Clock`, `Anchor_Dash_FareBox`, `Anchor_Dash_Gps`, `Anchor_Dash_Mirror` | Each sits at the centre of a flat screen area. Its local scale x/y is the screen size in metres, with +Z facing the driver (D38). On `SK_Bus_00`: the GPS on the dash monitor, the mirror on the rear-view mirror, the clock on the switch panel right of the gauges and the fare box on the radio's face (`BusLayout`) |
 
   The logic-only scare anchors are `Anchor_Scare_DriverShoulder`, `Anchor_Scare_DriverWindow`, `Anchor_Scare_CctvLens1..3` and `Anchor_Scare_CabinCenter`. A `ScareStep` refers to them without the `Anchor_Scare_` prefix: `DriverShoulder`, or `CctvLens:1` for `CctvLens1`.
 - **Budget:** 60–90 k triangles in total, up to 4 × 2K texture sets.

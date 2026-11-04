@@ -8,7 +8,7 @@ namespace BusDriver.Gameplay.Bus {
     public class BusSeat : MonoBehaviour {
         [Tooltip("R1 is the front row, nearest the driver (§2.6)")]
         [SerializeField] int row = 1;
-        [Tooltip("0..3 = L2, L1, R1, R2")]
+        [Tooltip("0..3 = L2, L1, R1, R2; 4 = C, the middle of the rear bench")]
         [SerializeField] int column;
 
         public int Row { get { return row; } }
@@ -31,7 +31,7 @@ namespace BusDriver.Gameplay.Bus {
             }
         }
 
-        // Front = R1–R3, Mid = R4–R6, Rear = R7–R9 (§2.6)
+        // Front = R1–R3, Mid = R4–R6, Rear = R7 and up (§2.6): R7–R8 on the art bus
         public static SeatZone ZoneOfRow(int row) {
             if (row <= 3) {
                 return SeatZone.Front;

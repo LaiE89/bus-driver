@@ -82,8 +82,8 @@ namespace BusDriver.Tests.PlayMode.Passengers {
             game.Flow.NewRun(20260930);
             yield return FlowTestUtil.WaitForNight(game);
             BusCabin cabin = Object.FindAnyObjectByType<ShiftContext>().Shift.Cabin;
-            // The rear zone is rows R7–R9: 12 seats
-            for (int i = 0; i < 12; i++) {
+            // The rear zone is rows R7–R8: the four arch seats and the five-seat bench
+            for (int i = 0; i < 9; i++) {
                 BusSeat seat = cabin.FindFreeSeat(SeatZone.Rear, SeatZone.Mid);
                 Assert.IsNotNull(seat);
                 Assert.AreEqual(SeatZone.Rear, seat.Zone, "the rear zone still had room");

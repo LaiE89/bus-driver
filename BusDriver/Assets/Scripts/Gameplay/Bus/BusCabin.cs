@@ -29,6 +29,10 @@ namespace BusDriver.Gameplay.Bus {
         [SerializeField] Transform doorStep;
         [SerializeField] Transform doorOutside;
         [SerializeField] Transform standPoint;
+        [Tooltip("The aisle stops short of the far end, where a raised platform carries the rear bench")]
+        [SerializeField] bool aisleEnds;
+        [Tooltip("Passenger-root local z where the aisle floor ends; riders of seats beyond it step up from here")]
+        [SerializeField] float aisleEndZ;
 
         public event Action<Passenger> OnPassengerBoarded;
         public event Action<Passenger> OnPassengerSeated;
@@ -140,10 +144,16 @@ namespace BusDriver.Gameplay.Bus {
             return ToLocal(seat.transform);
         }
 
-        // The spot in the aisle level with a seat
+        // The spot in the aisle level with a seat, or the aisle's end for seats past it
         public Vector3 SeatAisleLocal(BusSeat seat) {
             Vector3 local = SeatLocal(seat);
-            return new Vector3(AisleAtDoorLocal.x, AisleAtDoorLocal.y, local.z);
+            Vector3 door = AisleAtDoorLocal;
+            float z = local.z;
+            if (aisleEnds) {
+                // Whichever way the aisle runs from the door, don't go past its end
+                z = door.z >= aisleEndZ ? Mathf.Max(z, aisleEndZ) : Mathf.Min(z, aisleEndZ);
+            }
+            return new Vector3(door.x, door.y, z);
         }
 
         Vector3 ToLocal(Transform node) {

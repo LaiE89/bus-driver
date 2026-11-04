@@ -41,30 +41,30 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             ShiftServices[] started = new ShiftServices[1];
             yield return Night(saveRoot, started);
             ShiftServices shift = started[0];
-            MonsterBrain brain = Starer(shift, 9, 1);
+            MonsterBrain brain = Starer(shift, 8, 1);
             StarerAdvance advance = brain.GetComponent<StarerAdvance>();
             Assert.IsNotNull(advance, "the Starer's prefab carries its ability");
-            Assert.AreEqual(9, advance.BoardRow, "the row it sat down in");
+            Assert.AreEqual(8, advance.BoardRow, "the row it sat down in (the rear bench)");
             // On camera before the grace runs out: unwatched at +10/s it would be moving up a row
             // within a second of grace ending (D106)
             bool[] found = new bool[1];
             yield return KillSequenceTests.ObserveOnCctv(shift, brain, found);
-            Assert.IsTrue(found[0], "a CCTV camera sees R9");
+            Assert.IsTrue(found[0], "a CCTV camera sees R8");
             Time.timeScale = 3f;
             yield return FlowTestUtil.WaitFor(() => !brain.Meter.Core.InGrace, 30f, "the grace period");
             Assert.AreEqual(0f, brain.Threat, 0.001f, "watched through the end of grace: still at 0");
             brain.Meter.Core.SetValue(50f);
-            Assert.AreEqual(5, advance.TargetRow, "9 − round(8 × 0.5)");
+            Assert.AreEqual(4, advance.TargetRow, "8 − round(7 × 0.5), halves rounding up");
             float watched = 0f;
             while (watched < 3f) {
                 yield return null;
                 watched += Time.deltaTime;
                 Assert.IsTrue(brain.IsObserved, "the camera keeps it in view");
-                Assert.AreEqual(9, advance.CurrentRow, "watched, it stays put");
+                Assert.AreEqual(8, advance.CurrentRow, "watched, it stays put");
                 Assert.AreEqual(50f, brain.Threat, 0.001f, "watched, its threat neither rises nor falls (D106)");
             }
             Assert.AreEqual(0, advance.Advances);
-            Assert.Less(advance.TargetRow, 9, "it is still behind its target");
+            Assert.Less(advance.TargetRow, 8, "it is still behind its target");
 
             shift.Cctv.ShowHome();
             float unseen = 0f;

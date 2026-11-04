@@ -16,7 +16,7 @@ MonoBehaviour:
   linearDamping: 0.05
   angularDamping: 0.35
   solverIterations: 12
-  wheelRadius: 0.5
+  wheelRadius: 0.55
   wheelMass: 120
   wheelDampingRate: 1.2
   forceAppPointDistance: 0.4
@@ -28,7 +28,7 @@ MonoBehaviour:
   rearForwardStiffness: 1.4
   frontSidewaysStiffness: 1.3
   rearSidewaysStiffness: 1.6
-  maxMotorTorque: 5200
+  maxMotorTorque: 5720
   torqueCurve:
     serializedVersion: 2
     m_Curve:
@@ -72,18 +72,18 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   maxSpeedKmh: 70
-  reverseTorque: 2400
+  reverseTorque: 2640
   reverseMaxSpeedKmh: 12
-  motorTorqueRise: 9000
-  motorTorqueFall: 7000
-  frontBrakeTorque: 4500
-  rearBrakeTorque: 3200
-  handbrakeTorque: 12000
-  coastBrakeTorque: 450
-  autoHoldTorque: 2500
+  motorTorqueRise: 9900
+  motorTorqueFall: 7700
+  frontBrakeTorque: 4950
+  rearBrakeTorque: 3520
+  handbrakeTorque: 13200
+  coastBrakeTorque: 495
+  autoHoldTorque: 2750
   autoHoldSpeed: 0.4
-  brakeTorqueRise: 9000
-  brakeTorqueFall: 12000
+  brakeTorqueRise: 9900
+  brakeTorqueFall: 13200
   accelRise: 2.2
   accelFall: 1.6
   brakeRise: 1.4

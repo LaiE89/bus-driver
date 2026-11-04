@@ -83,8 +83,8 @@ namespace BusDriver.Tests.PlayMode.Monsters {
             shift.Death.AddPreventer(spare);
             shift.Cctv.ShowHome();
 
-            MonsterBrain first = SpawnSeated(shift, "starer", Seat(shift, 8, 0), "look07");
-            MonsterBrain second = SpawnSeated(shift, "starer", Seat(shift, 9, 3), "look08");
+            MonsterBrain first = SpawnSeated(shift, "starer", Seat(shift, 7, 0), "look07");
+            MonsterBrain second = SpawnSeated(shift, "starer", Seat(shift, 8, 3), "look08");
             Time.timeScale = 3f;
             yield return FlowTestUtil.WaitFor(() => !first.Meter.Core.InGrace && !second.Meter.Core.InGrace, 30f, "the grace periods");
             Assert.IsFalse(first.IsObserved || second.IsObserved, "the driver's view doesn't reach the rear rows");

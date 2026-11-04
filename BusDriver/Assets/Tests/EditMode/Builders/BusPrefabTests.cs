@@ -10,8 +10,8 @@ using UnityEditor;
 using UnityEngine;
 
 namespace BusDriver.Tests.EditMode.Builders {
-    // The generated bus keeps the MVP's geometry exactly (T-M1-14, Appendix A.2). Numbers are
-    // spelled out here from the appendix, not taken from the builder.
+    // The generated bus matches the artist's model (Appendix A.2, D108). Numbers are spelled out
+    // here from the appendix, not taken from the builder.
     public class BusPrefabTests {
         const float Eps = 0.001f;
         GameObject bus;
@@ -44,26 +44,74 @@ namespace BusDriver.Tests.EditMode.Builders {
             return null;
         }
 
-        [Test]
-        public void ThirtySixSeatsAtTheLegacyPositions() {
-            BusSeat[] seats = bus.GetComponentsInChildren<BusSeat>(true);
-            Assert.AreEqual(36, seats.Length);
-            string[] columns = { "L2", "L1", "R1", "R2" };
-            float[] xs = { -1f, -0.6f, 0.6f, 1f };
-            for (int row = 1; row <= 9; row++) {
-                for (int c = 0; c < 4; c++) {
-                    Transform seat = Find(bus, $"Anchor_Seat_R{row}_{columns[c]}");
-                    Assert.IsNotNull(seat.GetComponent<BusSeat>());
-                    // R1 is the front row at z 2.8; rows are 1 m apart back to R9 at −5.2
-                    AssertNear(new Vector3(xs[c], 1.06f, 2.8f - (row - 1)), Local(bus, seat), seat.name);
-                    Assert.Greater(Vector3.Dot(seat.forward, bus.transform.forward), 0.999f, seat.name + " faces forward");
-                }
+        struct SeatSpec {
+            public string Name;
+            public Vector3 Position;
+            public float Yaw;
+            public SeatSpec(string name, float x, float y, float z, float yaw) {
+                Name = name;
+                Position = new Vector3(x, y, z);
+                Yaw = yaw;
             }
-            // The cabin lists them rear to front, as the MVP did
+        }
+
+        // Appendix A.2, in the order the cabin lists them: rear row first
+        static readonly SeatSpec[] Seats = {
+            new SeatSpec("R8_L2", -1.069f, 1.382f, -4.713f, 0f),
+            new SeatSpec("R8_L1", -0.533f, 1.382f, -4.713f, 0f),
+            new SeatSpec("R8_C", 0f, 1.382f, -4.713f, 0f),
+            new SeatSpec("R8_R1", 0.533f, 1.382f, -4.713f, 0f),
+            new SeatSpec("R8_R2", 1.069f, 1.382f, -4.713f, 0f),
+            new SeatSpec("R7_L2", -0.913f, 1.36f, -3.406f, 90f),
+            new SeatSpec("R7_L1", -0.913f, 1.36f, -2.806f, 90f),
+            new SeatSpec("R7_R1", 0.913f, 1.36f, -2.8f, -90f),
+            new SeatSpec("R7_R2", 0.913f, 1.36f, -3.4f, -90f),
+            new SeatSpec("R6_L2", -1.062f, 1.382f, -2.063f, 0f),
+            new SeatSpec("R6_L1", -0.516f, 1.382f, -2.063f, 0f),
+            new SeatSpec("R6_R1", 0.516f, 1.382f, -2.063f, 0f),
+            new SeatSpec("R6_R2", 1.062f, 1.382f, -2.063f, 0f),
+            new SeatSpec("R5_L2", -1.062f, 1.382f, -1.113f, 0f),
+            new SeatSpec("R5_L1", -0.516f, 1.382f, -1.113f, 0f),
+            new SeatSpec("R5_R1", 0.516f, 1.382f, -1.113f, 0f),
+            new SeatSpec("R5_R2", 1.062f, 1.382f, -1.113f, 0f),
+            new SeatSpec("R4_L2", -1.062f, 1.382f, -0.113f, 0f),
+            new SeatSpec("R4_L1", -0.516f, 1.382f, -0.113f, 0f),
+            new SeatSpec("R4_R1", 0.516f, 1.382f, -0.113f, 0f),
+            new SeatSpec("R4_R2", 1.062f, 1.382f, -0.113f, 0f),
+            new SeatSpec("R3_L2", -1.062f, 1.382f, 0.887f, 0f),
+            new SeatSpec("R3_L1", -0.516f, 1.382f, 0.887f, 0f),
+            new SeatSpec("R3_R1", 0.516f, 1.382f, 0.887f, 0f),
+            new SeatSpec("R3_R2", 1.062f, 1.382f, 0.887f, 0f),
+            new SeatSpec("R2_L2", -1.062f, 1.382f, 1.887f, 0f),
+            new SeatSpec("R2_L1", -0.516f, 1.382f, 1.887f, 0f),
+            new SeatSpec("R2_R1", 0.516f, 1.382f, 1.887f, 0f),
+            new SeatSpec("R2_R2", 1.062f, 1.382f, 1.887f, 0f),
+            new SeatSpec("R1_L2", -0.913f, 1.352f, 2.997f, 90f),
+            new SeatSpec("R1_L1", -0.913f, 1.352f, 3.597f, 90f),
+            new SeatSpec("R1_R1", 0.913f, 1.352f, 3.603f, -90f),
+            new SeatSpec("R1_R2", 0.913f, 1.352f, 3.003f, -90f),
+        };
+
+        [Test]
+        public void ThirtyThreeSeatsOnTheModelsCushions() {
+            BusSeat[] seats = bus.GetComponentsInChildren<BusSeat>(true);
+            Assert.AreEqual(33, seats.Length);
             Object[] listed = SerializedSeats();
-            Assert.AreEqual(36, listed.Length);
-            Assert.AreEqual("Anchor_Seat_R9_L2", ((Component)listed[0]).name);
-            Assert.AreEqual("Anchor_Seat_R1_R2", ((Component)listed[35]).name);
+            Assert.AreEqual(33, listed.Length);
+            for (int i = 0; i < Seats.Length; i++) {
+                SeatSpec spec = Seats[i];
+                Transform seat = Find(bus, "Anchor_Seat_" + spec.Name);
+                BusSeat busSeat = seat.GetComponent<BusSeat>();
+                Assert.IsNotNull(busSeat);
+                AssertNear(spec.Position, Local(bus, seat), seat.name);
+                Vector3 facing = Quaternion.Euler(0f, spec.Yaw, 0f) * Vector3.forward;
+                Assert.Greater(Vector3.Dot(bus.transform.InverseTransformDirection(seat.forward), facing), 0.999f, seat.name + " faces the right way");
+                Assert.AreEqual(int.Parse(spec.Name.Substring(1, 1)), busSeat.Row, seat.name + " row");
+                // The cabin lists them rear to front, as the MVP did
+                Assert.AreSame(busSeat, listed[i], "seat " + i + " in the cabin's list");
+            }
+            Assert.AreEqual(4, Find(bus, "Anchor_Seat_R8_C").GetComponent<BusSeat>().Column, "C is column 4");
+            Assert.AreEqual(2, Find(bus, "Anchor_Seat_R8_R1").GetComponent<BusSeat>().Column, "R1 keeps column 2");
         }
 
         Object[] SerializedSeats() {
@@ -78,15 +126,15 @@ namespace BusDriver.Tests.EditMode.Builders {
         [Test]
         public void CameraPoses() {
             Transform head = Find(bus, "Anchor_DriverHead");
-            AssertNear(new Vector3(-0.7f, 1.9f, 4.6f), Local(bus, head), "Anchor_DriverHead");
+            AssertNear(new Vector3(-0.8f, 2.1f, 4.6f), Local(bus, head), "Anchor_DriverHead");
             Camera driver = Find(bus, "DriverCamera").GetComponent<Camera>();
-            AssertNear(new Vector3(-0.7f, 1.9f, 4.6f), Local(bus, driver.transform), "driver camera");
+            AssertNear(new Vector3(-0.8f, 2.1f, 4.6f), Local(bus, driver.transform), "driver camera");
             Assert.AreEqual(70f, driver.fieldOfView, Eps);
             Assert.IsNotNull(head.GetComponentInChildren<AudioListener>(true), "the ears ride on the driver head");
 
             string[] anchors = { "Anchor_CCTV_Front", "Anchor_CCTV_Mid", "Anchor_CCTV_Rear" };
-            Vector3[] positions = { new Vector3(0.3f, 3.2f, 5.3f), new Vector3(0f, 3.2f, 0.5f), new Vector3(0f, 3.2f, -5.7f) };
-            Vector3[] eulers = { new Vector3(22f, 180f, 0f), new Vector3(28f, 180f, 0f), new Vector3(22f, 0f, 0f) };
+            Vector3[] positions = { new Vector3(0.25f, 3.06f, 5.24f), new Vector3(0f, 3.08f, 0.5f), new Vector3(0f, 3.08f, -5.08f) };
+            Vector3[] eulers = { new Vector3(30f, 180f, 0f), new Vector3(34f, 180f, 0f), new Vector3(30f, 0f, 0f) };
             CctvCamera[] cameras = bus.GetComponentsInChildren<CctvCamera>(true);
             Assert.AreEqual(3, cameras.Length);
             for (int i = 0; i < 3; i++) {
@@ -111,22 +159,64 @@ namespace BusDriver.Tests.EditMode.Builders {
             foreach (WheelCollider wheel in wheels) {
                 Vector3 local = Local(bus, wheel.transform);
                 bool front = wheel.name.StartsWith("WC_F");
-                Assert.AreEqual(front ? 3.3f : -2.7f, local.z, Eps, wheel.name);
-                Assert.AreEqual(1.05f, Mathf.Abs(local.x), Eps, wheel.name);
+                Assert.AreEqual(front ? 3f : -2.9f, local.z, Eps, wheel.name);
+                Assert.AreEqual(front ? 1.3f : 1.13f, Mathf.Abs(local.x), Eps, wheel.name);
             }
-            // The door gap in the kerb-side body panels (unit cubes, scaled)
-            Transform rear = Find(bus, "Right Lower Rear");
-            Transform front2 = Find(bus, "Right Lower Front");
-            Assert.AreEqual(4.1f, Local(bus, rear).z + rear.lossyScale.z * 0.5f, Eps);
-            Assert.AreEqual(5.5f, Local(bus, front2).z - front2.lossyScale.z * 0.5f, Eps);
             BoxCollider blocker = Find(bus, "Doorway Blocker").GetComponent<BoxCollider>();
             Vector3 center = Local(bus, blocker.transform);
-            Assert.AreEqual(4.1f, center.z - blocker.size.z * 0.5f, Eps);
-            Assert.AreEqual(5.5f, center.z + blocker.size.z * 0.5f, Eps);
-            AssertNear(new Vector3(1f, 0.55f, 4.8f), Local(bus, Find(bus, "Anchor_DoorStep")), "Anchor_DoorStep");
-            AssertNear(new Vector3(0f, 0.55f, 4.8f), Local(bus, Find(bus, "Anchor_AisleAtDoor")), "Anchor_AisleAtDoor");
-            AssertNear(new Vector3(-0.9f, 1.2f, 6.1f), Local(bus, Find(bus, "Anchor_Headlight_L")), "Anchor_Headlight_L");
-            AssertNear(new Vector3(0.9f, 1.2f, 6.1f), Local(bus, Find(bus, "Anchor_Headlight_R")), "Anchor_Headlight_R");
+            Assert.AreEqual(4.2f, center.z - blocker.size.z * 0.5f, Eps);
+            Assert.AreEqual(5.4f, center.z + blocker.size.z * 0.5f, Eps);
+            AssertNear(new Vector3(1.05f, 0.5f, 4.8f), Local(bus, Find(bus, "Anchor_DoorStep")), "Anchor_DoorStep");
+            AssertNear(new Vector3(0f, 0.8f, 4.8f), Local(bus, Find(bus, "Anchor_AisleAtDoor")), "Anchor_AisleAtDoor");
+            AssertNear(new Vector3(-1f, 1.1f, 6f), Local(bus, Find(bus, "Anchor_Headlight_L")), "Anchor_Headlight_L");
+            AssertNear(new Vector3(1f, 1.1f, 6f), Local(bus, Find(bus, "Anchor_Headlight_R")), "Anchor_Headlight_R");
+            BoxCollider hull = bus.GetComponent<BoxCollider>();
+            AssertNear(new Vector3(2.9f, 3.1f, 11.9f), hull.size, "hull size");
+            AssertNear(new Vector3(0f, 1.95f, 0.06f), hull.center, "hull centre");
+        }
+
+        // With the artist's FBX in Assets/Art, the View is the rigged model (D108)
+        [Test]
+        public void TheArtViewDrivesTheModelsJoints() {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Art/Vehicles/Bus/SK_Bus_00.fbx") == null) {
+                Assert.Ignore("no bus art; the greybox view is in use");
+            }
+            Transform view = bus.transform.Find("View");
+            AnimatedBusView art = view.GetComponent<AnimatedBusView>();
+            Assert.IsNotNull(art, "the View is an AnimatedBusView");
+            SerializedObject so = new SerializedObject(art);
+            string[] wheels = { "FL_rot", "FR_rot", "RL_rot", "RR_rot" };
+            SerializedProperty bones = so.FindProperty("wheelBones");
+            Assert.AreEqual(4, bones.arraySize);
+            for (int i = 0; i < 4; i++) {
+                Transform bone = (Transform)bones.GetArrayElementAtIndex(i).objectReferenceValue;
+                Assert.IsNotNull(bone, wheels[i]);
+                Assert.AreEqual(wheels[i], bone.name);
+                Assert.IsTrue(bone.IsChildOf(view), wheels[i] + " belongs to the view");
+            }
+            // FL is on the driver's side
+            Assert.Less(Local(bus, (Transform)bones.GetArrayElementAtIndex(0).objectReferenceValue).x, 0f, "FL_rot is on the left");
+            Assert.AreEqual("steercolumn", ((Transform)so.FindProperty("steeringColumn").objectReferenceValue).name);
+            SerializedProperty doors = so.FindProperty("doorLeaves");
+            Assert.AreEqual(2, doors.arraySize);
+            Assert.AreEqual(4.2f, Local(bus, (Transform)doors.GetArrayElementAtIndex(0).objectReferenceValue).z, 0.01f, "door1 hinges at z 4.2");
+            Assert.AreEqual(5.4f, Local(bus, (Transform)doors.GetArrayElementAtIndex(1).objectReferenceValue).z, 0.01f, "door2 hinges at z 5.4");
+            for (int i = 0; i < 4; i++) {
+                Assert.IsNotNull(art.DashAnchor((DashScreen)i), (DashScreen)i + " anchor");
+            }
+            // Every skinned part that's left still has its bones; the chassis parts are baked
+            foreach (SkinnedMeshRenderer skinned in view.GetComponentsInChildren<SkinnedMeshRenderer>(true)) {
+                foreach (Transform bone in skinned.bones) {
+                    Assert.IsNotNull(bone, skinned.name + " lost a bone");
+                }
+            }
+            Assert.Less(view.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length, 60, "the static parts are baked");
+            Assert.Greater(view.GetComponentsInChildren<MeshRenderer>(true).Length, 0, "the baked static meshes");
+            foreach (Renderer renderer in view.GetComponentsInChildren<Renderer>(true)) {
+                foreach (Material material in renderer.sharedMaterials) {
+                    Assert.IsNotNull(material, renderer.name + " is missing a material");
+                }
+            }
         }
 
         [Test]
