@@ -347,6 +347,43 @@ namespace BusDriver.Gameplay.Input {
             return text != "" ? text : action.GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
         }
 
+        // A HUD prompt's key, as TMP rich text (§4.13): on a pad, each button as a
+        // <sprite name="ps_cross"> glyph, side by side ("L2 R2" for Throttle); on keyboard/mouse, or
+        // for a button hasGlyph doesn't know (null = none), its upper-case name as before
+        public string GetPromptString(string actionId, Predicate<string> hasGlyph) {
+            InputAction action = Actions.Find(actionId);
+            if (action == null) {
+                Log.Warn(LogCat.Input, "no input action " + actionId);
+                return "?";
+            }
+            return GetPromptString(action, ActiveFamily, hasGlyph);
+        }
+
+        public string GetPromptString(InputAction action, DeviceFamily family, Predicate<string> hasGlyph) {
+            if (!DeviceFamilies.IsGamepad(family) || hasGlyph == null) {
+                return GetDisplayString(action, family).ToUpperInvariant();
+            }
+            List<string> parts = new List<string>();
+            for (int b = 0; b < action.bindings.Count; b++) {
+                InputBinding binding = action.bindings[b];
+                if (binding.isComposite || !InGroup(binding, GamepadGroup)) {
+                    continue;
+                }
+                string glyph = DeviceFamilies.GamepadGlyphName(binding.effectivePath, family);
+                string part;
+                if (glyph != null && hasGlyph(glyph)) {
+                    part = "<sprite name=\"" + glyph + "\">";
+                }else {
+                    string name = DeviceFamilies.GamepadControlName(binding.effectivePath, family);
+                    part = (name ?? action.GetBindingDisplayString(b)).ToUpperInvariant();
+                }
+                if (part != "" && !parts.Contains(part)) {
+                    parts.Add(part);
+                }
+            }
+            return parts.Count > 0 ? string.Join(" ", parts) : GetDisplayString(action, family).ToUpperInvariant();
+        }
+
         public string GetBindingDisplayString(InputAction action, int bindingIndex) {
             return action.GetBindingDisplayString(bindingIndex);
         }

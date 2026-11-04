@@ -13,8 +13,8 @@ namespace BusDriver.Gameplay.Input {
         Gamepad,
     }
 
-    // Prompt names for gamepad controls, per family. Plain text rather than glyph sprites so the
-    // HUD font needs nothing new; art can replace them later (§4.13).
+    // Prompt names and button glyphs for gamepad controls, per family (§4.13). The names stay for
+    // text that can't show sprites (settings, logs) and as the fallback when a glyph is missing.
     public static class DeviceFamilies {
         public static DeviceFamily Of(InputDevice device) {
             if (device is DualShockGamepad) {
@@ -33,9 +33,8 @@ namespace BusDriver.Gameplay.Input {
             return family != DeviceFamily.KeyboardMouse;
         }
 
-        // "<Gamepad>/buttonSouth" → "Cross" (PlayStation) or "A" (others). Null when the path isn't
-        // a gamepad control this table knows.
-        public static string GamepadControlName(string path, DeviceFamily family) {
+        // "<Gamepad>/buttonSouth" → "buttonSouth". Null unless it's a gamepad path.
+        static string GamepadControl(string path) {
             if (string.IsNullOrEmpty(path)) {
                 return null;
             }
@@ -43,7 +42,55 @@ namespace BusDriver.Gameplay.Input {
             if (slash < 0 || !path.StartsWith("<Gamepad>") && !path.StartsWith("<DualShockGamepad>") && !path.StartsWith("<XInputController>")) {
                 return null;
             }
-            string control = path.Substring(slash + 1);
+            return path.Substring(slash + 1);
+        }
+
+        // "<Gamepad>/buttonSouth" → "ps_cross" (PlayStation) or "xb_a" (others): the sprite name of
+        // the control's button glyph in the HUD's TMP sprite asset (Art/UI/InputPrompts, Kenney's
+        // CC0 Input Prompts). Null when the path isn't a gamepad control with a glyph.
+        public static string GamepadGlyphName(string path, DeviceFamily family) {
+            string control = GamepadControl(path);
+            if (control == null) {
+                return null;
+            }
+            bool ps = family == DeviceFamily.PlayStation;
+            string name;
+            switch (control) {
+                case "buttonSouth": name = ps ? "cross" : "a"; break;
+                case "buttonEast": name = ps ? "circle" : "b"; break;
+                case "buttonWest": name = ps ? "square" : "x"; break;
+                case "buttonNorth": name = ps ? "triangle" : "y"; break;
+                case "leftShoulder": name = ps ? "l1" : "lb"; break;
+                case "rightShoulder": name = ps ? "r1" : "rb"; break;
+                case "leftTrigger": name = ps ? "l2" : "lt"; break;
+                case "rightTrigger": name = ps ? "r2" : "rt"; break;
+                case "start": name = ps ? "options" : "menu"; break;
+                case "select": name = ps ? "create" : "view"; break;
+                case "leftStickPress": name = ps ? "l3" : "ls"; break;
+                case "rightStickPress": name = ps ? "r3" : "rs"; break;
+                case "leftStick": name = "stick_l"; break;
+                case "leftStick/x": name = "stick_l_h"; break;
+                case "leftStick/y": name = "stick_l_v"; break;
+                case "rightStick": name = "stick_r"; break;
+                case "rightStick/x": name = "stick_r_h"; break;
+                case "rightStick/y": name = "stick_r_v"; break;
+                case "dpad": name = "dpad"; break;
+                case "dpad/up": name = "dpad_up"; break;
+                case "dpad/down": name = "dpad_down"; break;
+                case "dpad/left": name = "dpad_left"; break;
+                case "dpad/right": name = "dpad_right"; break;
+                default: return null;
+            }
+            return (ps ? "ps_" : "xb_") + name;
+        }
+
+        // "<Gamepad>/buttonSouth" → "Cross" (PlayStation) or "A" (others). Null when the path isn't
+        // a gamepad control this table knows.
+        public static string GamepadControlName(string path, DeviceFamily family) {
+            string control = GamepadControl(path);
+            if (control == null) {
+                return null;
+            }
             bool ps = family == DeviceFamily.PlayStation;
             switch (control) {
                 case "buttonSouth": return ps ? "Cross" : "A";

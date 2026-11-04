@@ -78,5 +78,38 @@ namespace BusDriver.Tests.EditMode.Input {
             Assert.IsNull(DeviceFamilies.GamepadControlName("<Gamepad>/touchpad", DeviceFamily.PlayStation));
             Assert.AreEqual("D-Pad Left", DeviceFamilies.GamepadControlName("<Gamepad>/dpad/left", DeviceFamily.Xbox));
         }
+
+        [Test]
+        public void PadPromptsUseButtonGlyphs() {
+            InputService input = new InputService(copy, null);
+            System.Predicate<string> all = name => true;
+            Assert.AreEqual("<sprite name=\"ps_cross\">", input.GetPromptString(input.Actions.LeaveSeat, DeviceFamily.PlayStation, all));
+            Assert.AreEqual("<sprite name=\"ps_l2\"> <sprite name=\"ps_r2\">", input.GetPromptString(input.Actions.Throttle, DeviceFamily.PlayStation, all));
+            Assert.AreEqual("<sprite name=\"xb_x\">", input.GetPromptString(input.Actions.Doors, DeviceFamily.Xbox, all));
+            Assert.AreEqual("<sprite name=\"xb_rb\">", input.GetPromptString(input.Actions.AcceptRider, DeviceFamily.Gamepad, all));
+            // Keyboard stays text; a glyph the sprite asset lacks, or no sprite asset, falls back to the name
+            Assert.AreEqual("E", input.GetPromptString(input.Actions.LeaveSeat, DeviceFamily.KeyboardMouse, all));
+            Assert.AreEqual("CROSS", input.GetPromptString(input.Actions.LeaveSeat, DeviceFamily.PlayStation, name => false));
+            Assert.AreEqual("CROSS", input.GetPromptString(input.Actions.LeaveSeat, DeviceFamily.PlayStation, null));
+        }
+
+        // Every glyph name the prompts can ask for has a source PNG for InputPromptImport to pack
+        [Test]
+        public void EveryGlyphNameHasASourceImage() {
+            string[] controls = {
+                "buttonSouth", "buttonEast", "buttonWest", "buttonNorth", "leftShoulder", "rightShoulder",
+                "leftTrigger", "rightTrigger", "start", "select", "leftStickPress", "rightStickPress",
+                "leftStick", "leftStick/x", "leftStick/y", "rightStick", "rightStick/x", "rightStick/y",
+                "dpad", "dpad/up", "dpad/down", "dpad/left", "dpad/right",
+            };
+            foreach (DeviceFamily family in new[] { DeviceFamily.PlayStation, DeviceFamily.Xbox }) {
+                foreach (string control in controls) {
+                    string glyph = DeviceFamilies.GamepadGlyphName("<Gamepad>/" + control, family);
+                    Assert.IsNotNull(glyph, control);
+                    Assert.IsTrue(File.Exists("Assets/Art/_Source/UI/InputPrompts/" + glyph + ".png"), glyph);
+                }
+            }
+            Assert.IsNull(DeviceFamilies.GamepadGlyphName("<Keyboard>/e", DeviceFamily.PlayStation));
+        }
     }
 }

@@ -17,6 +17,7 @@ namespace BusDriver.Editor.Builders {
         public const string ScreensPath = PrefabBuilder.Folder + "/Screens.prefab";
         public const string DebugOverlayPath = PrefabBuilder.Folder + "/DebugOverlay.prefab";
         public const string LoadingPath = PrefabBuilder.Folder + "/Loading.prefab";
+        public const string PromptTextName = "PromptText";
         public const string DashPath = DashPrefabBuilder.Path;
 
         // Canvas order (§4.13): CCTV under the HUD, screens over both, debug on top
@@ -114,7 +115,9 @@ namespace BusDriver.Editor.Builders {
 
             // Interaction prompts sit a little below centre so they read as tooltips over the
             // world, not as a footer. The dialogue box owns the bottom strip instead.
-            TMP_Text prompt = UIBuild.Label("PromptText", hudCanvas.transform, "", ThemeRole.Hud, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), new Vector2(0f, -140f), new Vector2(1200f, 110f));
+            TMP_Text prompt = UIBuild.Label(PromptTextName, hudCanvas.transform, "", ThemeRole.Hud, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), new Vector2(0f, -140f), new Vector2(1200f, 110f));
+            // Controller button glyphs for the prompt keys
+            prompt.spriteAsset = BusDriver.Editor.Art.InputPromptImport.LoadOrBuild();
             TMP_Text status = UIBuild.Label("StatusText", hudCanvas.transform, "", ThemeRole.Hud, TextAlignmentOptions.Top, new Vector2(0.5f, 1f), new Vector2(0f, -50f), new Vector2(900f, 100f));
             UIBuild.Theme(status, ThemeRole.Hud).SetPaletteColor(ThemeColor.Highlight);
 

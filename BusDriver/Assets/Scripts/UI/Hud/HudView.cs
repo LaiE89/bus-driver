@@ -98,8 +98,10 @@ namespace BusDriver.UI.Hud {
             refuseRiderKey = Key("RefuseRider");
         }
 
+        // A button glyph on a pad when the prompt text's sprite asset has it, else the key's name
         string Key(string actionId) {
-            return game.Input.GetDisplayString(actionId).ToUpperInvariant();
+            TMP_SpriteAsset glyphs = promptText.spriteAsset;
+            return game.Input.GetPromptString(actionId, glyphs != null ? (System.Predicate<string>)(name => glyphs.GetSpriteIndexFromName(name) >= 0) : null);
         }
 
         void Update() {
