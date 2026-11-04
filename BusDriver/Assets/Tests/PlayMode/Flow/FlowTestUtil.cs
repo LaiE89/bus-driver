@@ -56,6 +56,10 @@ namespace BusDriver.Tests.PlayMode.Flow {
             yield return WaitForNight(game);
             yield return WaitFor(() => {
                 ShiftDirector director = Director();
+                // The depot shop waits for Start shift; tests drive straight through it
+                if (director != null && director.State == ShiftState.Depot) {
+                    director.ConfirmDepot();
+                }
                 return director != null && director.State == ShiftState.Driving;
             }, 30f, "the Driving state");
             DoorDriver(UnityEngine.Object.FindAnyObjectByType<ShiftContext>());

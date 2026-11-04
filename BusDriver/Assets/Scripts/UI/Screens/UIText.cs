@@ -14,6 +14,18 @@ namespace BusDriver.UI.Screens {
 
         // Intro card (§2.21). The route name moves to RouteDefinition.displayName with T-M2-01.
         public const string IntroNight = "NIGHT {0}";
+        public const string DepotTitle = "DEPOT";
+        public const string DepotNightLine = "NIGHT {0}    {1}";
+        public const string DepotHint = "Buy items before you start your shift";
+        public const string DepotWalletLabel = "WALLET";
+        public const string DepotCoffee = "COFFEE";
+        public const string DepotCoffeeHint = "Restores sanity";
+        public const string DepotCarrying = "CARRYING";
+        public const string DepotBuy = "BUY";
+        public const string DepotStart = "START SHIFT";
+        public const string DepotCantAfford = "NOT ENOUGH MONEY";
+        public const string DepotSlotsFull = "NO FREE SLOT";
+        public const string DepotEmpty = "NOTHING CARRIED";
         public const string RouteName = "HOLLOW PINES LINE";
 
         // Summary (§2.21).

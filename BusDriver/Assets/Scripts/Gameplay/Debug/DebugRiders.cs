@@ -25,7 +25,7 @@ namespace BusDriver.Gameplay.Debug {
             GameRootConfig config = services.Game.Config;
             for (int i = 0; i < config.monsters.Length; i++) {
                 MonsterDefinition monster = config.monsters[i];
-                if (monster != null) {
+                if (monster != null && monster.id != MonsterIds.Mimic) {
                     string id = monster.id;
                     services.Debug.AddCheat(new DebugCheat("Riders", monster.displayName + " at the nearest stop", () => SpawnAtNearestStop(id)));
                 }

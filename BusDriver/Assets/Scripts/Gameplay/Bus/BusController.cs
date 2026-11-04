@@ -86,6 +86,15 @@ namespace BusDriver.Gameplay.Bus {
             }
         }
 
+        // A bump that is not a crash: keep this fraction of the current velocity.
+        public void KnockSpeed(float keep) {
+            if (rb == null || IsFrozen) {
+                return;
+            }
+            keep = Mathf.Clamp01(keep);
+            rb.linearVelocity *= keep;
+        }
+
         public void SetInput(float steer, float accel, bool handbrake) {
             steerInput = Mathf.Clamp(steer, -1f, 1f);
             accelInput = Mathf.Clamp(accel, -1f, 1f);

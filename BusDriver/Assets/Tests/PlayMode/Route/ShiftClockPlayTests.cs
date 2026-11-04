@@ -44,7 +44,11 @@ namespace BusDriver.Tests.PlayMode.Route {
             Assert.IsNotNull(clock, "Night_Systems has no ShiftClockDriver");
             double start = night.Route.Route.schedule.shiftStartGameSeconds;
 
-            // Intro: frozen at the shift start
+            // The depot shop opens first, and the clock stays at the shift start until Driving
+            Assert.AreEqual(ShiftState.Depot, night.Director.State);
+            yield return WaitRealSeconds(1f);
+            Assert.AreEqual(start, clock.NowGameSeconds, 1e-9, "the clock moved during the depot");
+            night.Director.ConfirmDepot();
             Assert.AreEqual(ShiftState.Intro, night.Director.State);
             yield return WaitRealSeconds(1f);
             Assert.AreEqual(ShiftState.Intro, night.Director.State);

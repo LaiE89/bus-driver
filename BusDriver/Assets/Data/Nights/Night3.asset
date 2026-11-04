@@ -24,13 +24,12 @@ MonoBehaviour:
   monsterCountMin: 2
   monsterCountMax: 2
   requiredMonsters:
-  - mimic
-  monsterPool:
-  - starer
-  - whisperer
+  - gazer
+  - guest
+  monsterPool: []
   minDistinctTypes: 0
   maxPerType: 0
   monsterBoardFirstStop: farm_gate
   monsterBoardLastStop: church
-  mimicBoardFirstStop: gas_station
-  mimicBoardLastStop: campground
+  mimicBoardFirstStop: 
+  mimicBoardLastStop:

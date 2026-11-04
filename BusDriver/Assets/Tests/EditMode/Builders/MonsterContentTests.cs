@@ -58,6 +58,31 @@ namespace BusDriver.Tests.EditMode.Builders {
         }
 
         [Test]
+        public void Gazer_RushesAfterALongLook() {
+            MonsterDefinition m = Monster("gazer");
+            AssertRules(m, ThreatCondition.Always, 0f);
+            Assert.AreEqual(ObserverKinds.Cctv | ObserverKinds.OnFoot, m.observerKinds);
+            Assert.AreEqual(EscapeKind.None, m.escape.kind);
+            Assert.AreEqual("Don't watch it. Don't watch the camera while it rides.", m.journal.hint);
+            GazerRushConfig ability = m.Ability<GazerRushConfig>();
+            Assert.IsNotNull(ability);
+            Assert.AreEqual(3f, ability.lookSeconds, 0.001f);
+            Assert.AreEqual(8f, ability.rushMetresPerSecond, 0.001f);
+            Assert.IsNull(m.logicPrefab.GetComponent<KillSequence>());
+            Assert.IsNotNull(m.logicPrefab.GetComponent<GazerRush>());
+        }
+
+        public void Guest_KillsWhenAccepted() {
+            MonsterDefinition m = Monster("guest");
+            AssertRules(m, ThreatCondition.Always, 0f);
+            Assert.AreEqual(ObserverKinds.None, m.observerKinds);
+            Assert.AreEqual(EscapeKind.None, m.escape.kind);
+            Assert.AreEqual("Do not let it on the bus.", m.journal.hint);
+            Assert.IsNotNull(m.Ability<GuestStrikeConfig>());
+            Assert.IsNull(m.logicPrefab.GetComponent<KillSequence>());
+            Assert.IsNotNull(m.logicPrefab.GetComponent<GuestStrike>());
+        }
+
         public void Mimic_MatchesSection2_12() {
             MonsterDefinition m = Monster("mimic");
             AssertRules(m, ThreatCondition.Observed, 2.5f, ThreatCondition.Always, -1f);

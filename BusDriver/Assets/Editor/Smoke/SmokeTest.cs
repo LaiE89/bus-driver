@@ -641,6 +641,10 @@ namespace BusDriver.Editor.Smoke {
             }
             // The intro card holds the bus until the shift turns to Driving (§2.1)
             if (nightReadyAt < 0f) {
+                if (night.Director.State == Gameplay.Shift.ShiftState.Depot) {
+                    night.Director.ConfirmDepot();
+                    return false;
+                }
                 if (night.Director.State != Gameplay.Shift.ShiftState.Driving) {
                     return false;
                 }
@@ -651,7 +655,7 @@ namespace BusDriver.Editor.Smoke {
             return Time.time - nightReadyAt >= 0.3f;
         }
 
-        // The diorama (§2.22): the lit stop, the figure, the lamp's buzz and the ambience, captured
+        // The diorama (§2.22): the lit stop, the figure, and the ambience, captured
         // with the menu UI drawn into the camera for once
         static void CheckMenu() {
             Camera cam = Camera.main;
@@ -659,13 +663,11 @@ namespace BusDriver.Editor.Smoke {
             Check(GameObject.Find(MenuBuilder.FigureName) != null, "the menu has no waiting figure");
             LightFlicker lamp = UnityEngine.Object.FindAnyObjectByType<LightFlicker>();
             Check(lamp != null && lamp.LightCount > 0, "the menu stop has no flickering lamp");
-            LampBuzz buzz = UnityEngine.Object.FindAnyObjectByType<LampBuzz>();
-            Check(buzz != null && buzz.IsPlaying, "the lamp's buzz isn't playing");
+            Check(UnityEngine.Object.FindAnyObjectByType<LampBuzz>() == null, "the menu lamp is still buzzing");
             SceneAmbience ambience = UnityEngine.Object.FindAnyObjectByType<SceneAmbience>();
-            bool forest = ambience != null && ambience.IsPlaying(SoundIds.AmbForestNight);
             bool wind = ambience != null && ambience.IsPlaying(SoundIds.AmbWind);
-            Check(forest && wind, "the menu ambience (forest, wind) isn't playing");
-            Log($"menu: lamp x{(lamp != null ? lamp.Multiplier : 0f):F2}, buzz {(buzz != null && buzz.IsPlaying)}, forest {forest}, wind {wind}");
+            Check(wind, "the menu ambience (wind) isn't playing");
+            Log($"menu: lamp x{(lamp != null ? lamp.Multiplier : 0f):F2}, wind {wind}");
             if (cam == null) {
                 return;
             }

@@ -23,6 +23,8 @@ namespace BusDriver.Core.Rules {
         public int nightIndex;
         public LedgerTotals totals = new LedgerTotals();
         public int walletBeforeCents;
+        // Depot purchases this night, already taken out of the wallet that carries forward
+        public int spentCents;
         public float sanityEnd;
         // NightDefinition.quotaCents; 0 means no quota
         public int quotaCents;
@@ -33,7 +35,7 @@ namespace BusDriver.Core.Rules {
         public RunStats stats = new RunStats();
 
         public int NetCents { get { return totals.NetCents; } }
-        public int WalletAfterCents { get { return walletBeforeCents + totals.NetCents; } }
+        public int WalletAfterCents { get { return walletBeforeCents - spentCents + (totals != null ? totals.NetCents : 0); } }
 
         // The ledger's money by kind, as RunStats counts it (refunds and losses as positive sums)
         public void FillMoneyStats() {

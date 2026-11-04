@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: bus.door_open
   clips:
-  - {fileID: 8300000, guid: 71fb693a892d84ae3bc33f5ddcae083f, type: 3}
+  - {fileID: 8300000, guid: 2ac03229d39ada24fa75f74cdc89f096, type: 3}
   volume: 0.35
   volumeJitter: 0
   pitch: 1

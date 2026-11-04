@@ -20,7 +20,7 @@ using static BusDriver.Editor.Builders.BuilderUtil;
 namespace BusDriver.Editor.Builders {
     // BuildAll step 10 (§4.15): Generated/Scenes/Menu.unity. v1 (T-M2-15): a live diorama built from
     // the game's own generated pieces (§2.22, D17): a 60 m road piece with a guardrail on the near
-    // side, the trailhead stop and its flickering, buzzing lamp across the road, forest trees, one
+    // side, the trailhead stop and its flickering lamp across the road, forest trees, one
     // waiting figure, the night lighting preset and a fixed camera with a slow drift. Over it, on the
     // dark left of the frame with no panel: the title, New Run / Options / Controls / Quit, the build
     // label and the loading bar, the MenuContext and the Screens prefab for Options and Controls.
@@ -53,8 +53,7 @@ namespace BusDriver.Editor.Builders {
             MenuContext context = contextObject.AddComponent<MenuContext>();
             SceneAmbience ambience = contextObject.AddComponent<SceneAmbience>();
             // No bed yet: amb.wind's clip is a broadband hiss that reads as static over a quiet
-            // menu, and amb.forest_night still has only a placeholder hum. The menu stays on the
-            // lamp buzz and the UI sounds until one of them has a real forest recording.
+            // menu. The menu stays on the UI sounds.
             SetStringArray(ambience, "loops", new string[0]);
 
             BuildDiorama();
@@ -147,15 +146,10 @@ namespace BusDriver.Editor.Builders {
             }
             Object.DestroyImmediate(piece);
 
-            // The trailhead stop (§2.22), its lamp humming with its flicker
+            // The trailhead stop (§2.22). The lamp still flickers; it does not buzz.
             RoutePose pose = path.Evaluate(StopDistance);
             GameObject stop = EnvironmentPrefabBuilder.Place(EnvironmentKinds.Stop(StopKind.Trailhead), world, pose.Position, pose.Rotation, 1);
             stop.name = StopName;
-            LightFlicker flicker = stop.GetComponentInChildren<LightFlicker>(true);
-            if (flicker != null) {
-                LampBuzz buzz = flicker.gameObject.AddComponent<LampBuzz>();
-                SetRef(buzz, "flicker", flicker);
-            }
             BuildFigure(stop.transform, stop.GetComponent<BusStop>());
         }
 

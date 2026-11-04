@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: hal.static_burst
   clips:
-  - {fileID: 8300000, guid: 65e139633669c4a2ab64056d35ac53b2, type: 3}
+  - {fileID: 8300000, guid: 27d8e7cc934dc3146a1d3cef4800ff6c, type: 3}
   volume: 0.75
   volumeJitter: 0
   pitch: 1

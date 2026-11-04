@@ -37,6 +37,8 @@ namespace BusDriver.UI.Hud {
             float hands = state != null ? state.HandsProgress : 0f;
             if (overlay != null) {
                 overlay.enabled = overlayAlpha > 0.001f;
+                float scale = overlay.enabled && state != null ? Mathf.Max(1f, state.OverlayScale) : 1f;
+                overlay.rectTransform.localScale = new Vector3(scale, scale, 1f);
                 if (overlay.enabled) {
                     overlay.texture = state.Overlay;
                     overlay.color = new Color(1f, 1f, 1f, overlayAlpha);

@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: amb.lamp_buzz
   clips:
-  - {fileID: 8300000, guid: 33d39ef05d8a84cb8a289af07ca51437, type: 3}
-  volume: 0.35
+  - {fileID: 8300000, guid: 1bfec8479ad580145b63ee8076cf2480, type: 3}
+  volume: 0.1
   volumeJitter: 0
   pitch: 1
   pitchJitter: 0

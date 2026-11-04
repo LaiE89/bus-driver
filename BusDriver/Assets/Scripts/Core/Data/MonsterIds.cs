@@ -6,5 +6,7 @@ namespace BusDriver.Core.Data {
         public const string Starer = "starer";
         public const string Whisperer = "whisperer";
         public const string Mimic = "mimic";
+        public const string Gazer = "gazer";
+        public const string Guest = "guest";
     }
 }

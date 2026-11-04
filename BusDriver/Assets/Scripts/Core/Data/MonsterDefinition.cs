@@ -63,7 +63,25 @@ namespace BusDriver.Core.Data {
         public float whisperVolumeLerpPerSecond = 0.35f;
     }
 
-    // §2.12 and D22: it copies a seated rider, then replaces them
+    // After it sits, a long look through the cabin camera — or a long stare on foot — makes it sprint and kill.
+    [Serializable]
+    public sealed class GazerRushConfig : MonsterAbilityConfig {
+        [Tooltip("Continuous seconds of camera view, or of being stared at on foot, before it runs")]
+        public float lookSeconds = 3f;
+        [Tooltip("Sprint speed toward the driver, metres per second")]
+        public float rushMetresPerSecond = 8f;
+        [Tooltip("It kills once it is this close to the driver, metres")]
+        public float reachMetres = 0.9f;
+    }
+
+    // Accepting it at the door kills the driver. Refusing it sends it away.
+    [Serializable]
+    public sealed class GuestStrikeConfig : MonsterAbilityConfig {
+        [Tooltip("Accepting this rider at the door kills the driver")]
+        public bool killOnAccept = true;
+    }
+
+    // §2.12 and D22: it copies a seated rider, then replaces them. No longer boarded.
     [Serializable]
     public sealed class MimicCopyConfig : MonsterAbilityConfig {
         [Tooltip("A replace happens this long after boarding or the last replace, if Aggressive didn't trigger one first")]

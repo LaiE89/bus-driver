@@ -44,7 +44,7 @@ namespace BusDriver.Core.Data {
         public float sanityThreatFactorAt0 = 1.5f;
 
         [Header("Sanity (§2.15), per second or per event")]
-        public float sanityBaselinePerSecond = -0.05f;
+        public float sanityBaselinePerSecond = -0.2f;
         public float tunnelSanityPerSecond = -0.5f;
         public float doorsOpenAtStopSanityPerSecond = 0.5f;
         public float deathWitnessSanity = -10f;
@@ -54,6 +54,10 @@ namespace BusDriver.Core.Data {
         public float startleSanity = -2f;
         [Tooltip("Talking to a human passenger on foot")]
         public float chatSanityRestore = 8f;
+        [Tooltip("Thermos of coffee at the depot, in cents (§2.18)")]
+        public int coffeeCents = 600;
+        [Tooltip("Sanity restored by drinking a coffee")]
+        public float coffeeSanity = 30f;
         [Tooltip("Next night: min(100, max(end + bonus, floor))")]
         public float sanityCarryBonus = 30f;
         public float sanityCarryFloor = 60f;

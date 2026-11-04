@@ -40,9 +40,10 @@ namespace BusDriver.Gameplay.Scares {
     // HUD's ScareOverlayView draws them, so gameplay never references UI (§4.2). Blackouts use the
     // night's ScreenFade, which the death presenters keep black afterwards.
     public sealed class ScareOverlayState {
-        // ShowOverlay's texture and opacity
+        // ShowOverlay's texture and opacity. Scale 1 fills the screen; larger crops in tighter.
         public Texture Overlay;
         public float OverlayAlpha;
+        public float OverlayScale = 1f;
         // CctvStatic's opacity
         public float StaticAlpha;
         // HandsOverCamera: 0 out of view .. 1 closed over the view

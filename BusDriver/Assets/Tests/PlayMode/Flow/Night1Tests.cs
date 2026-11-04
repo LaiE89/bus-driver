@@ -106,7 +106,12 @@ namespace BusDriver.Tests.PlayMode.Flow {
             yield return FlowTestUtil.WaitForNight(game);
             ShiftContext night = Object.FindAnyObjectByType<ShiftContext>();
             ShiftDirector director = night.Shift.Director;
-            yield return FlowTestUtil.WaitFor(() => director.State == ShiftState.Driving, 30f, "the Driving state");
+            yield return FlowTestUtil.WaitFor(() => {
+                if (director.State == ShiftState.Depot) {
+                    director.ConfirmDepot();
+                }
+                return director.State == ShiftState.Driving;
+            }, 30f, "the Driving state");
             SparingPreventer spared = new SparingPreventer();
             night.Shift.Death.AddPreventer(spared);
             Time.timeScale = 1f;

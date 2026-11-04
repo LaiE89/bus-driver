@@ -8,6 +8,7 @@ using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Dialogue;
 using BusDriver.Gameplay.Economy;
+using BusDriver.Gameplay.Items;
 using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
@@ -123,6 +124,9 @@ namespace BusDriver.Gameplay.Flow {
             shift.OnFoot.Init(shift);
             shift.Interactor.Init(shift);
             shift.EngineSound.Init(shift);
+            if (shift.Doors != null) {
+                shift.Doors.Init(shift);
+            }
             if (shift.AutoPilot != null) {
                 shift.AutoPilot.Init(shift);
             }
@@ -152,7 +156,11 @@ namespace BusDriver.Gameplay.Flow {
             }
             // 10. MonsterSystem
             shift.Monsters.Init(shift);
-            // 11–13. Hallucinations, items and journal/hints arrive with M5–M7
+            // 11. Coffee and the depot slots. Hallucinations and the journal stay later.
+            if (shift.Items != null) {
+                shift.Items.Init(shift);
+            }
+            // 12–13. Hallucinations and journal/hints arrive with M5–M7
             // 14. ManifestSpawner, and the debug rider hook beside it
             shift.Manifest.Init(shift);
             if (shift.DebugRiders != null) {
@@ -213,6 +221,7 @@ namespace BusDriver.Gameplay.Flow {
                 Night = ResolveNight(setup),
                 Balance = ResolveBalance(),
                 Ledger = new ShiftLedger(setup.Run.walletCents),
+                Items = new ItemService(),
                 Economy = new EconomyRules(),
             };
             return shift;

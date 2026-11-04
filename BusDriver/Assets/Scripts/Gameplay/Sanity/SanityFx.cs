@@ -8,12 +8,11 @@ using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Scares;
 using BusDriver.Gameplay.Shift;
-using BusDriver.Gameplay.Views;
 using UnityEngine;
 
 namespace BusDriver.Gameplay.Sanity {
     // Tier presentation for the simple sanity spiral: T1 random sounds + camera flicker, T2 road
-    // obstacles (NPC models) + cabin light flicker, T3 thicker fog. No HUD number.
+    // sprites + cabin light flicker, T3 thicker fog. No HUD number.
     public sealed class SanityFx : MonoBehaviour {
         static readonly string[] AmbientSounds = {
             SoundIds.HalFootstepsBehind, SoundIds.HalDoorChime, SoundIds.HalWindowKnock,
@@ -33,9 +32,24 @@ namespace BusDriver.Gameplay.Sanity {
         [SerializeField] FloatRange obstacleInterval = new FloatRange(14f, 26f);
         [SerializeField] float obstacleAheadMeters = 38f;
         [SerializeField] float obstacleSideJitter = 1.2f;
+        [Tooltip("World height of a spawned sprite, whatever its pixel size")]
+        [SerializeField] float spriteHeight = 1.8f;
+        [Tooltip("How far above the road the bottom of the picture sits")]
+        [SerializeField] float spriteLift = 1f;
+        [Tooltip("Fraction of speed kept when the bus runs through a picture")]
+        [SerializeField] [Range(0f, 1f)] float hitSpeedKeep = 0.4f;
+        [Tooltip("Sanity lost when the bus runs through a picture")]
+        [SerializeField] float obstacleSanityHit = -12f;
+        [SerializeField] float hitFlashSeconds = 0.7f;
+        [Tooltip("1 fills the screen. Larger zooms the picture past the edges")]
+        [SerializeField] float hitFlashScale = 1.85f;
         [SerializeField] float cabinFlickerSeconds = 0.7f;
         [SerializeField] FloatRange cabinFlickerGap = new FloatRange(2.5f, 5.5f);
         [SerializeField] int maxObstacles = 3;
+
+        [Header("Heartbeat [TUNE]")]
+        [Tooltip("A looping heartbeat while driving below this sanity")]
+        [SerializeField] float heartbeatBelow = 25f;
 
         [Header("T3 — fog [TUNE]")]
         [SerializeField] float fogDensityAtT3 = 0.055f;
@@ -61,6 +75,7 @@ namespace BusDriver.Gameplay.Sanity {
         float fogBlend;
         int lastSoundIndex = -1;
         bool cameraFlickerRunning;
+        SoundHandle heartbeat;
 
         public void Init(ShiftServices services, SanitySystem system) {
             shift = services;
@@ -70,6 +85,11 @@ namespace BusDriver.Gameplay.Sanity {
             CaptureFog();
             ApplyFogForTier(system.Tier);
             ScheduleAll(system.Tier);
+            CabinShadow shadow = gameObject.GetComponent<CabinShadow>();
+            if (shadow == null) {
+                shadow = gameObject.AddComponent<CabinShadow>();
+            }
+            shadow.Init(services, system, heartbeatBelow);
         }
 
         void OnDestroy() {
@@ -80,6 +100,7 @@ namespace BusDriver.Gameplay.Sanity {
                 shift.CabinLights.Stop(lightOwner);
             }
             StopCameraFlicker();
+            StopHeartbeat();
             RestoreFog();
             ClearObstacles();
         }
@@ -102,8 +123,10 @@ namespace BusDriver.Gameplay.Sanity {
             // Fog keeps easing even outside Driving so a mid-fade exit doesn't snap
             TickFog(Time.deltaTime);
             if (shift.Director == null || shift.Director.State != ShiftState.Driving) {
+                StopHeartbeat();
                 return;
             }
+            TickHeartbeat();
             SanityTier tier = sanity.Tier;
             if (tier >= SanityTier.T1) {
                 TickSound();
@@ -147,6 +170,26 @@ namespace BusDriver.Gameplay.Sanity {
             if (!handle.IsNone) {
                 shift.Game.Audio.SetVolume(handle, soundVolumeBoost);
             }
+        }
+
+        void TickHeartbeat() {
+            if (sanity.Value < heartbeatBelow) {
+                IAudioService audio = shift.Game != null ? shift.Game.Audio : null;
+                if (audio != null && !audio.IsPlaying(heartbeat)) {
+                    heartbeat = audio.Play(SoundIds.SanHeartbeatLoop);
+                }
+            } else {
+                StopHeartbeat();
+            }
+        }
+
+        void StopHeartbeat() {
+            if (heartbeat.IsNone || shift == null || shift.Game == null || shift.Game.Audio == null) {
+                heartbeat = SoundHandle.None;
+                return;
+            }
+            shift.Game.Audio.Stop(heartbeat);
+            heartbeat = SoundHandle.None;
         }
 
         void TickCameraFlicker() {
@@ -205,27 +248,29 @@ namespace BusDriver.Gameplay.Sanity {
         }
 
         void SpawnObstacle() {
-            if (shift.Bus == null || shift.Views == null) {
+            if (shift.Bus == null) {
+                return;
+            }
+            Sprite sprite = PickSprite();
+            if (sprite == null) {
                 return;
             }
             Transform bus = shift.Bus.transform;
             float side = ((float)rng.NextDouble() * 2f - 1f) * obstacleSideJitter;
             Vector3 pos = bus.position + bus.forward * obstacleAheadMeters + bus.right * side;
-            pos.y = bus.position.y;
+            pos.y = RoadHeight(pos) + spriteLift;
 
             GameObject root = new GameObject("SanityObstacle");
-            root.transform.SetPositionAndRotation(pos, Quaternion.LookRotation(-bus.forward, Vector3.up));
+            root.transform.position = pos;
             SanityObstacle obstacle = root.AddComponent<SanityObstacle>();
-            PassengerLookDefinition look = PickLook();
-            PassengerViewBase view = shift.Views.Create(look, root.transform);
-            if (view != null) {
-                view.transform.localPosition = Vector3.zero;
-            }
-            CapsuleCollider capsule = root.AddComponent<CapsuleCollider>();
-            capsule.height = 1.8f;
-            capsule.radius = 0.35f;
-            capsule.center = new Vector3(0f, 0.9f, 0f);
-            capsule.isTrigger = true;
+            obstacle.Picture = sprite;
+            float width = PlaceSprite(root.transform, sprite);
+
+            BoxCollider box = root.AddComponent<BoxCollider>();
+            box.isTrigger = true;
+            float height = Mathf.Max(0.2f, spriteHeight);
+            box.size = new Vector3(Mathf.Max(0.2f, width), height, 0.4f);
+            box.center = new Vector3(0f, height * 0.5f, 0f);
             Rigidbody body = root.AddComponent<Rigidbody>();
             body.isKinematic = true;
             body.useGravity = false;
@@ -233,28 +278,60 @@ namespace BusDriver.Gameplay.Sanity {
             obstacles.Add(obstacle);
         }
 
-        PassengerLookDefinition PickLook() {
+        // Bottom of the picture sits on the road. Scale ignores the PNG's pixel size.
+        float PlaceSprite(Transform root, Sprite sprite) {
+            float units = sprite.bounds.size.y;
+            float scale = units > 0.001f ? spriteHeight / units : 1f;
+            GameObject visual = new GameObject("Sprite");
+            visual.transform.SetParent(root, false);
+            SpriteRenderer renderer = visual.AddComponent<SpriteRenderer>();
+            renderer.sprite = sprite;
+            visual.transform.localScale = new Vector3(scale, scale, 1f);
+            visual.transform.localPosition = new Vector3(-sprite.bounds.center.x * scale, -sprite.bounds.min.y * scale, 0f);
+            return sprite.bounds.size.x * scale;
+        }
+
+        Sprite PickSprite() {
             GameRootConfig config = shift.Game != null ? shift.Game.Config : null;
-            if (config == null || config.looks == null || config.looks.Length == 0) {
+            if (config == null || config.sanityObstacles == null || config.sanityObstacles.Length == 0) {
                 return null;
             }
-            PassengerLookDefinition look = null;
-            for (int attempt = 0; attempt < 8 && look == null; attempt++) {
-                look = config.looks[rng.Next(config.looks.Length)];
+            for (int attempt = 0; attempt < 8; attempt++) {
+                Sprite sprite = config.sanityObstacles[rng.Next(config.sanityObstacles.Length)];
+                if (sprite != null) {
+                    return sprite;
+                }
             }
-            return look;
+            return null;
+        }
+
+        // The road surface under a spawn point. The bus origin sits in the wheels, so using it
+        // plants the picture in the asphalt.
+        float RoadHeight(Vector3 pos) {
+            Vector3 origin = pos + Vector3.up * 6f;
+            if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 16f, ~0, QueryTriggerInteraction.Ignore)) {
+                return hit.point.y;
+            }
+            return pos.y;
         }
 
         void OnObstacleHit(SanityObstacle obstacle) {
             if (obstacle == null) {
                 return;
             }
+            Sprite picture = obstacle.Picture;
             obstacles.Remove(obstacle);
-            PlayJumpScare();
             Destroy(obstacle.gameObject);
+            if (shift.Bus != null) {
+                shift.Bus.KnockSpeed(hitSpeedKeep);
+            }
+            if (sanity != null && obstacleSanityHit != 0f) {
+                sanity.Apply(obstacleSanityHit, SanityReason.Scare);
+            }
+            PlayJumpScare(picture);
         }
 
-        void PlayJumpScare() {
+        void PlayJumpScare(Sprite picture) {
             if (shift.Game != null && shift.Game.Audio != null) {
                 shift.Game.Audio.Play(SoundIds.ScareStartleSting);
             }
@@ -262,7 +339,8 @@ namespace BusDriver.Gameplay.Sanity {
                 StartCoroutine(JumpScareShake());
             }
             if (shift.ScareOverlay != null) {
-                StartCoroutine(JumpScareFlash());
+                Texture texture = picture != null ? picture.texture : null;
+                StartCoroutine(JumpScareFlash(texture));
             }
         }
 
@@ -272,11 +350,17 @@ namespace BusDriver.Gameplay.Sanity {
             shift.Shake.SetShake(shakeOwner, 0f);
         }
 
-        IEnumerator JumpScareFlash() {
+        IEnumerator JumpScareFlash(Texture picture) {
             ScareOverlayState overlay = shift.ScareOverlay;
-            overlay.OverlayAlpha = 0.85f;
-            yield return new WaitForSeconds(0.12f);
-            overlay.OverlayAlpha = 0f;
+            overlay.Overlay = picture;
+            overlay.OverlayScale = hitFlashScale;
+            overlay.OverlayAlpha = 1f;
+            yield return new WaitForSeconds(hitFlashSeconds);
+            if (shift != null && shift.ScareOverlay == overlay && overlay.Overlay == picture) {
+                overlay.OverlayAlpha = 0f;
+                overlay.Overlay = null;
+                overlay.OverlayScale = 1f;
+            }
         }
 
         void PruneObstacles() {

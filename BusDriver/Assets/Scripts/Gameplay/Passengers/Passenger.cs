@@ -70,6 +70,7 @@ namespace BusDriver.Gameplay.Passengers {
         Vector3 waitPosition;
         Quaternion waitRotation;
         bool abortRequested;
+        bool killedAtDoor;
         BoardingDecision decision;
 
         protected virtual void Awake() {
@@ -137,7 +138,9 @@ namespace BusDriver.Gameplay.Passengers {
             return Shift != null && Shift.Rng != null ? Shift.Rng.Get(RngStreams.Dialogue) : null;
         }
 
-        // They only ring once the next stop on the night is theirs (§2.4)
+        // They only ring once the next stop on the night is theirs (§2.4), and only after the
+        // bus has left the stop before it. Serving a stop makes the following one "next" while
+        // the door is still in that zone, which used to ring the bell at the kerb.
         void BeginStopWatch() {
             HasRequestedStop = false;
         }
@@ -149,6 +152,9 @@ namespace BusDriver.Gameplay.Passengers {
             RiderRecord record = Record;
             if (record == null || record.IsMonster || string.IsNullOrEmpty(record.DestinationStopId)
                     || Shift == null || Shift.Tracker == null) {
+                return;
+            }
+            if (Shift.Cabin != null && Shift.Cabin.CurrentStop != null) {
                 return;
             }
             RouteStop next = Shift.Tracker.NextStop;
@@ -417,6 +423,9 @@ namespace BusDriver.Gameplay.Passengers {
             // Only now does the fare go in the box: EconomyRules charges on this event (§2.7)
             doors.Release(this);
             doors.Exit(this);
+            if (killedAtDoor) {
+                yield break;
+            }
             OnBoarded();
             Cabin.NotifyBoarded(this);
 
@@ -676,6 +685,25 @@ namespace BusDriver.Gameplay.Passengers {
         }
 
         // Stand up and free the seat so a stalking monster can walk the aisle.
+        // A seated monster sprinting out of its seat toward a cabin-local point. The seat frees on the first step.
+        public void RushStep(Vector3 cabinLocal, float metresPerSecond) {
+            if (!IsAboard || Cabin == null || State != PassengerState.Seated) {
+                return;
+            }
+            if (Seat != null) {
+                VacateSeat();
+            }
+            float step = Mathf.Max(0f, metresPerSecond) * Time.deltaTime;
+            Vector3 offset = cabinLocal - transform.localPosition;
+            if (offset.sqrMagnitude > 0.0001f) {
+                Face(offset, true);
+                transform.localPosition = Vector3.MoveTowards(transform.localPosition, cabinLocal, step);
+                SetLocomotion(metresPerSecond);
+            } else {
+                SetLocomotion(0f);
+            }
+        }
+
         protected void VacateSeat() {
             if (Seat != null) {
                 Seat.Release(this);

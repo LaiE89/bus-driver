@@ -22,7 +22,7 @@ MonoBehaviour:
   onFootRange: 8
   mirrorRange: 6
   sanityThreatFactorAt0: 1.5
-  sanityBaselinePerSecond: -0.05
+  sanityBaselinePerSecond: -0.2
   tunnelSanityPerSecond: -0.5
   doorsOpenAtStopSanityPerSecond: 0.5
   deathWitnessSanity: -10
@@ -30,6 +30,8 @@ MonoBehaviour:
   monsterKickSanity: 10
   monsterScareSanity: -5
   startleSanity: -2
+  coffeeCents: 600
+  coffeeSanity: 30
   sanityCarryBonus: 30
   sanityCarryFloor: 60
   hallucinationIntervals:

@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88bd55ed3ff534f139d9154bd19e4097, type: 3}
+  m_Name: Gazer
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.MonsterDefinition
+  id: gazer
+  displayName: The Gazer
+  rules:
+  - condition: 0
+    ratePerSecond: 0
+  observerKinds: 5
+  graceSeconds: 10
+  seatZonePreference: 2
+  seatZoneFallback: 3
+  killTelegraphSeconds: 4
+  escape:
+    kind: 0
+    seconds: 0
+    resetThreat: 60
+  bountyCents: 500
+  ability:
+    rid: 1543484118205726801
+  journal:
+    sightingText: A rider who will not raise its eyes.
+    tellsText:
+    - It boards looking at the floor.
+    - The cabin camera makes it lift its head.
+    - On foot, meeting its eyes is the same as the camera.
+    hint: Don't watch it. Don't watch the camera while it rides.
+    icon: {fileID: 0}
+  logicPrefab: {fileID: 810000000000000101, guid: c33e0223d4e56f708192a3b4c5d6e7f8, type: 3}
+  references:
+    version: 2
+    RefIds:
+    - rid: 1543484118205726801
+      type: {class: GazerRushConfig, ns: BusDriver.Core.Data, asm: BusDriver.Core}
+      data:
+        lookSeconds: 3
+        rushMetresPerSecond: 8
+        reachMetres: 0.9

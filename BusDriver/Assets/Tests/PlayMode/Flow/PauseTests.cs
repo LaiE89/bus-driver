@@ -29,7 +29,12 @@ namespace BusDriver.Tests.PlayMode.Flow {
         IEnumerator StartNight(GameServices game) {
             game.Flow.NewRun();
             yield return FlowTestUtil.WaitForNight(game);
-            // No pause over the intro card (§4.11)
+            // The depot shop opens first. No pause over the shop or the intro card that follows (§4.11)
+            Assert.AreEqual(ShiftState.Depot, FlowTestUtil.Director().State);
+            Assert.IsFalse(game.Pause.TrySetPaused(true), "the depot can't be paused");
+            Assert.AreEqual(0f, Time.timeScale, "the night's clock stays held in the depot");
+            FlowTestUtil.Director().ConfirmDepot();
+            Assert.AreEqual(1f, Time.timeScale, "Start shift lets time run");
             Assert.AreEqual(ShiftState.Intro, FlowTestUtil.Director().State);
             Assert.IsFalse(game.Pause.TrySetPaused(true), "the intro can't be paused");
             yield return FlowTestUtil.WaitForDriving(game);

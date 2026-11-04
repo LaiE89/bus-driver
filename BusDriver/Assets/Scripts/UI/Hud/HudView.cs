@@ -54,6 +54,11 @@ namespace BusDriver.UI.Hud {
             mode.OnModeChanged += HandleModeChanged;
             RefreshControlsHint();
             RefreshPanels();
+            ItemHud items = GetComponent<ItemHud>();
+            if (items == null) {
+                items = gameObject.AddComponent<ItemHud>();
+            }
+            items.Bind(shift, promptText);
         }
 
         void OnDestroy() {

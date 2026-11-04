@@ -116,8 +116,11 @@ namespace BusDriver.Tests.PlayMode.Flow {
                     game.Flow.NewRun();
                     yield return FlowTestUtil.WaitForNight(game);
                     ShiftDirector director = FlowTestUtil.Director();
-                    Assert.AreEqual(ShiftState.Intro, director.State, "a night opens on the intro card");
+                    Assert.AreEqual(ShiftState.Depot, director.State, "a night opens on the depot shop");
                     BusController bus = Object.FindAnyObjectByType<BusController>();
+                    Assert.IsTrue((bus.Locks & DriveLock.Scripted) != 0, "the bus is held in the depot");
+                    director.ConfirmDepot();
+                    Assert.AreEqual(ShiftState.Intro, director.State, "Start shift opens the intro card");
                     Assert.IsTrue((bus.Locks & DriveLock.Scripted) != 0, "the bus is held during the intro");
                     yield return FlowTestUtil.WaitForDriving(game);
                     Assert.IsTrue((bus.Locks & DriveLock.Scripted) == 0, "Driving releases the bus");

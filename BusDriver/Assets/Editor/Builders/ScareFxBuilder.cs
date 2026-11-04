@@ -1,13 +1,14 @@
 using System;
 using System.IO;
 using BusDriver.Core.Util;
+using BusDriver.Gameplay.Scares;
 using UnityEditor;
 using UnityEngine;
 using static BusDriver.Editor.Builders.BuilderUtil;
 
 namespace BusDriver.Editor.Builders {
-    // Part of BuildAll step 7 (T-M4-05): the greybox scare head (a pale sphere with dark eye
-    // sockets and a mouth, on the ScareFx layer, no collider) and the generated scare textures:
+    // Part of BuildAll step 7 (T-M4-05): the scare head (a dark sphere with the smiling face
+    // on the front, on the ScareFx layer, no collider) and the generated scare textures:
     // the default overlay flash and the CCTV static noise. Both are deterministic (fixed seed), so
     // a rebuild writes the same bytes. Phase B replaces them with T_Scare_* art (Appendix A.5).
     public static class ScareFxBuilder {
@@ -25,15 +26,17 @@ namespace BusDriver.Editor.Builders {
             BuildScareHead();
         }
 
+        const string SpookyFaceMaterialPath = TextureFolder + "/Materials/spooky_smiling_face_by_authensauthy2613_di2fimr-fullview.mat";
+
         static void BuildScareHead() {
             EnsureFolder(PrefabFolder);
             GameObject root = new GameObject("ScareHead_Greybox");
-            // +Z is the face: ScarePlayer turns it to the camera
-            GameObject skull = Prim(PrimitiveType.Sphere, "Head", root.transform, Vector3.zero, new Vector3(0.3f, 0.36f, 0.3f), MaterialLibraryBuilder.Get("ScareSkin"));
-            foreach (float x in new[] { -0.28f, 0.28f }) {
-                Prim(PrimitiveType.Sphere, x < 0f ? "SocketL" : "SocketR", skull.transform, new Vector3(x, 0.12f, 0.38f), new Vector3(0.3f, 0.22f, 0.25f), MaterialLibraryBuilder.Get("Face"));
-            }
-            Prim(PrimitiveType.Sphere, "Mouth", skull.transform, new Vector3(0f, -0.25f, 0.4f), new Vector3(0.28f, 0.34f, 0.2f), MaterialLibraryBuilder.Get("Face"));
+            // ScareHeadFace replaces the primitive with a sphere whose +Z is the smile.
+            // ShowScareHead aims that +Z straight at the CCTV camera.
+            Material faceMat = AssetDatabase.LoadAssetAtPath<Material>(SpookyFaceMaterialPath);
+            GameObject head = Prim(PrimitiveType.Sphere, "Head", root.transform, Vector3.zero, new Vector3(0.55f, 0.55f, 0.55f), faceMat);
+            head.transform.localRotation = Quaternion.identity;
+            head.AddComponent<ScareHeadFace>();
             SetLayerRecursively(root, Layers.ScareFx);
             foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>()) {
                 renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;

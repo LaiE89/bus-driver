@@ -658,6 +658,12 @@ namespace BusDriver.Editor.Builders {
                 if (monster.ability is WhispererDrainConfig) {
                     instance.AddComponent<WhispererDrain>();
                 }
+                if (monster.ability is GazerRushConfig) {
+                    instance.AddComponent<GazerRush>();
+                }
+                if (monster.ability is GuestStrikeConfig) {
+                    instance.AddComponent<GuestStrike>();
+                }
                 GameObject saved = SaveOrOverwritePrefab(instance, MonsterPath(monster.id));
                 Object.DestroyImmediate(instance);
                 if (monster.logicPrefab != saved) {

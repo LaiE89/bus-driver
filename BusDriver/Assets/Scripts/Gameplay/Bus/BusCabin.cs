@@ -104,10 +104,12 @@ namespace BusDriver.Gameplay.Bus {
 
         void OnEnable() {
             doors.OnChanged += HandleDoorsChanged;
+            doors.OnDriverOpened += BeginStopExchange;
         }
 
         void OnDisable() {
             doors.OnChanged -= HandleDoorsChanged;
+            doors.OnDriverOpened -= BeginStopExchange;
         }
 
         void Start() {
@@ -429,7 +431,15 @@ namespace BusDriver.Gameplay.Bus {
         }
 
         void HandleDoorsChanged(bool opening) {
-            if (!opening) {
+            if (opening) {
+                BeginStopExchange();
+            }
+        }
+
+        // Riders whose stop this is get off, then the line outside boards (§2.4). A kick holds the
+        // doors so that one rider can step off; that hold must not start the exchange.
+        void BeginStopExchange() {
+            if (doors == null || !doors.OpenedByDriver) {
                 return;
             }
             BusStop stop = CurrentStop;

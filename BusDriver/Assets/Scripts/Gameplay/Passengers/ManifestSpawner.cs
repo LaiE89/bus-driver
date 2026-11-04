@@ -23,9 +23,18 @@ namespace BusDriver.Gameplay.Passengers {
         public void Init(ShiftServices services) {
             shift = services;
             NightDefinition night = services.Night;
-            NightDefinition first = services.Game.Config.Night(1);
-            Manifest = Manifest.FromScripted(night, first, services.Setup.NoMonsters);
+            bool noMonsters = services.Setup != null && services.Setup.NoMonsters;
             RouteDefinition route = services.Route != null ? services.Route.Route : null;
+            // Night 1 is the scripted shift. Later nights draw humans and monsters from the night's pool.
+            if (night != null && !night.IsScripted) {
+                int maxAboard = services.Balance != null ? services.Balance.maxAboard : ManifestGenerator.MaxAboard;
+                System.Random rng = services.Rng.Get(RngStreams.Manifest);
+                Manifest = ManifestGenerator.Generate(night, route, LookIds(services), rng, noMonsters, maxAboard);
+            }
+            if (Manifest == null || Manifest.Riders.Count == 0) {
+                NightDefinition first = services.Game != null && services.Game.Config != null ? services.Game.Config.Night(1) : null;
+                Manifest = Manifest.FromScripted(night, first, noMonsters);
+            }
             string endStop = night != null ? night.endStopId : "";
             // Night 1's script only covers farm_gate..campground; nights that run further pad the
             // empty kerbs so every stop before the end has someone waiting

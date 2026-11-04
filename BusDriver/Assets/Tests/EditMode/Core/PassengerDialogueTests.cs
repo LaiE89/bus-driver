@@ -5,8 +5,8 @@ using BusDriver.Core.Util;
 using NUnit.Framework;
 
 namespace BusDriver.Tests.EditMode.Core {
-    // The rider line tables (§4.13): the right kind speaks, humans name their stop, and the same
-    // seed draws the same lines.
+    // The rider line tables (§4.13): the right kind speaks, a human only sometimes names their
+    // stop, and the same seed draws the same lines.
     public class PassengerDialogueTests {
         static Random Stream() {
             return new RngStreams(1234).Get(RngStreams.Dialogue);
@@ -16,6 +16,8 @@ namespace BusDriver.Tests.EditMode.Core {
         public void EveryMonsterIdMapsToItsOwnKind() {
             Assert.AreEqual(DialogueKind.Starer, PassengerDialogue.KindFor(MonsterIds.Starer));
             Assert.AreEqual(DialogueKind.Whisperer, PassengerDialogue.KindFor(MonsterIds.Whisperer));
+            Assert.AreEqual(DialogueKind.Gazer, PassengerDialogue.KindFor(MonsterIds.Gazer));
+            Assert.AreEqual(DialogueKind.Guest, PassengerDialogue.KindFor(MonsterIds.Guest));
         }
 
         // D34: it is pretending to be a passenger, so it has to sound like one
@@ -26,12 +28,21 @@ namespace BusDriver.Tests.EditMode.Core {
             Assert.AreEqual(DialogueKind.Human, PassengerDialogue.KindFor(null));
         }
 
+        // Naming the stop on every boarding marks everyone who stays quiet as a monster.
         [Test]
-        public void AHumanGreetingNamesTheStop() {
+        public void AHumanGreetingSometimesNamesTheStop() {
             Random rng = Stream();
-            for (int i = 0; i < 50; i++) {
-                StringAssert.Contains("Oak Hill", PassengerDialogue.Greeting(DialogueKind.Human, "Oak Hill", rng));
+            int named = 0;
+            const int draws = 80;
+            for (int i = 0; i < draws; i++) {
+                string line = PassengerDialogue.Greeting(DialogueKind.Human, "Oak Hill", rng);
+                Assert.IsFalse(line.Contains("{0}"), "an unformatted line reached the screen: " + line);
+                if (line.Contains("Oak Hill")) {
+                    named++;
+                }
             }
+            Assert.Greater(named, 0, "a human with a stop should still name it sometimes");
+            Assert.Less(named, draws, "naming the stop every time marks a quiet boarding as a monster");
         }
 
         [Test]
