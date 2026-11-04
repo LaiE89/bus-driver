@@ -25,7 +25,6 @@ MonoBehaviour:
   monsterCountMax: 2
   requiredMonsters: []
   monsterPool:
-  - starer
   - whisperer
   - gazer
   - guest

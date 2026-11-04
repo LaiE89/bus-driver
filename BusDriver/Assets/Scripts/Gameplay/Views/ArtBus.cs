@@ -633,7 +633,11 @@ namespace BusDriver.Gameplay.Views {
         }
 
         static Material Make(Shader lit, string part) {
-            Material material = new Material(lit);
+            bool window = part == "Window";
+            // Clone the shipped glass material so a player build keeps this shader variant.
+            // A material created from the shader at runtime is stripped, and the windows draw solid.
+            Material kept = window ? Resources.Load<Material>("Materials/BusGlass") : null;
+            Material material = kept != null ? new Material(kept) : new Material(lit);
             material.name = part == "Monitor" ? "M_Monitor_00" : "M_Bus_" + part + "_00";
             if (part == "Monitor") {
                 material.SetColor("_BaseColor", new Color(0.01f, 0.012f, 0.014f, 1f));
@@ -650,28 +654,23 @@ namespace BusDriver.Gameplay.Views {
             }
             if (color != null) {
                 material.SetTexture("_BaseMap", color);
+                material.SetTexture("_MainTex", color);
             }
             if (normal != null) {
                 material.SetTexture("_BumpMap", normal);
                 material.EnableKeyword("_NORMALMAP");
+            }else {
+                material.DisableKeyword("_NORMALMAP");
             }
-            bool glass = part == "Window" || punched != null;
+            bool glass = window || punched != null;
             if (glass) {
-                material.SetFloat("_Surface", 1f);
-                material.SetFloat("_Blend", 0f);
-                material.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
-                material.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
-                material.SetFloat("_ZWrite", 0f);
-                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                material.SetOverrideTag("RenderType", "Transparent");
-                material.renderQueue = (int)RenderQueue.Transparent;
-                material.SetShaderPassEnabled("ShadowCaster", false);
-                material.SetFloat("_Cull", (float)CullMode.Off);
+                ApplyGlass(material);
+                Color tint = Color.white;
                 if (punched == null) {
-                    Color tint = material.GetColor("_BaseColor");
                     tint.a = 0.45f;
-                    material.SetColor("_BaseColor", tint);
                 }
+                material.SetColor("_BaseColor", tint);
+                material.SetColor("_Color", tint);
                 material.SetFloat("_Smoothness", 0.85f);
             }else if (part == "Trim" || part == "Wheel") {
                 material.SetFloat("_Smoothness", 0.55f);
@@ -680,6 +679,31 @@ namespace BusDriver.Gameplay.Views {
                 material.SetFloat("_Smoothness", part == "Seats" ? 0.15f : 0.35f);
             }
             return material;
+        }
+
+        // Same blend URP uses for alpha glass that keeps its highlight: the shader premultiplies,
+        // so the framebuffer blend is One, OneMinusSrcAlpha. Door.mat ships the version without a
+        // normal map; Materials/BusGlass ships this one, normal map included.
+        static void ApplyGlass(Material material) {
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", 0f);
+            material.SetFloat("_BlendModePreserveSpecular", 1f);
+            material.SetFloat("_SrcBlend", (float)BlendMode.One);
+            material.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_SrcBlendAlpha", (float)BlendMode.One);
+            material.SetFloat("_DstBlendAlpha", (float)BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_ZWrite", 0f);
+            material.SetFloat("_AlphaToMask", 0f);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+            material.DisableKeyword("_ALPHAMODULATE_ON");
+            material.DisableKeyword("_ALPHATEST_ON");
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.renderQueue = (int)RenderQueue.Transparent;
+            material.SetShaderPassEnabled("ShadowCaster", false);
+            material.SetShaderPassEnabled("DepthOnly", false);
+            material.SetFloat("_Cull", (float)CullMode.Off);
+            material.doubleSidedGI = true;
         }
 
         // Null when there is no mask, or the mask is solid white and would not punch a hole
