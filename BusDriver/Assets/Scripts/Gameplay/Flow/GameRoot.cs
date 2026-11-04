@@ -62,6 +62,8 @@ namespace BusDriver.Gameplay.Flow {
             services.Cursor = new CursorService();
             services.Input.OnContextChanged += services.Cursor.Apply;
             services.Cursor.Apply(services.Input.EffectiveContext);
+            services.Input.OnDeviceFamilyChanged += family => services.Cursor.SetPadActive(DeviceFamilies.IsGamepad(family));
+            services.Input.OnGamepadDisconnected += () => PauseForLostPad(services);
             services.Scenes = new SceneLoader(this);
             services.Flow = new RunFlow(services);
             services.Scenes.Attach(services);
@@ -70,6 +72,15 @@ namespace BusDriver.Gameplay.Flow {
             services.Settings.Apply();
             if (SelfTestRunner.Requested(Environment.GetCommandLineArgs())) {
                 gameObject.AddComponent<SelfTestRunner>().Begin(build.Label);
+            }
+        }
+
+        // A pad dropping out mid-drive would leave the bus rolling with nobody at the wheel
+        // (T-M4b-05). PauseService refuses where pausing isn't allowed (loads, Summary...).
+        static void PauseForLostPad(GameServices services) {
+            InputContext context = services.Input.EffectiveContext;
+            if (context == InputContext.Driving || context == InputContext.OnFoot) {
+                services.Pause.TrySetPaused(true);
             }
         }
 

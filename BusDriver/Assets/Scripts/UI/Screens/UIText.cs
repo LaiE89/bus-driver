@@ -70,7 +70,7 @@ namespace BusDriver.UI.Screens {
         public const string GpsEndOfLine = "END OF LINE";
 
         // Rebinding (§4.10)
-        public const string PressAKey = "Press a key or mouse button for {0}. Esc cancels.";
+        public const string PressAKey = "Press a key or mouse button for {0}. Esc (or Circle / B on a controller) cancels.";
         public const string AllControlsReset = "All controls reset";
     }
 }

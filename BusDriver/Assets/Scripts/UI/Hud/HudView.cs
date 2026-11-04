@@ -1,5 +1,6 @@
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
+using BusDriver.Gameplay.Input;
 using BusDriver.Gameplay.Player;
 using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.World;
@@ -47,6 +48,7 @@ namespace BusDriver.UI.Hud {
             mode = shift.Mode;
             interactor = shift.Interactor;
             game.Input.OnBindingsChanged += RefreshControlsHint;
+            game.Input.OnDeviceFamilyChanged += HandleDeviceFamilyChanged;
             cctv.OnViewChanged += HandleViewChanged;
             mode.OnModeChanged += HandleModeChanged;
             RefreshControlsHint();
@@ -56,6 +58,7 @@ namespace BusDriver.UI.Hud {
         void OnDestroy() {
             if (game != null) {
                 game.Input.OnBindingsChanged -= RefreshControlsHint;
+                game.Input.OnDeviceFamilyChanged -= HandleDeviceFamilyChanged;
             }
             if (cctv != null) {
                 cctv.OnViewChanged -= HandleViewChanged;
@@ -77,6 +80,10 @@ namespace BusDriver.UI.Hud {
             bool onFoot = mode.Mode == PlayerMode.OnFoot;
             driverPanel.SetActive(!cctv.IsViewingCCTV && !onFoot);
             onFootPanel.SetActive(onFoot);
+        }
+
+        void HandleDeviceFamilyChanged(DeviceFamily family) {
+            RefreshControlsHint();
         }
 
         public void RefreshControlsHint() {

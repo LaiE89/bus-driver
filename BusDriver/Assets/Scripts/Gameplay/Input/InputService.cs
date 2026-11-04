@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using BusDriver.Core.Data;
 using BusDriver.Core.Util;
+using BusDriver.Core.Save;
 using BusDriver.Gameplay.Flow;
+using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
 namespace BusDriver.Gameplay.Input {
     // The outcome of a rebind (§4.10). Error is the player-facing reason when it was refused.
@@ -33,6 +36,13 @@ namespace BusDriver.Gameplay.Input {
         // Mouse delta is in pixels; the legacy "Mouse X/Y" axes were pixels × 0.1, and the look
         // sensitivity was tuned on those (§4.10: yaw += delta.x × 0.1 × sensitivity × 0.02)
         public const float MouseAxisScale = 0.1f;
+        // Right-stick look at full deflection and the default sensitivity (T-M4b-01). The look
+        // sensitivity slider scales it, relative to its default.
+        public const float GamepadLookDegreesPerSecond = 180f;
+        // A stick counts as "used" for device tracking past this deflection; a mouse past this
+        // many pixels in one frame
+        const float StickUseThreshold = 0.5f;
+        const float MouseUseThresholdPixels = 3f;
 
         // Mouse axes and position can never be bound (D48); mouse buttons can
         static readonly string[] UnbindablePaths = { "<Mouse>/delta", "<Mouse>/position", "<Mouse>/scroll", "<Pointer>/delta", "<Pointer>/position" };
@@ -43,6 +53,7 @@ namespace BusDriver.Gameplay.Input {
         InputContext overrideContext;
         bool hasOverride;
         string appliedOverridesJson;
+        Gamepad activeGamepad;
 
         public BusDriverActions Actions { get; }
         public InputActionAsset Asset { get { return Actions.Asset; } }
@@ -50,11 +61,18 @@ namespace BusDriver.Gameplay.Input {
         public InputContext Context { get; private set; } = InputContext.None;
         public InputContext EffectiveContext { get { return hasOverride ? overrideContext : Context; } }
         public bool IsRebinding { get { return rebind != null; } }
+        // The device the player last touched (T-M4b-02)
+        public DeviceFamily ActiveFamily { get; private set; } = DeviceFamily.KeyboardMouse;
+        public bool IsGamepadActive { get { return DeviceFamilies.IsGamepad(ActiveFamily); } }
 
         // The effective context changed (CursorService listens)
         public event Action<InputContext> OnContextChanged;
         // A binding or override set changed (prompts rebuild their text)
         public event Action OnBindingsChanged;
+        // The player switched between keyboard/mouse and a pad (prompts and the cursor follow)
+        public event Action<DeviceFamily> OnDeviceFamilyChanged;
+        // The pad in use was unplugged or lost its connection (the game pauses, T-M4b-05)
+        public event Action OnGamepadDisconnected;
 
         // settings may be null in tests; nothing is then persisted
         public InputService(InputActionAsset asset, SettingsService settings) {
@@ -119,6 +137,102 @@ namespace BusDriver.Gameplay.Input {
             if (!IsApplied()) {
                 ApplyContext();
             }
+            TrackActiveDevice();
+        }
+
+        // ------------------------------------------------------------------ active device
+
+        // Polled once a frame. A pad becomes active on a button press or a firm stick push; the
+        // keyboard and mouse on a key, a mouse button or real mouse movement. Idle devices never
+        // steal it, so a DualSense's constant gyro reports don't count.
+        void TrackActiveDevice() {
+            if (activeGamepad != null && !activeGamepad.added) {
+                activeGamepad = null;
+                Log.Info(LogCat.Input, "active gamepad disconnected");
+                SetFamily(DeviceFamily.KeyboardMouse);
+                if (OnGamepadDisconnected != null) {
+                    OnGamepadDisconnected();
+                }
+            }
+            var pads = Gamepad.all;
+            for (int i = 0; i < pads.Count; i++) {
+                if (PadUsedThisFrame(pads[i])) {
+                    activeGamepad = pads[i];
+                    // Rebinding waits for a key; Circle / B backs out of it like Escape
+                    if (IsRebinding && pads[i].buttonEast.wasPressedThisFrame) {
+                        CancelRebind();
+                    }
+                    SetFamily(DeviceFamilies.Of(pads[i]));
+                    return;
+                }
+            }
+            if (KeyboardMouseUsedThisFrame()) {
+                SetFamily(DeviceFamily.KeyboardMouse);
+            }
+        }
+
+        static bool PadUsedThisFrame(Gamepad pad) {
+            if (!pad.wasUpdatedThisFrame) {
+                return false;
+            }
+            var controls = pad.allControls;
+            for (int i = 0; i < controls.Count; i++) {
+                ButtonControl button = controls[i] as ButtonControl;
+                // Synthetic buttons (stick directions) would double-count the sticks
+                if (button != null && !button.synthetic && button.wasPressedThisFrame) {
+                    return true;
+                }
+            }
+            float threshold = StickUseThreshold * StickUseThreshold;
+            return pad.leftStick.ReadValue().sqrMagnitude > threshold || pad.rightStick.ReadValue().sqrMagnitude > threshold;
+        }
+
+        static bool KeyboardMouseUsedThisFrame() {
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard != null && keyboard.anyKey.wasPressedThisFrame) {
+                return true;
+            }
+            Mouse mouse = Mouse.current;
+            if (mouse == null) {
+                return false;
+            }
+            if (mouse.leftButton.wasPressedThisFrame || mouse.rightButton.wasPressedThisFrame || mouse.middleButton.wasPressedThisFrame) {
+                return true;
+            }
+            return mouse.delta.ReadValue().sqrMagnitude > MouseUseThresholdPixels * MouseUseThresholdPixels;
+        }
+
+        // Tests force a family without a device
+        internal void SetFamily(DeviceFamily family) {
+            if (family == ActiveFamily) {
+                return;
+            }
+            ActiveFamily = family;
+            Log.Info(LogCat.Input, "active device " + family);
+            if (OnDeviceFamilyChanged != null) {
+                OnDeviceFamilyChanged(family);
+            }
+        }
+
+        // ------------------------------------------------------------------ look
+
+        // One frame of head look, in degrees (x = yaw, y = pitch, before invert). The mouse gives
+        // pixels this frame (§4.10: delta × 0.1 × sensitivity × degreesPerUnit); a stick gives a
+        // rate, squared for fine aim near the centre and scaled by real time, so the fall
+        // slow-mo doesn't slow the player's head.
+        public static Vector2 ReadLookDegrees(InputAction look, float sensitivity, float mouseDegreesPerUnit) {
+            Vector2 value = look.ReadValue<Vector2>();
+            InputControl source = look.activeControl;
+            if (source != null && source.device is Gamepad) {
+                float magnitude = value.magnitude;
+                if (magnitude > 1f) {
+                    value /= magnitude;
+                    magnitude = 1f;
+                }
+                float rate = GamepadLookDegreesPerSecond * sensitivity / SettingsData.DefaultMouseSensitivity;
+                return value * magnitude * rate * Time.unscaledDeltaTime;
+            }
+            return value * (MouseAxisScale * sensitivity * mouseDegreesPerUnit);
         }
 
         void RaiseIfChanged(InputContext before) {
@@ -196,8 +310,8 @@ namespace BusDriver.Gameplay.Input {
 
         // ------------------------------------------------------------------ display strings
 
-        // What a prompt shows for an action on keyboard and mouse (controller-ready rule 3,
-        // §4.10). M4b switches the group with the active device.
+        // What a prompt shows for an action on the active device (controller-ready rule 3,
+        // §4.10): its keyboard/mouse binding, or its pad buttons named for the pad in use
         public string GetDisplayString(string actionId) {
             InputAction action = Actions.Find(actionId);
             if (action == null) {
@@ -208,7 +322,29 @@ namespace BusDriver.Gameplay.Input {
         }
 
         public string GetDisplayString(InputAction action) {
-            return action.GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
+            return GetDisplayString(action, ActiveFamily);
+        }
+
+        public string GetDisplayString(InputAction action, DeviceFamily family) {
+            if (!DeviceFamilies.IsGamepad(family)) {
+                return action.GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
+            }
+            // Composite parts in binding order: Throttle reads "L2/R2"
+            string text = "";
+            for (int b = 0; b < action.bindings.Count; b++) {
+                InputBinding binding = action.bindings[b];
+                if (binding.isComposite || !InGroup(binding, GamepadGroup)) {
+                    continue;
+                }
+                string name = DeviceFamilies.GamepadControlName(binding.effectivePath, family);
+                if (name == null) {
+                    name = action.GetBindingDisplayString(b);
+                }
+                if (name != "" && ("/" + text + "/").IndexOf("/" + name + "/", StringComparison.Ordinal) < 0) {
+                    text = text == "" ? name : text + "/" + name;
+                }
+            }
+            return text != "" ? text : action.GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
         }
 
         public string GetBindingDisplayString(InputAction action, int bindingIndex) {

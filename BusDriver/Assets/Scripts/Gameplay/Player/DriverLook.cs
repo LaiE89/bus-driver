@@ -53,11 +53,11 @@ namespace BusDriver.Gameplay.Player {
             if (input == null || (pause != null && pause.IsPaused) || (cctv != null && cctv.IsViewingCCTV)) {
                 return;
             }
-            Vector2 look = input.Actions.DrivingLook.ReadValue<Vector2>() * InputService.MouseAxisScale;
-            float sens = Sensitivity;
-            yaw = Mathf.Clamp(yaw + look.x * sens * sensScale, -yawLimit, yawLimit);
+            // Mouse pixels or a right-stick rate, already in degrees (T-M4b-01)
+            Vector2 look = InputService.ReadLookDegrees(input.Actions.DrivingLook, Sensitivity, sensScale);
+            yaw = Mathf.Clamp(yaw + look.x, -yawLimit, yawLimit);
             // Positive pitch looks up
-            pitch = Mathf.Clamp(pitch + look.y * PitchSign * sens * sensScale, pitchMin, pitchMax);
+            pitch = Mathf.Clamp(pitch + look.y * PitchSign, pitchMin, pitchMax);
             transform.localRotation = Quaternion.Euler(-pitch, yaw, 0f);
         }
     }
