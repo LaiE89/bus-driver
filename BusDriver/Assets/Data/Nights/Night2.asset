@@ -23,13 +23,14 @@ MonoBehaviour:
   decoyCount: 1
   monsterCountMin: 2
   monsterCountMax: 2
-  requiredMonsters:
+  requiredMonsters: []
+  monsterPool:
   - starer
   - whisperer
   - gazer
-  monsterPool: []
+  - guest
   minDistinctTypes: 0
-  maxPerType: 0
+  maxPerType: 1
   monsterBoardFirstStop: farm_gate
   monsterBoardLastStop: campground
   mimicBoardFirstStop: 

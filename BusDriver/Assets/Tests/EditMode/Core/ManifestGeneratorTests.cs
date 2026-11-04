@@ -8,6 +8,8 @@ using UnityEngine;
 namespace BusDriver.Tests.EditMode.Core {
     // Nights 2–5 draw riders from the night's counts and monster pool (§2.19).
     public class ManifestGeneratorTests {
+        static readonly string[] Pool = { "starer", "whisperer", "gazer", "guest" };
+
         static readonly string[] Looks = {
             "look01", "look02", "look03", "look04", "look05", "look06",
             "look07", "look08", "look09", "look10", "look11", "look12",
@@ -36,7 +38,8 @@ namespace BusDriver.Tests.EditMode.Core {
             night.decoyCount = 1;
             night.monsterCountMin = 2;
             night.monsterCountMax = 2;
-            night.requiredMonsters = new[] { "starer", "whisperer" };
+            night.monsterPool = Pool;
+            night.maxPerType = 1;
             night.monsterBoardFirstStop = "farm_gate";
             night.monsterBoardLastStop = "campground";
             return night;
@@ -51,7 +54,8 @@ namespace BusDriver.Tests.EditMode.Core {
             night.decoyCount = 2;
             night.monsterCountMin = 2;
             night.monsterCountMax = 2;
-            night.requiredMonsters = new[] { "gazer", "guest" };
+            night.monsterPool = Pool;
+            night.maxPerType = 1;
             night.monsterBoardFirstStop = "farm_gate";
             night.monsterBoardLastStop = "church";
             return night;
@@ -74,27 +78,22 @@ namespace BusDriver.Tests.EditMode.Core {
         }
 
         [Test]
-        public void Night2_DrawsHumansAndTheRequiredMonsters() {
+        public void Night2_DrawsHumansAndTwoPoolMonsters() {
             RouteDefinition route = Route();
             NightDefinition night = Night2();
+            var lineups = new HashSet<string>();
             for (int seed = 1; seed <= 40; seed++) {
                 Manifest manifest = ManifestGenerator.Generate(night, route, Looks, new System.Random(seed), false);
                 int humans = 0;
                 int decoys = 0;
-                int starers = 0;
-                int whisperers = 0;
+                var monsters = new List<string>();
                 for (int i = 0; i < manifest.Riders.Count; i++) {
                     RiderSpec rider = manifest.Riders[i];
                     if (rider.IsMonster) {
-                        if (rider.monsterId == "starer") {
-                            starers++;
-                        } else if (rider.monsterId == "whisperer") {
-                            whisperers++;
-                        } else {
-                            Assert.Fail("unexpected monster " + rider.monsterId);
-                        }
+                        Assert.Contains(rider.monsterId, Pool);
                         Assert.AreEqual("", rider.destinationStopId);
                         Assert.IsTrue(BoardInWindow(route, rider.boardStopId, "farm_gate", "campground"));
+                        monsters.Add(rider.monsterId);
                     } else {
                         humans++;
                         if (rider.decoy != DecoyKind.None) {
@@ -105,41 +104,42 @@ namespace BusDriver.Tests.EditMode.Core {
                 }
                 Assert.GreaterOrEqual(humans, 8);
                 Assert.LessOrEqual(humans, 10);
-                Assert.AreEqual(1, starers);
-                Assert.AreEqual(1, whisperers);
+                Assert.AreEqual(2, monsters.Count);
+                Assert.AreNotEqual(monsters[0], monsters[1]);
                 Assert.AreEqual(1, decoys);
+                monsters.Sort();
+                lineups.Add(monsters[0] + "+" + monsters[1]);
                 AssertAboard(route, manifest, ManifestGenerator.MaxAboard);
                 AssertNoSharedLookAboard(route, manifest);
             }
+            Assert.Greater(lineups.Count, 1, "the pool should not deal the same pair every seed");
         }
 
         [Test]
-        public void Night3_DrawsTheGazerAndTheGuest() {
+        public void Night3_DrawsTwoPoolMonsters() {
             RouteDefinition route = Route();
             NightDefinition night = Night3();
+            var lineups = new HashSet<string>();
             for (int seed = 1; seed <= 40; seed++) {
                 Manifest manifest = ManifestGenerator.Generate(night, route, Looks, new System.Random(seed), false);
-                int gazers = 0;
-                int guests = 0;
+                var monsters = new List<string>();
                 for (int i = 0; i < manifest.Riders.Count; i++) {
                     RiderSpec rider = manifest.Riders[i];
                     if (!rider.IsMonster) {
                         continue;
                     }
-                    if (rider.monsterId == "gazer") {
-                        gazers++;
-                    } else if (rider.monsterId == "guest") {
-                        guests++;
-                    } else {
-                        Assert.Fail("unexpected monster " + rider.monsterId);
-                    }
+                    Assert.Contains(rider.monsterId, Pool);
                     Assert.IsTrue(BoardInWindow(route, rider.boardStopId, "farm_gate", "church"));
                     Assert.AreEqual("", rider.destinationStopId);
+                    monsters.Add(rider.monsterId);
                 }
-                Assert.AreEqual(1, gazers);
-                Assert.AreEqual(1, guests);
+                Assert.AreEqual(2, monsters.Count);
+                Assert.AreNotEqual(monsters[0], monsters[1]);
+                monsters.Sort();
+                lineups.Add(monsters[0] + "+" + monsters[1]);
                 AssertAboard(route, manifest, ManifestGenerator.MaxAboard);
             }
+            Assert.Greater(lineups.Count, 1, "the pool should not deal the same pair every seed");
         }
 
         [Test]

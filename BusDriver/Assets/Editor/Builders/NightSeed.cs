@@ -67,7 +67,8 @@ namespace BusDriver.Editor.Builders {
                     night.riderCountMax = 10;
                     night.decoyCount = 1;
                     night.monsterCountMin = night.monsterCountMax = 2;
-                    night.requiredMonsters = new[] { Starer, Whisperer };
+                    night.monsterPool = all;
+                    night.maxPerType = 1;
                     night.monsterBoardFirstStop = "farm_gate";
                     night.monsterBoardLastStop = "campground";
                     night.quotaCents = 2100;
@@ -78,7 +79,8 @@ namespace BusDriver.Editor.Builders {
                     night.riderCountMax = 11;
                     night.decoyCount = 2;
                     night.monsterCountMin = night.monsterCountMax = 2;
-                    night.requiredMonsters = new[] { Gazer, Guest };
+                    night.monsterPool = all;
+                    night.maxPerType = 1;
                     night.monsterBoardFirstStop = "farm_gate";
                     night.monsterBoardLastStop = "church";
                     night.quotaCents = 2450;
