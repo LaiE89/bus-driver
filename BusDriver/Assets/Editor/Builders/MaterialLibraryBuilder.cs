@@ -59,6 +59,8 @@ namespace BusDriver.Editor.Builders {
             New("SignWhite", new Color(0.82f, 0.82f, 0.8f), new Color(0.82f, 0.82f, 0.8f) * 0.2f),
             New("BarrierRed", new Color(0.65f, 0.08f, 0.06f), new Color(0.65f, 0.08f, 0.06f) * 0.2f),
             New("Window", new Color(0.9f, 0.75f, 0.45f), new Color(1f, 0.78f, 0.45f) * 1.2f),
+            // A clinic's fluorescent interior seen through the glass (RoadsideArtBuilder)
+            New("WindowCool", new Color(0.75f, 0.85f, 0.9f), new Color(0.7f, 0.85f, 1f) * 1.1f),
             // The greybox passenger's tells and accessories (T-M3-01); body and head are tinted per look
             New("Eye", new Color(0.95f, 0.95f, 0.92f)),
             New("Hood", new Color(0.04f, 0.04f, 0.05f)),

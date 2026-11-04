@@ -439,6 +439,10 @@ namespace BusDriver.Editor.Builders {
         public static readonly Vector3 StopLampPole = new Vector3(5.6f, 0f, -4f);
         public static readonly Vector3 StopLampHead = new Vector3(4.6f, 5.45f, -4f);
         const float ShelterBackX = 6.9f;
+        // Assets/Art/Environment/City (CityKitImport), for the stops whose shelter isn't wooden
+        const string ShelterArtPrefab = "SM_Prop_BusStop_01";
+        const float ShelterArtLength = 4.6f;
+        const float ShelterArtX = 6.2f;
 
         static GameObject StopView(string key, StopKind kind) {
             StopLook look = LookOf(kind);
@@ -457,7 +461,20 @@ namespace BusDriver.Editor.Builders {
             Part(t, "Lamp Head", StopLampHead, new Vector3(0.4f, 0.12f, 0.4f), "LampWhite");
             Anchor(t, StopLampHead - new Vector3(0f, 0.1f, 0f));
 
-            if (look.Shelter) {
+            GameObject shelterArt = look.ShelterMaterial == "Wall"
+                ? AssetDatabase.LoadAssetAtPath<GameObject>(Art.CityKitImport.PrefabPath(ShelterArtPrefab))
+                : null;
+            if (look.Shelter && shelterArt != null) {
+                // The city kit's glass shelter (4.5 × 1.6 m, open side +Z) in the greybox one's
+                // place, open toward the road; one per 4.5 m of shelter length
+                int count = Mathf.Max(1, Mathf.RoundToInt(look.ShelterLength / ShelterArtLength));
+                for (int i = 0; i < count; i++) {
+                    GameObject shelter = (GameObject)PrefabUtility.InstantiatePrefab(shelterArt, t);
+                    shelter.name = "Shelter";
+                    shelter.transform.localPosition = new Vector3(ShelterArtX, 0f, (i - (count - 1) * 0.5f) * ShelterArtLength);
+                    shelter.transform.localRotation = Quaternion.Euler(0f, -90f, 0f);
+                }
+            } else if (look.Shelter) {
                 float half = look.ShelterLength * 0.5f;
                 Part(t, "Shelter Back", new Vector3(ShelterBackX, 1.2f, 0f), new Vector3(0.1f, 2.4f, look.ShelterLength), look.ShelterMaterial);
                 Part(t, "Shelter Roof", new Vector3(6.2f, 2.45f, 0f), new Vector3(1.6f, 0.1f, look.ShelterLength + 0.2f), look.ShelterMaterial);

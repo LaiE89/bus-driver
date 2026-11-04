@@ -69,6 +69,8 @@ namespace BusDriver.Editor.Builders {
             List<RouteOpening> openings = StubOpenings(route, b.Path);
             RoadMeshBuilder.Build(route, b.Path, Group("Road", world).transform, MeshFolder);
             ProfileBuildResult profiles = ProfileBuilder.Build(route, b.Path, Group("Profiles", world).transform, openings, MeshFolder);
+            List<Bounds> footprints = RoadsideArtBuilder.Footprints(b.Path, out List<Quaternion> footprintRotations);
+            profiles.Trees.RemoveAll(spot => RoadsideArtBuilder.InFootprint(spot.Position, footprints, footprintRotations));
             BuildDressing(ref b, profiles, Group("Dressing", world).transform);
             BuildStubs(ref b, Group("Stubs", world).transform);
             BuildStops(ref b, Group("Stops", world).transform);
@@ -76,6 +78,7 @@ namespace BusDriver.Editor.Builders {
             BuildDepot(ref b, Group("Depot", world).transform);
             BuildLodge(ref b, Group("Lodge", world).transform);
             BuildNightEndBarriers(ref b, Group("Night End Barriers", world).transform);
+            RoadsideArtBuilder.Build(route, b.Path, Group("Roadside Art", world).transform);
             BuildRumbleMarkings(b, Group("Rumble Strips", world).transform);
 
             BuildZones(ref b, Group("Zones", null).transform);
@@ -242,6 +245,14 @@ namespace BusDriver.Editor.Builders {
         static float RouteDistanceAt(StubFrame f, float acrossOffset, float lateral) {
             Vector3 point = f.Mouth + f.Across * acrossOffset + f.Axis * AxisAtLateral(f, acrossOffset, lateral);
             return f.Pose.Distance + Vector3.Dot(point - f.Pose.Position, f.Pose.Forward);
+        }
+
+        // Where a stub's blocker stands, on the stub's ground, and the stub's axis (away from the road)
+        internal static void StubEnd(RouteDefinition route, RoutePath path, RouteStub stub, out Vector3 end, out Vector3 axis) {
+            StubFrame f = FrameOf(route, path, stub);
+            end = f.Mouth + f.Axis * f.Length;
+            end.y = f.Pose.Position.y;
+            axis = f.Axis;
         }
 
         // The main road's containment line opens exactly between the two stub walls' crossings (§3.3)
