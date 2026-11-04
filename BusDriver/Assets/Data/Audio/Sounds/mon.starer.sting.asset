@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: mon.starer.sting
   clips:
-  - {fileID: 8300000, guid: 10536b262a15446e3b9f904fdee3e256, type: 3}
+  - {fileID: 8300000, guid: 27d8e7cc934dc3146a1d3cef4800ff6c, type: 3}
   volume: 0.35
   volumeJitter: 0
   pitch: 1

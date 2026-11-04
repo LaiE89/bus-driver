@@ -51,6 +51,7 @@ MonoBehaviour:
   scares:
   - {fileID: 11400000, guid: 4cfec3d0c737a436eb629b7837d74711, type: 2}
   - {fileID: 11400000, guid: 8bd38dd69ad2848b7b1d3282e67cd90e, type: 2}
+  - {fileID: 11400000, guid: e7b31c4a9d2f4b6e8a0c1d5f3e7a9b24, type: 2}
   - {fileID: 11400000, guid: a85e46303087e4d1e853c992a1e168d0, type: 2}
   - {fileID: 11400000, guid: f9374a038d29e4e969b8180161833d68, type: 2}
   sanityObstacles:

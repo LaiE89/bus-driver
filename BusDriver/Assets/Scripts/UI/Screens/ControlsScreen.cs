@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 using BusDriver.Core.Data;
@@ -58,6 +59,9 @@ namespace BusDriver.UI.Screens {
         bool dirty;
 
         public void Bind(GameServices game) {
+            if (input != null) {
+                input.OnBindingsChanged -= Refresh;
+            }
             input = game.Input;
             audio = game.Audio;
             input.OnBindingsChanged += Refresh;
@@ -130,9 +134,10 @@ namespace BusDriver.UI.Screens {
         }
 
         public void Refresh() {
-            if (input == null) {
+            if (this == null || input == null) {
                 return;
             }
+            ApplyDeviceHint();
             for (int i = 0; i < rows.Count; i++) {
                 Row row = rows[i];
                 row.KeyText.text = input.GetBindingDisplayString(row.Binding.Action, row.Binding.BindingIndex).ToUpperInvariant();
@@ -147,6 +152,7 @@ namespace BusDriver.UI.Screens {
         void OnDestroy() {
             if (input != null) {
                 input.OnBindingsChanged -= Refresh;
+                input.CancelRebind();
             }
         }
 
@@ -168,6 +174,7 @@ namespace BusDriver.UI.Screens {
             for (int i = 0; i < bindings.Count; i++) {
                 rows.Add(CreateRow(bindings[i], labelTemplate, buttonTemplate, FirstRowY - i * RowPitch));
             }
+            LinkRows();
 
             float belowRows = FirstRowY - Mathf.Max(bindings.Count, 1) * RowPitch;
             statusText = CloneLabel(labelTemplate, "Rebind Status", new Vector2(0f, belowRows), new Vector2(900f, 44f));
@@ -307,6 +314,9 @@ namespace BusDriver.UI.Screens {
             row.KeyText.text = "...";
             SetStatus(string.Format(UIText.PressAKey, row.Binding.Label));
             input.StartRebind(row.Binding.ActionId, row.Binding.BindingIndex, result => {
+                if (this == null) {
+                    return;
+                }
                 if (result.Success) {
                     dirty = true;
                     SetStatus("");
@@ -320,6 +330,53 @@ namespace BusDriver.UI.Screens {
                     EventSystem.current.SetSelectedGameObject(row.KeyButton.gameObject);
                 }
             });
+        }
+
+        void Update() {
+            if (this == null || !IsOpen) {
+                return;
+            }
+            ApplyDeviceHint();
+        }
+
+        void ApplyDeviceHint() {
+            if (this == null) {
+                return;
+            }
+            Transform hint = transform.Find(HintName);
+            TMP_Text text = hint != null ? hint.GetComponent<TMP_Text>() : null;
+            if (text == null) {
+                return;
+            }
+            string next = Gamepad.current != null ? UIText.ControlsUsingController : UIText.ControlsHint;
+            if (text.text != next) {
+                text.text = next;
+            }
+        }
+
+        void LinkRows() {
+            Selectable last = rows.Count > 0 ? rows[rows.Count - 1].KeyButton : null;
+            for (int i = 0; i < rows.Count; i++) {
+                Selectable up = i > 0 ? rows[i - 1].KeyButton : null;
+                Selectable down = i < rows.Count - 1 ? rows[i + 1].KeyButton : applyButton;
+                SetNav(rows[i].KeyButton, up, down, null, null);
+            }
+            SetNav(applyButton, last, null, null, resetButton);
+            SetNav(resetButton, last, null, applyButton, backButton);
+            SetNav(backButton, last, null, resetButton, null);
+        }
+
+        static void SetNav(Selectable selectable, Selectable up, Selectable down, Selectable left, Selectable right) {
+            if (selectable == null) {
+                return;
+            }
+            Navigation navigation = new Navigation();
+            navigation.mode = Navigation.Mode.Explicit;
+            navigation.selectOnUp = up;
+            navigation.selectOnDown = down;
+            navigation.selectOnLeft = left;
+            navigation.selectOnRight = right;
+            selectable.navigation = navigation;
         }
 
         void SelectFirst() {

@@ -1,4 +1,5 @@
 using BusDriver.Core.Data;
+using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using NUnit.Framework;
@@ -70,8 +71,21 @@ namespace BusDriver.Tests.EditMode.Builders {
             Assert.AreEqual(8f, ability.rushMetresPerSecond, 0.001f);
             Assert.IsNull(m.logicPrefab.GetComponent<KillSequence>());
             Assert.IsNotNull(m.logicPrefab.GetComponent<GazerRush>());
+            Assert.IsNotNull(m.killScare);
+            Assert.AreEqual("scare.starer.kill", m.killScare.id);
+            bool overShoulder = false;
+            for (int i = 0; i < m.killScare.steps.Length; i++) {
+                if (m.killScare.steps[i].kind != ScareStepKind.ShowScareHead) {
+                    continue;
+                }
+                Assert.AreEqual(ScareAnchors.DriverShoulder, m.killScare.steps[i].anchor);
+                Assert.AreEqual("lookAt", m.killScare.steps[i].param);
+                overShoulder = true;
+            }
+            Assert.IsTrue(overShoulder, "the kill uses the Starer's shoulder scare");
         }
 
+        [Test]
         public void Guest_KillsWhenAccepted() {
             MonsterDefinition m = Monster("guest");
             AssertRules(m, ThreatCondition.Always, 0f);
@@ -81,6 +95,19 @@ namespace BusDriver.Tests.EditMode.Builders {
             Assert.IsNotNull(m.Ability<GuestStrikeConfig>());
             Assert.IsNull(m.logicPrefab.GetComponent<KillSequence>());
             Assert.IsNotNull(m.logicPrefab.GetComponent<GuestStrike>());
+            Assert.IsNotNull(m.killScare);
+            Assert.AreEqual("scare.guest.kill", m.killScare.id);
+            Assert.AreEqual(ScareTier.Kill, m.killScare.tier);
+            bool inFront = false;
+            for (int i = 0; i < m.killScare.steps.Length; i++) {
+                if (m.killScare.steps[i].kind != ScareStepKind.ShowScareHead) {
+                    continue;
+                }
+                Assert.AreEqual(ScareAnchors.DriverView, m.killScare.steps[i].anchor);
+                Assert.AreEqual("", m.killScare.steps[i].param ?? "");
+                inFront = true;
+            }
+            Assert.IsTrue(inFront, "the face is shown in front of the driver view");
         }
 
         public void Mimic_MatchesSection2_12() {

@@ -26,6 +26,8 @@ MonoBehaviour:
     kind: 0
     seconds: 0
     resetThreat: 60
+  monsterScare: {fileID: 0}
+  killScare: {fileID: 11400000, guid: e7b31c4a9d2f4b6e8a0c1d5f3e7a9b24, type: 2}
   bountyCents: 500
   ability:
     rid: 1543484118205726802

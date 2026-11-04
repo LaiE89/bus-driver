@@ -27,7 +27,7 @@ MonoBehaviour:
     boardStopId: farm_gate
     destinationStopId: 
     decoy: 0
-    monsterId: whisperer
+    monsterId: gazer
   - lookId: look03
     boardStopId: gas_station
     destinationStopId: church

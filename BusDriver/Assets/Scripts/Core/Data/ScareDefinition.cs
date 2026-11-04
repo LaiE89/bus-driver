@@ -32,7 +32,7 @@ namespace BusDriver.Core.Data {
         public Texture2D overlay;
         [Tooltip("ShowOverlay and CctvStatic: opacity; CameraShake: amplitude (0–1)")]
         [Range(0f, 1f)] public float intensity;
-        [Tooltip("DriverShoulder, DriverWindow, CabinCenter, CctvLens:<n> or CctvLens (the scare's camera) (§4.8)")]
+        [Tooltip("DriverShoulder, DriverWindow, DriverView, CabinCenter, CctvLens:<n> or CctvLens (the scare's camera) (§4.8)")]
         public string anchor;
         [Tooltip("Per kind: CutToCctv's camera, ShowScareHead's \"lookAt\", AllPassengersReact's ReactionId")]
         public string param;

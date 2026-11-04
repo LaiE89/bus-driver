@@ -47,7 +47,7 @@ namespace BusDriver.UI.Hud {
                 director.OnStateChanged += HandleState;
             }
             if (shift.Game != null) {
-                shift.Game.Input.OnBindingsChanged += RefreshSlots;
+                shift.Game.Input.OnBindingsChanged += Refresh;
             }
             EnsureSlotsText();
             HandleState(director != null ? director.State : ShiftState.None);

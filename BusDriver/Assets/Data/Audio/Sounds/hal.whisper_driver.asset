@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: hal.whisper_driver
   clips:
-  - {fileID: 8300000, guid: 6797095a793f94e2f9569f7a2e1ccb32, type: 3}
+  - {fileID: 8300000, guid: 3159761087e702f4f91ed141c8726c45, type: 3}
   volume: 0.75
   volumeJitter: 0
   pitch: 1

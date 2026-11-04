@@ -264,14 +264,26 @@ namespace BusDriver.Gameplay.Passengers {
             return true;
         }
 
-        // The driver waves them aboard
+        // The driver waves them aboard. A handler that returns true kills on the step, and the
+        // rider never walks to a seat.
         public void AcceptAboard() {
             if (!AwaitingBoardingDecision) {
                 return;
             }
             // Cut the greeting short so the next line (or silence) isn't queued behind it
             StopDoorDialogue();
+            killedAtDoor = StrikeOnAccept();
             decision = BoardingDecision.Accepted;
+        }
+
+        bool StrikeOnAccept() {
+            IAcceptHandler[] handlers = GetComponents<IAcceptHandler>();
+            for (int i = 0; i < handlers.Length; i++) {
+                if (handlers[i].OnAccept(this)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         // Turned away at the door. No fare and no review: refusing is the driver's call (§2.7).

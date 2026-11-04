@@ -96,7 +96,7 @@ namespace BusDriver.Gameplay.Player {
             }
             Vector2 move = ExternalMove;
             if (!ExternalControl && input != null) {
-                Vector2 look = input.Actions.OnFootLook.ReadValue<Vector2>() * InputService.MouseAxisScale;
+                Vector2 look = InputService.ReadLook(input.Actions.OnFootLook);
                 float sens = Sensitivity;
                 yaw += look.x * sens * sensScale;
                 pitch = Mathf.Clamp(pitch + look.y * PitchSign * sens * sensScale, -pitchLimit, pitchLimit);

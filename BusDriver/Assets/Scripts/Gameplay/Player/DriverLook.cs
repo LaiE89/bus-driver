@@ -53,7 +53,7 @@ namespace BusDriver.Gameplay.Player {
             if (input == null || (pause != null && pause.IsPaused) || (cctv != null && cctv.IsViewingCCTV)) {
                 return;
             }
-            Vector2 look = input.Actions.DrivingLook.ReadValue<Vector2>() * InputService.MouseAxisScale;
+            Vector2 look = InputService.ReadLook(input.Actions.DrivingLook);
             float sens = Sensitivity;
             yaw = Mathf.Clamp(yaw + look.x * sens * sensScale, -yawLimit, yawLimit);
             // Positive pitch looks up
