@@ -61,3 +61,28 @@ BusDriver/Assets/Resources/build_label.txt
 BusDriver/Assets/Resources/build_label.txt.meta
 # Left behind by PlayMode test runs (Test Framework performance run info)
 BusDriver/Assets/Resources/PerformanceTestRun*
+
+###
+# IDEs / editors
+###
+.idea/
+.vs/
+.vscode/
+*.sln.DotSettings.user
+.gradle/
+
+###
+# Unity extras
+###
+[Mm]emoryCaptures/
+[Rr]ecordings/
+*.pdb
+*.pdb.meta
+*.mdb
+*.mdb.meta
+*.opendb
+*.VC.db
+crashlytics-build.properties
+*.apk
+*.aab
+*.unitypackage
