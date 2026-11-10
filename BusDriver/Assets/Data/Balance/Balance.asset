@@ -30,6 +30,7 @@ MonoBehaviour:
   monsterKickSanity: 10
   monsterScareSanity: -5
   startleSanity: -2
+  chatSanityRestore: 16
   coffeeCents: 600
   coffeeSanity: 30
   sanityCarryBonus: 30

@@ -13,7 +13,7 @@ namespace BusDriver.Gameplay.Sanity {
     // threshold hides it and steps it back toward the rear.
     public sealed class CabinShadow : MonoBehaviour {
         [Tooltip("Metres per second along the aisle, from the back seat toward the driver")]
-        [SerializeField] float metresPerSecond = 0.18f;
+        [SerializeField] float metresPerSecond = 0.09f;
         [Tooltip("How close along the aisle, in metres, counts as a catch")]
         [SerializeField] float reachMetres = 1.1f;
         [Tooltip("Metres it retreats toward the back of the cabin when sanity rises past the threshold")]
@@ -202,12 +202,11 @@ namespace BusDriver.Gameplay.Sanity {
             return mesh;
         }
 
+        // Clone the shipped unlit glass material. A shader found only at runtime is left out of a
+        // player build, and the figure then draws with a shader this pipeline never renders.
         Material DarkMaterial() {
-            Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null) {
-                shader = Shader.Find("Unlit/Color");
-            }
-            Material mat = new Material(shader);
+            Material kept = Resources.Load<Material>("Materials/CabinShadow");
+            Material mat = kept != null ? new Material(kept) : FallbackMaterial();
             Color ink = new Color(0.02f, 0.02f, 0.03f, figureAlpha);
             if (mat.HasProperty("_BaseColor")) {
                 mat.SetColor("_BaseColor", ink);
@@ -215,25 +214,23 @@ namespace BusDriver.Gameplay.Sanity {
             if (mat.HasProperty("_Color")) {
                 mat.SetColor("_Color", ink);
             }
-            if (mat.HasProperty("_Surface")) {
-                mat.SetFloat("_Surface", 1f);
-            }
-            if (mat.HasProperty("_Blend")) {
-                mat.SetFloat("_Blend", 0f);
-            }
-            if (mat.HasProperty("_SrcBlend")) {
-                mat.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
-            }
-            if (mat.HasProperty("_DstBlend")) {
-                mat.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
-            }
-            if (mat.HasProperty("_ZWrite")) {
-                mat.SetFloat("_ZWrite", 0f);
-            }
-            if (mat.HasProperty("_Cull")) {
-                mat.SetFloat("_Cull", (float)CullMode.Off);
-            }
+            return mat;
+        }
+
+        static Material FallbackMaterial() {
+            Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
+            Material mat = shader != null ? new Material(shader) : new Material(Shader.Find("Sprites/Default"));
+            mat.SetFloat("_Surface", 1f);
+            mat.SetFloat("_Blend", 0f);
+            mat.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+            mat.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+            mat.SetFloat("_SrcBlendAlpha", (float)BlendMode.One);
+            mat.SetFloat("_DstBlendAlpha", (float)BlendMode.OneMinusSrcAlpha);
+            mat.SetFloat("_ZWrite", 0f);
+            mat.SetFloat("_Cull", (float)CullMode.Off);
             mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.DisableKeyword("_ALPHATEST_ON");
+            mat.DisableKeyword("_ALPHAMODULATE_ON");
             mat.SetOverrideTag("RenderType", "Transparent");
             mat.renderQueue = (int)RenderQueue.Transparent;
             return mat;

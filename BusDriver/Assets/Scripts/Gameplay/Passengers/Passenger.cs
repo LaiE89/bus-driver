@@ -176,6 +176,7 @@ namespace BusDriver.Gameplay.Passengers {
                 ? Shift.Progress.Find(record.DestinationStopId)
                 : null;
             Speak(PassengerDialogue.Greeting(Kind(record), destination != null ? destination.DisplayName : "", DialogueRng()), sticky: true);
+            RestoreChatSanity();
         }
 
         // Stepping off. A rider the bus carried past their stop complains about that instead of
@@ -203,11 +204,16 @@ namespace BusDriver.Gameplay.Passengers {
             }
             Speak(PassengerDialogue.Seated(Kind(Record), DialogueRng()));
             OnChatted();
+            RestoreChatSanity();
+            return true;
+        }
+
+        // Humans only. Monsters can talk, and that does not help.
+        void RestoreChatSanity() {
             RiderRecord record = Record;
-            if (record != null && !record.IsMonster && Shift.Sanity != null && Shift.Balance != null) {
+            if (record != null && !record.IsMonster && Shift != null && Shift.Sanity != null && Shift.Balance != null) {
                 Shift.Sanity.Apply(Shift.Balance.chatSanityRestore, SanityReason.Chat);
             }
-            return true;
         }
 
         // Rough visibility test with no occlusion, enough for "am I on camera right now"
