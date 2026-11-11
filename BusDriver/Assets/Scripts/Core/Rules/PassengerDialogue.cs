@@ -12,34 +12,34 @@ namespace BusDriver.Core.Rules {
     // itself would give the game away.
     public static class PassengerDialogue {
         static readonly string[] humanGreetings = {
-            "Evening. {0} for me, when you get a chance.",
-            "Cold out there. I'm going as far as {0}.",
-            "You're the first bus in forty minutes. {0}, please.",
-            "Quiet night, huh? I get off at {0}.",
-            "Just {0}. I won't be any trouble.",
-            "Long shift? Same. {0}, thanks."
+            "Good evening. I'm headed to {0} tonight!",
+            "I'm just going to {0}.",
+            "It's a quick ride to {0}, right?",
+            "This goes to {0}, right?",
         };
 
         static readonly string[] humanGreetingsNoStop = {
-            "Evening, driver.",
-            "Cold night for this, isn't it?",
-            "Don't mind me, I'll just sit at the back."
+            "Good evening.",
+            "What a cold night.",
+            "Hello there.",
+            "You're the first bus in a while. Thanks for coming.",
+            "Lovely weather tonight, isn't it?"
         };
 
         static readonly string[] humanEarly = {
-            "Right on time. Appreciate it, driver.",
+            "Appreciate it.",
             "Smoothest ride I've had all month.",
-            "Perfect. You're the only bus I trust."
+            "Nice ride, thanks."
         };
 
         static readonly string[] humanOnTime = {
-            "Not bad at all.",
-            "Bit of a wait, but we got here.",
-            "Good driving."
+            "Have a nice day.",
+            "Great, we're here.",
+            "Nice driving."
         };
 
         static readonly string[] humanUnrated = {
-            "We got there, eventually.",
+            "Finally.",
             "Could've been quicker.",
             "It'll do."
         };
@@ -47,76 +47,76 @@ namespace BusDriver.Core.Rules {
         static readonly string[] humanLate = {
             "That took forever.",
             "I could have walked.",
-            "My shift started an hour ago."
+            "You took your sweet time."
         };
 
         static readonly string[] humanMissed = {
             "You drove straight past my stop!",
-            "That was my stop. That was MY stop.",
-            "Unbelievable. I'm miles from home now."
+            "Hey! That was my stop!",
+            "Unbelievable. I'm so far from home now."
         };
 
         static readonly string[] humanKicked = {
-            "You're throwing me off?",
-            "I paid my fare!",
-            "Out here? In the dark? Come on, driver."
+            "What? You're throwing me off?",
+            "Hey! I paid my fare!",
+            "Out here in the dark? Come on."
         };
 
+        // we don't need this anymore        
         static readonly string[] humanRefused = {
             "Fine. I'll wait for a driver with a heart.",
             "Seriously? I've been standing here for an hour.",
             "Your loss. Something worse than me is out tonight."
-        };
+        }; 
 
         // Chatting to someone already in a seat, driver out of the cab
         static readonly string[] humanSeated = {
-            "Shouldn't you be up front, driving?",
-            "I'm fine, thanks. Just tired.",
-            "My feet are killing me. Long shift.",
+            "Shouldn't you be up front?",
+            "How are you doing today?",
+            "I am so tired. Can't wait to get home.",
             "Do you ever see anything strange out here at night?",
             "Sorry, I don't really feel like talking.",
-            "Nice bus. Smells a bit, but nice.",
-            "Is it always this quiet on this route?",
+            "I like that this bus is nice and warm.",
+            "Is it always this quiet over here?",
             "Wake me up when we get there, would you?",
-            "Yeah, I know, I should've got the earlier one."
+            "Should I have caught the earlier bus..."
         };
 
         static readonly string[] starerGreetings = {
-            "(it does not answer, and steps aboard)",
-            "Hhhhhh...",
-            "(it tilts its head at you until you look away)"
+            "Hi there.",
+            "Lovely evening, is it not?",
+            "Hello driver."
         };
 
         static readonly string[] starerFarewells = {
-            "(it steps off backwards, still watching)",
-            "(the staring stops only when the door shuts)",
-            "Hhhhh..."
+            "Goodbye. For now.",
+            "Interesting.",
+            "See you soon."
         };
 
         static readonly string[] starerSeated = {
-            "(it does not blink)",
-            "(the head turns to follow you, far too slowly)",
-            "Hhhhhh...",
-            "(it says nothing, and keeps looking)"
+            "Hello.",
+            "Can I help you?",
+            "...",
         };
 
         static readonly string[] whispererGreetings = {
-            "(it leans in and says something you don't quite catch)",
-            "...sit. drive...",
-            "(a whisper, from much closer than it is standing)"
+            "Evening.",
+            "It's pretty quiet tonight.",
+            "How are you doing?"
         };
 
         static readonly string[] whispererFarewells = {
-            "(the whispering carries on for a street after it leaves)",
-            "...soon...",
-            "(it thanks you, in a voice a lot like your own)"
+            "Farewell, driver.",
+            "You will hear me again.",
+            "Thank you."
         };
 
         static readonly string[] whispererSeated = {
-            "(it is whispering, but not to you)",
-            "...keep driving, keep driving, keep...",
-            "(somewhere in it you hear your own name)",
-            "Hhh- no. Nothing. Go on."
+            "Could you keep driving?",
+            "Shh- it's too loud in here.",
+            "Can you be quiet for a moment?",
+            "Did you hear something?"
         };
 
         public static DialogueKind KindFor(string monsterId) {
