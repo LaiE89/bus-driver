@@ -72,17 +72,6 @@ namespace BusDriver.UI.Menu {
             if (game != null) {
                 game.Audio.Play(SoundIds.UiClick);
             }
-        static void Link(Selectable button, Selectable up, Selectable down) {
-            if (button == null) {
-                return;
-            }
-            Navigation navigation = new Navigation();
-            navigation.mode = Navigation.Mode.Explicit;
-            navigation.selectOnUp = up;
-            navigation.selectOnDown = down;
-            button.navigation = navigation;
-        }
-
         }
     }
 }

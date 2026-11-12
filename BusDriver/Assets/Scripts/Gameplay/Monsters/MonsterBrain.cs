@@ -102,6 +102,9 @@ namespace BusDriver.Gameplay.Monsters {
             if (definition.Ability<GuestStrikeConfig>() != null && GetComponent<GuestStrike>() == null) {
                 gameObject.AddComponent<GuestStrike>();
             }
+            if (definition.Ability<MimicCopyConfig>() != null && GetComponent<MimicHunt>() == null) {
+                gameObject.AddComponent<MimicHunt>();
+            }
         }
 
         void OnDestroy() {

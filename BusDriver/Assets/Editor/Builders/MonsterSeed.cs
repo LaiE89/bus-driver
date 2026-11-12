@@ -134,7 +134,7 @@ namespace BusDriver.Editor.Builders {
             };
         }
 
-        // Accepting it at the door kills. Refuse it.
+        // Talking to it, or still carrying it at the last stop, kills. A kick does not.
         static void FillGuest(MonsterDefinition m) {
             m.displayName = "The Guest";
             m.rules = new[] { Rule(ThreatCondition.Always, 0f) };
@@ -142,12 +142,12 @@ namespace BusDriver.Editor.Builders {
             m.escape = new MonsterEscape(EscapeKind.None, 0f, 60f);
             m.ability = new GuestStrikeConfig();
             m.journal = new MonsterJournal {
-                sightingText = "A rider on the step who is already smiling, and never says where it is going.",
+                sightingText = "A rider who never says where it is going.",
                 tellsText = new[] {
                     "It talks like anyone else who just wants out of the cold.",
                     "It never says which stop is theirs.",
                 },
-                hint = "Do not let it on the bus.",
+                hint = "Don't talk to it. Don't carry it to the last stop.",
             };
         }
 

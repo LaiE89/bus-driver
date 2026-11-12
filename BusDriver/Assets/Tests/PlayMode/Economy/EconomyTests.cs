@@ -31,11 +31,11 @@ namespace BusDriver.Tests.PlayMode.Economy {
         }
 
         // Straight to gas_station (farm_gate is missed), where look03 (→ church) and look04
-        // (→ campground) board: a fare each, credited the moment they board. AutoPilot is well
-        // ahead of the timetable there (it skipped farm_gate's dwell), so campground is reached
-        // Early and look04 earns the 50 % tip.
+        // (→ campground) board. Neither pays for stepping on. AutoPilot is well ahead of the
+        // timetable there (it skipped farm_gate's dwell), so campground is reached Early and
+        // look04 pays the fare plus the 50 % tip as they step off.
         [UnityTest, Timeout(900000)]
-        public IEnumerator Economy_FareOnBoard_TipOnEarly() {
+        public IEnumerator Economy_FareAndTipOnDropOff() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
             game.Flow.DebugNoMonsters = true;
             game.Flow.NewRun(Seed);
@@ -58,9 +58,9 @@ namespace BusDriver.Tests.PlayMode.Economy {
 
             Time.timeScale = TimeScale;
             yield return NightDrive.ServeStop(night, "gas_station");
-            CollectionAssert.AreEquivalent(new[] { "look03 paid", "look04 paid" }, fareAtBoarding, "a fare is credited as each rider boards");
-            Assert.AreEqual(2 * balance.fareCents, ledger.Totals.Cents(LedgerKind.Fare));
-            Assert.AreEqual(2, ledger.Totals.Count(LedgerKind.Fare));
+            CollectionAssert.AreEquivalent(new[] { "look03 unpaid", "look04 unpaid" }, fareAtBoarding, "boarding does not charge a fare");
+            Assert.AreEqual(0, ledger.Totals.Cents(LedgerKind.Fare));
+            Assert.AreEqual(0, ledger.Totals.Count(LedgerKind.Fare));
             Assert.AreEqual(0, ledger.Totals.Count(LedgerKind.Tip));
 
             RiderRecord look04 = NightDrive.Rider(shift, "look04");
@@ -68,7 +68,9 @@ namespace BusDriver.Tests.PlayMode.Economy {
             Assert.IsTrue(shift.Doors.TryOpen());
             StopRecord campground = shift.Progress.Find("campground");
             // Tip lands with the farewell on the doorstep, before NotifyLeft marks Delivered
+            yield return FlowTestUtil.WaitFor(() => ledger.Totals.Count(LedgerKind.Fare) == 1, 60f, "the fare on drop-off");
             yield return FlowTestUtil.WaitFor(() => ledger.Totals.Count(LedgerKind.Tip) == 1, 60f, "the tip on drop-off");
+            Assert.AreEqual(balance.fareCents, ledger.Totals.Cents(LedgerKind.Fare));
             Assert.AreNotEqual(RiderStatus.Delivered, look04.Status, "tip is paid at the farewell, before they finish stepping off");
             Assert.AreEqual(ArrivalRating.Early, campground.Rating,
                 $"campground should be reached early: arrived {campground.ArrivalGameSeconds:0}, scheduled {campground.ScheduledGameSeconds:0}");
@@ -88,22 +90,22 @@ namespace BusDriver.Tests.PlayMode.Economy {
             Assert.AreEqual(ledger.Totals.NetCents, ledger.WalletNowCents);
         }
 
-        // An innocent kicked out takes their fare back (§2.7 / §2.13)
+        // An innocent kicked out never paid, so there is nothing to hand back. The doors still
+        // close around the kick so the bus can move on.
         [UnityTest, Timeout(900000)]
-        public IEnumerator Economy_InnocentKicked_RefundsFare() {
+        public IEnumerator Economy_InnocentKicked_PaysNothing() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
             game.Flow.DebugNoMonsters = true;
             game.Flow.NewRun(Seed);
             yield return FlowTestUtil.WaitForDriving(game);
             ShiftContext night = Object.FindAnyObjectByType<ShiftContext>();
             ShiftServices shift = night.Shift;
-            BalanceConfig balance = shift.Balance;
 
             Time.timeScale = TimeScale;
             yield return NightDrive.ServeStop(night, "farm_gate");
             RiderRecord look01 = NightDrive.Rider(shift, "look01");
             Assert.AreEqual(RiderStatus.Aboard, look01.Status);
-            Assert.AreEqual(2 * balance.fareCents, shift.Ledger.Totals.Cents(LedgerKind.Fare));
+            Assert.AreEqual(0, shift.Ledger.Totals.Cents(LedgerKind.Fare), "a rider still aboard has not paid");
 
             // Stay stopped with the doors shut so the player can walk back and kick
             Assert.IsTrue(shift.Doors.TryClose());
@@ -111,8 +113,9 @@ namespace BusDriver.Tests.PlayMode.Economy {
             Passenger passenger = look01.Passenger;
             yield return OnFootKick.WalkUpAndKick(shift, passenger);
             Assert.AreEqual(RiderStatus.Kicked, look01.Status);
-            Assert.AreEqual(-balance.fareCents, shift.Ledger.Totals.Cents(LedgerKind.Refund),
-                "kicking a human refunds the fare they paid");
+            Assert.AreEqual(0, shift.Ledger.Totals.Cents(LedgerKind.Fare));
+            Assert.AreEqual(0, shift.Ledger.Totals.Cents(LedgerKind.Refund),
+                "kicking a human refunds nothing, because they never paid");
             yield return OnFootKick.WaitGoneAndSitDown(shift, passenger);
         }
     }

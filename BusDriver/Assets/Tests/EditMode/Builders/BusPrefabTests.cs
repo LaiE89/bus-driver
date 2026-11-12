@@ -106,7 +106,7 @@ namespace BusDriver.Tests.EditMode.Builders {
             CctvCamera cctv = anchor.GetComponentInChildren<CctvCamera>(true);
             Assert.IsNotNull(cctv, "Anchor_CCTV_Front has no CctvCamera");
             Assert.AreSame(cctv, system.Cameras[0]);
-            AssertNear(new Vector3(0.3f, 3.2f, 5.3f), Local(bus, cctv.transform), "Anchor_CCTV_Front");
+            AssertNear(new Vector3(0.3f, 2.9f, 5.3f), Local(bus, cctv.transform), "Anchor_CCTV_Front");
             Assert.Less(Quaternion.Angle(Quaternion.Euler(22f, 180f, 0f), Quaternion.Inverse(bus.transform.rotation) * cctv.transform.rotation), 0.01f, "front CCTV rotation");
             Camera cam = cctv.GetComponent<Camera>();
             Assert.AreEqual(95f, cam.fieldOfView, Eps);
@@ -136,7 +136,7 @@ namespace BusDriver.Tests.EditMode.Builders {
             Assert.AreEqual(4.1f, center.z - blocker.size.z * 0.5f, Eps);
             Assert.AreEqual(5.5f, center.z + blocker.size.z * 0.5f, Eps);
             AssertNear(new Vector3(1f, 0.55f, 4.8f), Local(bus, Find(bus, "Anchor_DoorStep")), "Anchor_DoorStep");
-            AssertNear(new Vector3(0f, 0.55f, 4.8f), Local(bus, Find(bus, "Anchor_AisleAtDoor")), "Anchor_AisleAtDoor");
+            AssertNear(new Vector3(0.12f, 0.55f, 4.8f), Local(bus, Find(bus, "Anchor_AisleAtDoor")), "Anchor_AisleAtDoor");
             AssertNear(new Vector3(-0.9f, 1.2f, 6.1f), Local(bus, Find(bus, "Anchor_Headlight_L")), "Anchor_Headlight_L");
             AssertNear(new Vector3(0.9f, 1.2f, 6.1f), Local(bus, Find(bus, "Anchor_Headlight_R")), "Anchor_Headlight_R");
         }

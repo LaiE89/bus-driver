@@ -12,6 +12,10 @@ namespace BusDriver.Gameplay.Sanity {
         bool hit;
 
         public Sprite Picture { get; set; }
+        // Set when this one walks the centre of the lane toward the bus.
+        public bool Approaches { get; set; }
+        public float RouteDistance { get; set; }
+        public float Lateral { get; set; }
 
         public void Init(ShiftServices services, Action<SanityObstacle> hitCallback) {
             shift = services;

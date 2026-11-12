@@ -36,7 +36,7 @@ namespace BusDriver.Tests.PlayMode.Passengers {
             new[] { "gas_station", "look03", "church", "" },
             new[] { "gas_station", "look04", "campground", "" },
             new[] { "campground", "look05", "church", "" },
-            new[] { "gas_station", "look06", "", "starer" },
+            new[] { "gas_station", "look06", "church", "starer" },
         };
 
         [UnityTest, Timeout(300000)]

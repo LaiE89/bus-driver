@@ -28,6 +28,8 @@ MonoBehaviour:
   - starer
   - whisperer
   - gazer
+  - guest
+  - mimic
   minDistinctTypes: 0
   maxPerType: 1
   monsterBoardFirstStop: farm_gate

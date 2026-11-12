@@ -37,7 +37,6 @@ namespace BusDriver.UI.Hud {
         string leaveSeatKey = "";
         string doorsKey = "";
         string acceptRiderKey = "";
-        string refuseRiderKey = "";
         string controlsHint = "";
 
         public void Bind(ShiftServices shift) {
@@ -97,7 +96,6 @@ namespace BusDriver.UI.Hud {
             leaveSeatKey = Key("LeaveSeat");
             doorsKey = Key("Doors");
             acceptRiderKey = Key("AcceptRider");
-            refuseRiderKey = Key("RefuseRider");
             // Bottom-left reminder: handbrake and CCTV cycle (bindings follow rebinds)
             controlsHint = $"{Key("Handbrake")}  Brake\n{Key("CycleCamera")}  Camera";
             if (controlsText != null) {
@@ -167,7 +165,7 @@ namespace BusDriver.UI.Hud {
             // Somebody on the step outranks everything else: the bus can't move until they are
             // dealt with, so the doors and the seat are no use yet (§2.4)
             if (cabin != null && cabin.PassengerAtDoor != null) {
-                return $"{acceptRiderKey}   Let aboard\n{refuseRiderKey}   Turn away";
+                return $"{acceptRiderKey}   Let aboard";
             }
             string text = "";
             if (mode.CanLeaveSeat) {

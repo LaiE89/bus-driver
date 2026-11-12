@@ -574,11 +574,18 @@ namespace BusDriver.Gameplay.Views {
             if (dressed == null) {
                 return;
             }
+            Material mirror = FindDressed("Mirror");
             Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
             for (int i = 0; i < renderers.Length; i++) {
                 Material[] slots = renderers[i].sharedMaterials;
-                bool changed = false;
+                string rendererName = renderers[i].name;
+                bool mirrorGlass = mirror != null && rendererName.Contains("SM_Mirror_") && !rendererName.Contains("Mount");
+                bool changed = mirrorGlass;
                 for (int s = 0; s < slots.Length; s++) {
+                    if (mirrorGlass) {
+                        slots[s] = mirror;
+                        continue;
+                    }
                     Material replacement = Match(slots[s]);
                     if (replacement != null) {
                         slots[s] = replacement;
@@ -624,7 +631,7 @@ namespace BusDriver.Gameplay.Views {
             if (lit == null) {
                 return null;
             }
-            string[] parts = { "Exterior", "Interior", "Trim", "Wheel", "Seats", "Control", "Accessory", "Window", "Monitor" };
+            string[] parts = { "Exterior", "Interior", "Trim", "Wheel", "Seats", "Control", "Accessory", "Window", "Monitor", "Mirror" };
             Material[] materials = new Material[parts.Length];
             for (int i = 0; i < parts.Length; i++) {
                 materials[i] = Make(lit, parts[i]);
@@ -634,15 +641,22 @@ namespace BusDriver.Gameplay.Views {
 
         static Material Make(Shader lit, string part) {
             bool window = part == "Window";
+            bool mirror = part == "Mirror";
             // Clone the shipped glass material so a player build keeps this shader variant.
             // A material created from the shader at runtime is stripped, and the windows draw solid.
-            Material kept = window ? Resources.Load<Material>("Materials/BusGlass") : null;
+            Material kept = window || mirror ? Resources.Load<Material>("Materials/BusGlass") : null;
             Material material = kept != null ? new Material(kept) : new Material(lit);
             material.name = part == "Monitor" ? "M_Monitor_00" : "M_Bus_" + part + "_00";
             if (part == "Monitor") {
                 material.SetColor("_BaseColor", new Color(0.01f, 0.012f, 0.014f, 1f));
                 material.SetFloat("_Smoothness", 0.4f);
                 return material;
+            }
+            if (mirror) {
+                return MakeMirror(material);
+            }
+            if (window) {
+                return MakeWindow(material);
             }
             string prefix = part == "Interior" ? "T_Bus_Interior" : "T_Bus_" + part + "_00";
             Texture2D color = Resources.Load<Texture2D>("Textures/" + prefix + "_BC");
@@ -662,16 +676,16 @@ namespace BusDriver.Gameplay.Views {
             }else {
                 material.DisableKeyword("_NORMALMAP");
             }
-            bool glass = window || punched != null;
-            if (glass) {
+            if (punched != null) {
                 ApplyGlass(material);
                 Color tint = Color.white;
-                if (punched == null) {
-                    tint.a = 0.45f;
-                }
+                tint.a = 0.35f;
                 material.SetColor("_BaseColor", tint);
                 material.SetColor("_Color", tint);
-                material.SetFloat("_Smoothness", 0.85f);
+                material.SetFloat("_Smoothness", 0.08f);
+                material.SetFloat("_BlendModePreserveSpecular", 0f);
+                material.SetFloat("_SpecularHighlights", 0f);
+                material.SetFloat("_EnvironmentReflections", 0f);
             }else if (part == "Trim" || part == "Wheel") {
                 material.SetFloat("_Smoothness", 0.55f);
                 material.SetFloat("_Metallic", 0.6f);
@@ -681,8 +695,60 @@ namespace BusDriver.Gameplay.Views {
             return material;
         }
 
-        // Same blend URP uses for alpha glass that keeps its highlight: the shader premultiplies,
-        // so the framebuffer blend is One, OneMinusSrcAlpha. Door.mat ships the version without a
+        // Nearly clear glass. Straight alpha, so the pane only tints by its alpha.
+        static Material MakeWindow(Material material) {
+            material.SetTexture("_BaseMap", null);
+            material.SetTexture("_MainTex", null);
+            material.SetTexture("_BumpMap", null);
+            material.DisableKeyword("_NORMALMAP");
+            ApplyGlass(material);
+            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            material.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+            material.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+            Color tint = new Color(0.85f, 0.9f, 0.92f, 0.01f);
+            material.SetColor("_BaseColor", tint);
+            material.SetColor("_Color", tint);
+            material.SetFloat("_Smoothness", 0f);
+            material.SetFloat("_Metallic", 0f);
+            material.SetFloat("_SpecularHighlights", 0f);
+            material.SetFloat("_EnvironmentReflections", 0f);
+            material.SetFloat("_ScreenSpaceReflections", 0f);
+            material.SetFloat("_ScreenSpaceReflectionsContributeTransparent", 0f);
+            material.SetFloat("_ReceiveShadows", 0f);
+            material.SetFloat("_BlendModePreserveSpecular", 0f);
+            return material;
+        }
+
+        // A dark face with a soft highlight, not a chrome mirror.
+        static Material MakeMirror(Material material) {
+            material.SetTexture("_BaseMap", null);
+            material.SetTexture("_MainTex", null);
+            material.SetTexture("_BumpMap", null);
+            material.DisableKeyword("_NORMALMAP");
+            material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            material.SetFloat("_Surface", 0f);
+            material.SetFloat("_Blend", 0f);
+            material.SetFloat("_SrcBlend", (float)BlendMode.One);
+            material.SetFloat("_DstBlend", (float)BlendMode.Zero);
+            material.SetFloat("_ZWrite", 1f);
+            material.SetFloat("_Cull", (float)CullMode.Back);
+            material.SetOverrideTag("RenderType", "Opaque");
+            material.renderQueue = (int)RenderQueue.Geometry;
+            material.SetShaderPassEnabled("ShadowCaster", true);
+            Color silver = new Color(0.22f, 0.24f, 0.26f, 1f);
+            material.SetColor("_BaseColor", silver);
+            material.SetColor("_Color", silver);
+            material.SetFloat("_Metallic", 0.45f);
+            material.SetFloat("_Smoothness", 0.42f);
+            material.SetFloat("_SpecularHighlights", 1f);
+            material.SetFloat("_EnvironmentReflections", 1f);
+            material.SetColor("_EmissionColor", Color.black);
+            material.DisableKeyword("_EMISSION");
+            return material;
+        }
+
+        // Same blend URP uses for alpha glass. Door.mat ships the version without a
         // normal map; Materials/BusGlass ships this one, normal map included.
         static void ApplyGlass(Material material) {
             material.SetFloat("_Surface", 1f);

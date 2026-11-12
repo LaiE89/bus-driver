@@ -42,7 +42,7 @@ MonoBehaviour:
   - at: 0
     kind: 1
     duration: 0
-    soundId: mon.starer.kill
+    soundId: mon.guest.kill
     overlay: {fileID: 0}
     intensity: 0
     anchor: 

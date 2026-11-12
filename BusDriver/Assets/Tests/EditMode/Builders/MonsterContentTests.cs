@@ -86,12 +86,13 @@ namespace BusDriver.Tests.EditMode.Builders {
         }
 
         [Test]
-        public void Guest_KillsWhenAccepted() {
+        public void Guest_KillsWhenTalkedToOrAtTheLastStop() {
             MonsterDefinition m = Monster("guest");
             AssertRules(m, ThreatCondition.Always, 0f);
             Assert.AreEqual(ObserverKinds.None, m.observerKinds);
             Assert.AreEqual(EscapeKind.None, m.escape.kind);
-            Assert.AreEqual("Do not let it on the bus.", m.journal.hint);
+            Assert.AreEqual("Don't talk to it. Don't carry it to the last stop.", m.journal.hint);
+            Assert.AreEqual(8f, m.Ability<GuestStrikeConfig>().rushMetresPerSecond, 0.001f);
             Assert.IsNotNull(m.Ability<GuestStrikeConfig>());
             Assert.IsNull(m.logicPrefab.GetComponent<KillSequence>());
             Assert.IsNotNull(m.logicPrefab.GetComponent<GuestStrike>());
@@ -110,13 +111,12 @@ namespace BusDriver.Tests.EditMode.Builders {
             Assert.IsTrue(inFront, "the face is shown in front of the driver view");
         }
 
-        public void Mimic_MatchesSection2_12() {
+        [Test]
+        public void Mimic_TakesAPassengerThenHunts() {
             MonsterDefinition m = Monster("mimic");
-            AssertRules(m, ThreatCondition.Observed, 2.5f, ThreatCondition.Always, -1f);
-            Assert.AreEqual(ObserverKinds.Cctv | ObserverKinds.Driver | ObserverKinds.Mirror, m.observerKinds, "not OnFoot (D22)");
-            Assert.AreEqual(EscapeKind.UnobservedFor, m.escape.kind);
-            Assert.AreEqual(2f, m.escape.seconds);
-            Assert.AreEqual(120f, m.Ability<MimicCopyConfig>().replaceIntervalSeconds);
+            AssertRules(m, ThreatCondition.Always, 0f);
+            Assert.AreEqual(30f, m.Ability<MimicCopyConfig>().replaceIntervalSeconds, 0.001f);
+            Assert.AreEqual("Kick it off before it is the last one aboard.", m.journal.hint);
         }
 
         [Test]

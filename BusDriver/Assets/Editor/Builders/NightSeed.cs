@@ -40,7 +40,7 @@ namespace BusDriver.Editor.Builders {
             night.maxPerType = 0;
             night.mimicBoardFirstStop = "";
             night.mimicBoardLastStop = "";
-            string[] all = { Starer, Whisperer, Gazer, Guest };
+            string[] all = { Starer, Whisperer, Gazer, Guest, Mimic };
             switch (index) {
                 case 1:
                     night.threatRateMultiplier = 1f;

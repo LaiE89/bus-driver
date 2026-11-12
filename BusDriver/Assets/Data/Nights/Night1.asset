@@ -23,11 +23,16 @@ MonoBehaviour:
     destinationStopId: campground
     decoy: 0
     monsterId: 
+  - lookId: look07
+    boardStopId: farm_gate
+    destinationStopId: church
+    decoy: 0
+    monsterId: 
   - lookId: look02
     boardStopId: farm_gate
     destinationStopId: 
     decoy: 0
-    monsterId: whisperer
+    monsterId: mimic
   - lookId: look03
     boardStopId: gas_station
     destinationStopId: church

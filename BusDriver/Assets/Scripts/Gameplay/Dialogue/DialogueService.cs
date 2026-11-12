@@ -15,9 +15,9 @@ namespace BusDriver.Gameplay.Dialogue {
     // zeroes the time scale, so the typewriter stops with everything else.
     public sealed class DialogueService : MonoBehaviour {
         [Tooltip("Typewriter speed, seconds per character")]
-        [SerializeField] float secondsPerCharacter = 0.02f;
+        [SerializeField] float secondsPerCharacter = 0.008f;
         [Tooltip("How long a finished line stays on screen")]
-        [SerializeField] float holdSeconds = 2f;
+        [SerializeField] float holdSeconds = 1f;
         [Tooltip("One blip per this many characters: the voice pool is far too small for one each")]
         [SerializeField] int charactersPerBlip = 3;
         [Tooltip("Lines waiting behind the one on screen; beyond this the oldest is dropped")]
@@ -96,6 +96,21 @@ namespace BusDriver.Gameplay.Dialogue {
                 pending.Dequeue();
             }
             pending.Enqueue(line);
+        }
+
+        // The player walked up to somebody else. Drop the line on screen and start this one now.
+        public void SayImmediate(string speaker, string text) {
+            if (string.IsNullOrEmpty(text)) {
+                return;
+            }
+            pending.Clear();
+            StopRunning();
+            stickyHold = false;
+            Begin(new Pending {
+                Speaker = string.IsNullOrEmpty(speaker) ? "" : speaker,
+                Text = text,
+                Sticky = false,
+            });
         }
 
         // Nothing carries across a night boundary or a death

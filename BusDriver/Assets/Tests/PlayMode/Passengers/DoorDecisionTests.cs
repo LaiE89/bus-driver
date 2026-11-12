@@ -11,8 +11,7 @@ using UnityEngine.TestTools;
 
 namespace BusDriver.Tests.PlayMode.Passengers {
     // The decision at the door (§2.4): a rider walks up the step, says where they are going and
-    // waits there until the driver waves them on or turns them away. The fare only goes in the
-    // box for the ones who are let aboard (§2.7).
+    // waits there until the driver waves them on. Letting them aboard does not charge a fare.
     public class DoorDecisionTests {
         const float TimeScale = 3f;
         const string StopId = "farm_gate";
@@ -74,14 +73,14 @@ namespace BusDriver.Tests.PlayMode.Passengers {
             Assert.AreEqual(beforeCents, shift.Ledger.Totals.NetCents, "a refused rider paid a fare");
             yield return FlowTestUtil.WaitFor(() => first == null || !first.IsAboard, 30f, "the refused rider leaving");
 
-            // The next in line steps up, and accepting them does put a fare in the box
+            // The next in line steps up. Accepting them puts them aboard and still charges nothing.
             yield return FlowTestUtil.WaitFor(() => shift.Cabin.PassengerAtDoor != null, 60f, "the next rider reaching the step");
             Passenger second = shift.Cabin.PassengerAtDoor;
             RiderRecord secondRecord = shift.Riders.For(second);
             Assert.AreNotEqual(firstRecord, secondRecord, "the refused rider came back");
             second.AcceptAboard();
             yield return FlowTestUtil.WaitFor(() => secondRecord.Status == RiderStatus.Aboard, 30f, "the accepted rider");
-            Assert.Greater(shift.Ledger.Totals.NetCents, beforeCents, "an accepted rider paid no fare");
+            Assert.AreEqual(beforeCents, shift.Ledger.Totals.NetCents, "an accepted rider paid a fare at the door");
             Assert.AreEqual(RiderStatus.Refused, firstRecord.Status, "the refused rider's status changed later on");
         }
 

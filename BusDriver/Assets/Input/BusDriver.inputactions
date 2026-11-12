@@ -425,7 +425,7 @@
                 {
                     "name": "",
                     "id": "925c3796-4852-5eda-9e40-61cbaa2637e5",
-                    "path": "<Keyboard>/r",
+                    "path": "<Keyboard>/f2",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
@@ -735,7 +735,7 @@
                 {
                     "name": "",
                     "id": "b95b683f-cc0b-5074-9f5f-c797e264110e",
-                    "path": "<Keyboard>/f2",
+                    "path": "<Keyboard>/f6",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",

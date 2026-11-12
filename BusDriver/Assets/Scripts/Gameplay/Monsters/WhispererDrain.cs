@@ -5,9 +5,9 @@ using BusDriver.Gameplay.Shift;
 using UnityEngine;
 
 namespace BusDriver.Gameplay.Monsters {
-    // The Whisperer's ability (§2.11): while aboard and seated, drains sanity by stage and plays
-    // the four-voices whisper bed. Volume starts near silent at Dormant and eases up as threat
-    // climbs through Unsettled → Aggressive → Lethal.
+    // The Whisperer's ability: while it is aboard during the drive, drains sanity by stage and
+    // plays the whisper on the rider itself. Distance makes it louder up close. Each threat
+    // stage aims higher, and the bed eases up to that level instead of jumping.
     [RequireComponent(typeof(MonsterBrain))]
     public sealed class WhispererDrain : MonoBehaviour, IMonsterPart {
         const float FeedQuietScale = 0.55f;
@@ -66,11 +66,12 @@ namespace BusDriver.Gameplay.Monsters {
             }
 
             float target = StageVolume(brain.Stage);
-            float lerp = config != null ? Mathf.Max(0.01f, config.whisperVolumeLerpPerSecond) : 0.35f;
+            float lerp = config != null ? Mathf.Max(0.01f, config.whisperVolumeLerpPerSecond) : 0.12f;
             volume = Mathf.MoveTowards(volume, target, lerp * Time.deltaTime);
 
+            Transform at = AttachPoint();
             if (!audio.IsPlaying(whisperLoop)) {
-                whisperLoop = audio.Play(SoundIds.MonWhisperLoop);
+                whisperLoop = at != null ? audio.PlayAttached(SoundIds.MonWhisperLoop, at) : audio.Play(SoundIds.MonWhisperLoop);
             }
             if (!whisperLoop.IsNone) {
                 audio.SetVolume(whisperLoop, volume);
@@ -79,12 +80,20 @@ namespace BusDriver.Gameplay.Monsters {
 
             float feedVolume = brain.IsObserved ? volume : volume * FeedQuietScale;
             if (!audio.IsPlaying(feedLoop)) {
-                feedLoop = audio.Play(SoundIds.MonWhisperFeedLoop);
+                feedLoop = at != null ? audio.PlayAttached(SoundIds.MonWhisperFeedLoop, at) : audio.Play(SoundIds.MonWhisperFeedLoop);
             }
             if (!feedLoop.IsNone) {
                 audio.SetVolume(feedLoop, feedVolume);
             }
             FeedLoopPlaying = audio.IsPlaying(feedLoop);
+        }
+
+        // The head, so the source sits on the rider. The body stands in until the head exists.
+        Transform AttachPoint() {
+            if (brain == null || brain.Passenger == null) {
+                return null;
+            }
+            return brain.Passenger.Head != null ? brain.Passenger.Head : brain.Passenger.transform;
         }
 
         float DrainFor(ThreatStage stage) {

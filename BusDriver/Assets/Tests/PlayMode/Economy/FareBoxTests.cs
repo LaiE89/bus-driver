@@ -1,4 +1,5 @@
 using System.Collections;
+using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Passengers;
@@ -28,7 +29,7 @@ namespace BusDriver.Tests.PlayMode.Economy {
         }
 
         [UnityTest, Timeout(600000)]
-        public IEnumerator FareBox_BoardingPopsTheFare() {
+        public IEnumerator FareBox_DropOffPopsTheFare() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
             game.Flow.DebugNoMonsters = true;
             game.Flow.NewRun(20260930);
@@ -41,19 +42,23 @@ namespace BusDriver.Tests.PlayMode.Economy {
             Assert.AreEqual("$0.00", fareBox.TotalText);
             StringAssert.Contains("QUOTA", fareBox.QuotaText);
 
-            float boardedAt = -1f;
-            shift.Cabin.OnPassengerBoarded += passenger => {
-                if (boardedAt < 0f) {
-                    boardedAt = Time.unscaledTime;
+            Time.timeScale = TimeScale;
+            yield return NightDrive.ServeStop(night, "farm_gate");
+            Assert.AreEqual(0, shift.Ledger.Totals.Cents(LedgerKind.Fare), "boarding does not charge a fare");
+            Assert.AreEqual("$0.00", fareBox.TotalText);
+
+            float droppedAt = -1f;
+            shift.Cabin.OnPassengerDropOff += passenger => {
+                if (droppedAt < 0f) {
+                    droppedAt = Time.unscaledTime;
                 }
             };
-            Time.timeScale = TimeScale;
-            yield return NightDrive.ArriveAt(night, "farm_gate");
+            yield return NightDrive.ArriveAt(night, "campground");
             Assert.IsTrue(shift.Doors.TryOpen());
-            yield return FlowTestUtil.WaitFor(() => boardedAt >= 0f, 60f, "the first rider boarding");
+            yield return FlowTestUtil.WaitFor(() => droppedAt >= 0f, 60f, "the first rider stepping off");
             yield return null;
-            Assert.LessOrEqual(fareBox.LastPopTime - boardedAt, 0.2f, "the pop shows within 0.2 s of boarding");
-            Assert.GreaterOrEqual(fareBox.LastPopTime, boardedAt);
+            Assert.LessOrEqual(fareBox.LastPopTime - droppedAt, 0.2f, "the pop shows within 0.2 s of the drop-off");
+            Assert.GreaterOrEqual(fareBox.LastPopTime, droppedAt);
             Assert.AreEqual(Money.FormatDelta(shift.Balance.fareCents), fareBox.DeltaText);
             Assert.AreEqual("+$3.50", fareBox.DeltaText);
             Assert.IsTrue(fareBox.IsPopping);

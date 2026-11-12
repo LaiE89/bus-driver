@@ -10,11 +10,13 @@ using BusDriver.UI.Screens;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace BusDriver.UI.Dash {
-    // The dash GPS (§4.13, D12: glance only). The whole route, north-up, fitted with a 6 % margin;
-    // the travelled part dimmed; the bus as an arrow; stops as ✓ (served), a ring (next) or a dot
-    // (upcoming), in shape as well as colour; stubs as short grey dead ends; the cliff red and
+    // The dash GPS (§4.13, D12: glance only). North-up. While driving, the map is zoomed on the bus
+    // so only the nearby route shows; the layout pass still fits the whole route for tests. The
+    // travelled part is dimmed; the bus is an arrow; stops are ✓ (served), a ring (next) or a dot
+    // (upcoming), in shape as well as colour; stubs are short grey dead ends; the cliff is red and
     // dashed. Beside it: the next stop, its distance, the ETA, the stop's scheduled time (D107) and
     // the clock. SetSignal(false) (the tunnel, T-M2-14) swaps it all for NO SIGNAL.
     public sealed class RouteMapView : DashScreenView {
@@ -23,6 +25,8 @@ namespace BusDriver.UI.Dash {
         const float StubPixels = 8f;
         const float SampleStep = 5f;
         const float TextRefreshSeconds = 0.25f;
+        // Metres of ground across the map while driving. The whole route is several kilometres.
+        const float ViewMetres = 500f;
 
         [SerializeField] RectTransform mapArea;
         [SerializeField] GameObject mapGroup;
@@ -55,6 +59,14 @@ namespace BusDriver.UI.Dash {
         RouteDefinition route;
         RoutePath path;
         GpsProjection projection;
+        Vector3[] routeWorld;
+        Vector2[] routePoints;
+        Vector3[] cliffWorld;
+        Vector2[] cliffPoints;
+        Vector3[] stubMouths;
+        Vector2[] stubDirections;
+        Vector2[] stubPoints;
+        Vector3[] stopWorld;
         readonly List<GpsStopMarker> markers = new List<GpsStopMarker>();
         readonly List<TunnelZone> tunnels = new List<TunnelZone>();
         float nextTextRefresh;
@@ -72,6 +84,12 @@ namespace BusDriver.UI.Dash {
             progress = shift.Progress;
             clock = shift.Clock;
             Layout(tracker.Route, tracker.Path);
+            if (busArrow != null) {
+                busArrow.localScale = new Vector3(1.4f, 1.4f, 1f);
+            }
+            if (mapArea != null && mapArea.GetComponent<RectMask2D>() == null) {
+                mapArea.gameObject.AddComponent<RectMask2D>();
+            }
             // A night that ends before the route does greys out everything past its end stop (§2.4)
             if (progress.EndStop != null && progress.EndStop.StopId != route.terminusStopId) {
                 routeLine.SetDimAfter(progress.EndStop.Distance / SampleStep, closedColor);
@@ -120,17 +138,17 @@ namespace BusDriver.UI.Dash {
             path = routePath;
             Rect area = new Rect(Vector2.zero, mapArea.rect.size);
             int count = Mathf.CeilToInt(path.TotalLength / SampleStep) + 1;
-            Vector3[] world = new Vector3[count];
+            routeWorld = new Vector3[count];
+            routePoints = new Vector2[count];
             for (int i = 0; i < count; i++) {
-                world[i] = path.Evaluate(Mathf.Min(i * SampleStep, path.TotalLength)).Position;
+                routeWorld[i] = path.Evaluate(Mathf.Min(i * SampleStep, path.TotalLength)).Position;
             }
-            projection = GpsProjection.Fit(world, area, MapMargin);
-            Vector2[] line = new Vector2[count];
+            projection = GpsProjection.Fit(routeWorld, area, MapMargin);
             for (int i = 0; i < count; i++) {
-                line[i] = projection.ToMap(world[i]);
+                routePoints[i] = projection.ToMap(routeWorld[i]);
             }
             routeLine.color = routeColor;
-            routeLine.SetPoints(line);
+            routeLine.SetPoints(routePoints);
             routeLine.SetDim(0f, travelledColor);
             LayoutCliff();
             LayoutStubs();
@@ -143,29 +161,34 @@ namespace BusDriver.UI.Dash {
                 return;
             }
             int count = Mathf.Max(2, Mathf.CeilToInt((cliff.end - cliff.start) / SampleStep) + 1);
-            Vector2[] points = new Vector2[count];
+            cliffWorld = new Vector3[count];
+            cliffPoints = new Vector2[count];
             for (int i = 0; i < count; i++) {
                 float d = Mathf.Lerp(cliff.start, cliff.end, i / (float)(count - 1));
-                points[i] = projection.ToMap(path.Evaluate(d).Position);
+                cliffWorld[i] = path.Evaluate(d).Position;
+                cliffPoints[i] = projection.ToMap(cliffWorld[i]);
             }
-            cliffLine.SetPoints(points);
+            cliffLine.SetPoints(cliffPoints);
         }
 
         // Each stub a short segment off the route at its branch angle, on its side
         void LayoutStubs() {
-            Vector2[] points = new Vector2[route.stubs.Length * 2];
+            stubMouths = new Vector3[route.stubs.Length];
+            stubDirections = new Vector2[route.stubs.Length];
+            stubPoints = new Vector2[route.stubs.Length * 2];
             for (int i = 0; i < route.stubs.Length; i++) {
                 RouteStub stub = route.stubs[i];
                 RoutePose pose = path.Evaluate(stub.distance);
                 float side = stub.side == RouteSide.Right ? 1f : -1f;
                 // Turned from the route's heading toward its side, in the ground plane
                 Vector3 direction = Quaternion.AngleAxis(side * stub.angleDeg, Vector3.up) * pose.Tangent;
-                Vector2 mouth = projection.ToMap(pose.Offset(side * route.RoadWidthAt(stub.distance) * 0.5f));
-                Vector2 mapDirection = new Vector2(direction.x, direction.z).normalized;
-                points[i * 2] = mouth;
-                points[i * 2 + 1] = mouth + mapDirection * StubPixels;
+                stubMouths[i] = pose.Offset(side * route.RoadWidthAt(stub.distance) * 0.5f);
+                stubDirections[i] = new Vector2(direction.x, direction.z).normalized;
+                Vector2 mouth = projection.ToMap(stubMouths[i]);
+                stubPoints[i * 2] = mouth;
+                stubPoints[i * 2 + 1] = mouth + stubDirections[i] * StubPixels;
             }
-            stubLines.SetPoints(points);
+            stubLines.SetPoints(stubPoints);
         }
 
         void LayoutMarkers() {
@@ -175,10 +198,12 @@ namespace BusDriver.UI.Dash {
                 }
             }
             markers.Clear();
+            stopWorld = new Vector3[route.stops.Length];
             for (int i = 0; i < route.stops.Length; i++) {
                 RouteStop stop = route.stops[i];
+                stopWorld[i] = path.Evaluate(stop.distance).Position;
                 GpsStopMarker marker = GpsStopMarker.Create(markerRoot, stop.stopId, servedColor, nextColor, upcomingColor, missedColor);
-                marker.Rect.anchoredPosition = projection.ToMap(path.Evaluate(stop.distance).Position);
+                marker.Rect.anchoredPosition = projection.ToMap(stopWorld[i]);
                 markers.Add(marker);
             }
         }
@@ -195,12 +220,42 @@ namespace BusDriver.UI.Dash {
             if (tracker == null) {
                 return;
             }
-            // The arrow and the travelled split every frame (no allocation); texts a few times a second
+            // The arrow and the travelled split every frame. The map stays centred on the bus.
             Vector3 busPosition = tracker.Path.Evaluate(tracker.DistanceAlong).Position;
+            FollowBus(busPosition);
             busArrow.anchoredPosition = projection.ToMap(busPosition);
             busArrow.localRotation = Quaternion.Euler(0f, 0f, GpsProjection.MapAngle(tracker.Path.Evaluate(tracker.DistanceAlong).Tangent) - 90f);
             routeLine.SetDimBefore(tracker.DistanceAlong / SampleStep);
             Refresh(false);
+        }
+
+        void FollowBus(Vector3 busPosition) {
+            if (mapArea == null || routeWorld == null) {
+                return;
+            }
+            Rect area = new Rect(Vector2.zero, mapArea.rect.size);
+            projection = GpsProjection.Around(busPosition, ViewMetres, area);
+            for (int i = 0; i < routeWorld.Length; i++) {
+                routePoints[i] = projection.ToMap(routeWorld[i]);
+            }
+            routeLine.SetPoints(routePoints);
+            if (cliffWorld != null) {
+                for (int i = 0; i < cliffWorld.Length; i++) {
+                    cliffPoints[i] = projection.ToMap(cliffWorld[i]);
+                }
+                cliffLine.SetPoints(cliffPoints);
+            }
+            if (stubMouths != null) {
+                for (int i = 0; i < stubMouths.Length; i++) {
+                    Vector2 mouth = projection.ToMap(stubMouths[i]);
+                    stubPoints[i * 2] = mouth;
+                    stubPoints[i * 2 + 1] = mouth + stubDirections[i] * StubPixels;
+                }
+                stubLines.SetPoints(stubPoints);
+            }
+            for (int i = 0; i < markers.Count; i++) {
+                markers[i].Rect.anchoredPosition = projection.ToMap(stopWorld[i]);
+            }
         }
 
         void Refresh(bool force) {

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using BusDriver.Core.Data;
+using BusDriver.Core.Rules;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Audio;
 using BusDriver.Gameplay.Bus;
@@ -11,41 +12,58 @@ using BusDriver.Gameplay.Shift;
 using UnityEngine;
 
 namespace BusDriver.Gameplay.Sanity {
-    // Tier presentation for the simple sanity spiral: T1 random sounds + camera flicker, T2 road
-    // sprites + cabin light flicker, T3 thicker fog. No HUD number.
+    // Tier presentation for the simple sanity spiral. Crossing under 75 starts the sounds, the
+    // CCTV flicker and the cabin-light flicker, and those keep going at every sanity below that.
+    // Crossing under 50 adds the road pictures and a knock at the driver's window or the door
+    // window, with a figure standing outside that glass. Those keep going below 50 too. T3 adds
+    // the red fog. No HUD number.
     public sealed class SanityFx : MonoBehaviour {
         static readonly string[] AmbientSounds = {
-            SoundIds.HalFootstepsBehind, SoundIds.HalDoorChime, SoundIds.HalWindowKnock,
-            SoundIds.HalStaticBurst, SoundIds.HalWhisperDriver,
+            SoundIds.HalFootstepsBehind, SoundIds.HalDoorChime, SoundIds.HalStaticBurst, SoundIds.HalWhisperDriver,
         };
 
-        [Header("T1 — sounds + camera flicker [TUNE]")]
-        [SerializeField] FloatRange soundInterval = new FloatRange(22f, 55f);
+        [Header("T1 — sounds, camera flicker, cabin lights [TUNE]")]
+        [SerializeField] FloatRange soundInterval = new FloatRange(10f, 22f);
         [SerializeField] FloatRange flickerInterval = new FloatRange(8f, 18f);
         [SerializeField] float flickerSeconds = 0.18f;
         [SerializeField] float flickerAmplitude = 0.55f;
         [SerializeField] float soundVolumeBoost = 1.6f;
         [Tooltip("Chance a due scare sound actually fires (rest reschedule quietly)")]
         [SerializeField] [Range(0.2f, 1f)] float soundFireChance = 0.55f;
+        [SerializeField] float cabinFlickerSeconds = 0.7f;
+        [SerializeField] FloatRange cabinFlickerGap = new FloatRange(2.5f, 5.5f);
 
-        [Header("T2 — obstacles + cabin lights [TUNE]")]
-        [SerializeField] FloatRange obstacleInterval = new FloatRange(14f, 26f);
+        [Header("T2 — obstacles [TUNE]")]
+        [SerializeField] FloatRange obstacleInterval = new FloatRange(36f, 62f);
         [SerializeField] float obstacleAheadMeters = 38f;
-        [SerializeField] float obstacleSideJitter = 1.2f;
-        [Tooltip("World height of a spawned sprite, whatever its pixel size")]
-        [SerializeField] float spriteHeight = 1.8f;
+        [Tooltip("Metres of road kept clear between pictures")]
+        [SerializeField] float obstacleSpacing = 18f;
+        [Tooltip("Chance a picture spawns far up the road and walks back toward the bus")]
+        [SerializeField] [Range(0f, 1f)] float walkerChance = 0.45f;
+        [SerializeField] FloatRange walkerAhead = new FloatRange(80f, 120f);
+        [SerializeField] float walkerMetresPerSecond = 3.4f;
+        [Tooltip("World height of a picture standing on the road, whatever its pixel size")]
+        [SerializeField] float spriteHeight = 3.2f;
         [Tooltip("How far above the road the bottom of the picture sits")]
-        [SerializeField] float spriteLift = 1f;
+        [SerializeField] float spriteLift = 0.05f;
         [Tooltip("Fraction of speed kept when the bus runs through a picture")]
         [SerializeField] [Range(0f, 1f)] float hitSpeedKeep = 0.4f;
         [Tooltip("Sanity lost when the bus runs through a picture")]
-        [SerializeField] float obstacleSanityHit = -12f;
+        [SerializeField] float obstacleSanityHit = -10f;
         [SerializeField] float hitFlashSeconds = 0.7f;
         [Tooltip("1 fills the screen. Larger zooms the picture past the edges")]
         [SerializeField] float hitFlashScale = 1.85f;
-        [SerializeField] float cabinFlickerSeconds = 0.7f;
-        [SerializeField] FloatRange cabinFlickerGap = new FloatRange(2.5f, 5.5f);
         [SerializeField] int maxObstacles = 3;
+
+        [Header("Window knock, under 50 [TUNE]")]
+        [SerializeField] FloatRange knockInterval = new FloatRange(22f, 48f);
+        [SerializeField] float knockLookSeconds = 3.2f;
+        [Tooltip("World height of the figure outside the window")]
+        [SerializeField] float knockSpriteHeight = 1.8f;
+        [Tooltip("How far the driver must turn, in degrees, before a knock becomes a jumpscare")]
+        [SerializeField] float knockLookYaw = 40f;
+        [Tooltip("Seconds the figure stays in view after the driver looks, before the jumpscare")]
+        [SerializeField] float knockScareDelay = 0.5f;
 
         [Header("Heartbeat [TUNE]")]
         [Tooltip("A looping heartbeat while driving below this sanity")]
@@ -67,6 +85,13 @@ namespace BusDriver.Gameplay.Sanity {
         float flickerTimer;
         float obstacleTimer;
         float cabinTimer;
+        float knockTimer;
+        bool knockActive;
+        bool knockOnDoor;
+        float knockLookUntil;
+        float knockScareAt;
+        Sprite knockSprite;
+        GameObject knockFigure;
         float baseFogDensity;
         Color baseFogColor;
         bool baseFogEnabled;
@@ -76,6 +101,9 @@ namespace BusDriver.Gameplay.Sanity {
         int lastSoundIndex = -1;
         bool cameraFlickerRunning;
         SoundHandle heartbeat;
+        // Which bands are already scheduled, so falling further does not restart them
+        bool under75;
+        bool under50;
 
         public void Init(ShiftServices services, SanitySystem system) {
             shift = services;
@@ -83,8 +111,7 @@ namespace BusDriver.Gameplay.Sanity {
             rng = services.Rng != null ? services.Rng.Get(RngStreams.Hallucination) : new System.Random(1);
             system.OnTierChanged += HandleTier;
             CaptureFog();
-            ApplyFogForTier(system.Tier);
-            ScheduleAll(system.Tier);
+            ApplyBands(system.Tier);
             CabinShadow shadow = gameObject.GetComponent<CabinShadow>();
             if (shadow == null) {
                 shadow = gameObject.AddComponent<CabinShadow>();
@@ -102,18 +129,12 @@ namespace BusDriver.Gameplay.Sanity {
             StopCameraFlicker();
             StopHeartbeat();
             RestoreFog();
+            ClearKnockFigure();
             ClearObstacles();
         }
 
         void HandleTier(SanityTier tier) {
-            ApplyFogForTier(tier);
-            ScheduleAll(tier);
-            if (tier < SanityTier.T2) {
-                ClearObstacles();
-                if (shift != null && shift.CabinLights != null) {
-                    shift.CabinLights.Stop(lightOwner);
-                }
-            }
+            ApplyBands(tier);
         }
 
         void Update() {
@@ -127,9 +148,11 @@ namespace BusDriver.Gameplay.Sanity {
                 return;
             }
             TickHeartbeat();
-            SanityTier tier = sanity.Tier;
-            if (tier >= SanityTier.T1) {
+            // Under 75, and still under it at 50, 25 and 0
+            float value = sanity.Value;
+            if (value < SanityCore.Tier1Below) {
                 TickSound();
+                TickCabinFlicker();
                 // Camera flicker is CCTV-only so the driver POV never flashes
                 if (IsViewingCctv()) {
                     TickCameraFlicker();
@@ -137,9 +160,12 @@ namespace BusDriver.Gameplay.Sanity {
                     StopCameraFlicker();
                 }
             }
-            if (tier >= SanityTier.T2) {
-                TickCabinFlicker();
+            // Under 50, and still under it at 25 and 0. The under-75 effects stay on as well.
+            if (value < SanityCore.Tier2Below) {
                 TickObstacles();
+                TickKnock();
+            } else if (knockActive) {
+                EndKnock();
             }
         }
 
@@ -237,8 +263,99 @@ namespace BusDriver.Gameplay.Sanity {
             shift.CabinLights.Flicker(lightOwner, cabinFlickerSeconds);
         }
 
+        // A knock on the driver's window or the door window, only under 50 and while rolling with
+        // the doors shut. The picture stands outside that pane, and the knock plays there. Looking
+        // at it holds for a second, then the jumpscare plays.
+        void TickKnock() {
+            if (!RollingWithDoorsShut()) {
+                EndKnock();
+                return;
+            }
+            if (knockActive) {
+                if (knockScareAt > 0f) {
+                    if (Time.time >= knockScareAt) {
+                        Sprite picture = knockSprite;
+                        EndKnock();
+                        if (shift.Bus != null) {
+                            shift.Bus.KnockSpeed(hitSpeedKeep);
+                        }
+                        if (sanity != null && obstacleSanityHit != 0f) {
+                            sanity.Apply(obstacleSanityHit, SanityReason.Scare);
+                        }
+                        PlayJumpScare(picture);
+                    }
+                } else if (Time.time >= knockLookUntil) {
+                    EndKnock();
+                } else if (LookingAtKnock()) {
+                    knockScareAt = Time.time + knockScareDelay;
+                }
+                return;
+            }
+            knockTimer -= Time.deltaTime;
+            if (knockTimer > 0f) {
+                return;
+            }
+            knockTimer = Next(knockInterval);
+            knockOnDoor = rng.Next(2) == 0;
+            knockSprite = PickSprite();
+            knockActive = true;
+            knockLookUntil = Time.time + knockLookSeconds;
+            ShowKnockFigure();
+            if (shift.Game != null && shift.Game.Audio != null && knockFigure != null) {
+                shift.Game.Audio.PlayAt(SoundIds.HalWindowKnock, knockFigure.transform.position);
+            }
+        }
+
+        void EndKnock() {
+            knockActive = false;
+            knockScareAt = 0f;
+            ClearKnockFigure();
+        }
+
+        // The picture stands just outside the glass, so looking over shows it through the pane.
+        void ShowKnockFigure() {
+            ClearKnockFigure();
+            if (knockSprite == null || shift.Bus == null) {
+                return;
+            }
+            knockFigure = new GameObject("SanityKnock");
+            knockFigure.transform.SetParent(shift.Bus.transform, false);
+            knockFigure.transform.localPosition = knockOnDoor
+                ? new Vector3(1.55f, 0.7f, 4.75f)
+                : new Vector3(-1.55f, 0.85f, 4.55f);
+            knockFigure.transform.localRotation = Quaternion.LookRotation(knockOnDoor ? Vector3.right : Vector3.left, Vector3.up);
+            PlaceSprite(knockFigure.transform, knockSprite, knockSpriteHeight);
+        }
+
+        void ClearKnockFigure() {
+            if (knockFigure != null) {
+                Destroy(knockFigure);
+                knockFigure = null;
+            }
+        }
+
+        bool RollingWithDoorsShut() {
+            if (shift.Mode != null && shift.Mode.Mode == PlayerMode.OnFoot) {
+                return false;
+            }
+            if (shift.Cctv != null && shift.Cctv.IsViewingCCTV) {
+                return false;
+            }
+            if (shift.Doors != null && !shift.Doors.IsClosed) {
+                return false;
+            }
+            return shift.Death == null || !shift.Death.IsDying;
+        }
+
+        bool LookingAtKnock() {
+            float yaw = shift.Attention != null ? shift.Attention.DriverYaw
+                : (shift.DriverLook != null ? shift.DriverLook.Yaw : 0f);
+            return knockOnDoor ? yaw >= knockLookYaw : yaw <= -knockLookYaw;
+        }
+
         void TickObstacles() {
             PruneObstacles();
+            MoveApproaching();
             obstacleTimer -= Time.deltaTime;
             if (obstacleTimer > 0f || obstacles.Count >= maxObstacles) {
                 return;
@@ -248,28 +365,35 @@ namespace BusDriver.Gameplay.Sanity {
         }
 
         void SpawnObstacle() {
-            if (shift.Bus == null) {
+            if (shift.Bus == null || shift.Tracker == null || shift.Tracker.Path == null) {
                 return;
             }
             Sprite sprite = PickSprite();
             if (sprite == null) {
                 return;
             }
-            Transform bus = shift.Bus.transform;
-            float side = ((float)rng.NextDouble() * 2f - 1f) * obstacleSideJitter;
-            Vector3 pos = bus.position + bus.forward * obstacleAheadMeters + bus.right * side;
-            pos.y = RoadHeight(pos) + spriteLift;
+            bool approaches = rng.NextDouble() < walkerChance;
+            float ahead = approaches ? Next(walkerAhead) : obstacleAheadMeters;
+            float distance = shift.Tracker.DistanceAlong + ahead;
+            RoutePath path = shift.Tracker.Path;
+            if (distance > path.TotalLength - 4f || !HasGap(distance)) {
+                return;
+            }
+            float lateral = LaneLateral(distance);
 
             GameObject root = new GameObject("SanityObstacle");
-            root.transform.position = pos;
             SanityObstacle obstacle = root.AddComponent<SanityObstacle>();
             obstacle.Picture = sprite;
-            float width = PlaceSprite(root.transform, sprite);
+            obstacle.Approaches = approaches;
+            obstacle.RouteDistance = distance;
+            obstacle.Lateral = lateral;
+            PlaceOnRoad(obstacle);
+            float width = PlaceSprite(root.transform, sprite, spriteHeight);
 
             BoxCollider box = root.AddComponent<BoxCollider>();
             box.isTrigger = true;
             float height = Mathf.Max(0.2f, spriteHeight);
-            box.size = new Vector3(Mathf.Max(0.2f, width), height, 0.4f);
+            box.size = new Vector3(Mathf.Max(0.2f, width), height, 1.5f);
             box.center = new Vector3(0f, height * 0.5f, 0f);
             Rigidbody body = root.AddComponent<Rigidbody>();
             body.isKinematic = true;
@@ -279,9 +403,9 @@ namespace BusDriver.Gameplay.Sanity {
         }
 
         // Bottom of the picture sits on the road. Scale ignores the PNG's pixel size.
-        float PlaceSprite(Transform root, Sprite sprite) {
+        float PlaceSprite(Transform root, Sprite sprite, float height) {
             float units = sprite.bounds.size.y;
-            float scale = units > 0.001f ? spriteHeight / units : 1f;
+            float scale = units > 0.001f ? height / units : 1f;
             GameObject visual = new GameObject("Sprite");
             visual.transform.SetParent(root, false);
             SpriteRenderer renderer = visual.AddComponent<SpriteRenderer>();
@@ -305,14 +429,79 @@ namespace BusDriver.Gameplay.Sanity {
             return null;
         }
 
-        // The road surface under a spawn point. The bus origin sits in the wheels, so using it
-        // plants the picture in the asphalt.
+        // In the lane the bus is actually driving, kept on the pavement.
+        float LaneLateral(float distance) {
+            float lateral = shift.Tracker.Lateral;
+            RouteDefinition route = shift.Tracker.Route;
+            if (route == null) {
+                return lateral;
+            }
+            float half = Mathf.Max(0.4f, route.RoadWidthAt(distance) * 0.5f - 0.8f);
+            return Mathf.Clamp(lateral, -half, half);
+        }
+
+        bool HasGap(float distance) {
+            float gap = Mathf.Max(1f, obstacleSpacing);
+            for (int i = 0; i < obstacles.Count; i++) {
+                SanityObstacle other = obstacles[i];
+                if (other != null && Mathf.Abs(other.RouteDistance - distance) < gap) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        void MoveApproaching() {
+            if (shift.Tracker == null || shift.Tracker.Path == null) {
+                return;
+            }
+            float step = Mathf.Max(0f, walkerMetresPerSecond) * Time.deltaTime;
+            float gap = Mathf.Max(1f, obstacleSpacing);
+            for (int i = 0; i < obstacles.Count; i++) {
+                SanityObstacle obstacle = obstacles[i];
+                if (obstacle == null || !obstacle.Approaches) {
+                    continue;
+                }
+                float next = obstacle.RouteDistance - step;
+                for (int j = 0; j < obstacles.Count; j++) {
+                    SanityObstacle other = obstacles[j];
+                    if (other == null || other == obstacle) {
+                        continue;
+                    }
+                    float limit = other.RouteDistance + gap;
+                    if (other.RouteDistance < obstacle.RouteDistance && next < limit) {
+                        next = limit;
+                    }
+                }
+                if (next >= obstacle.RouteDistance) {
+                    continue;
+                }
+                obstacle.RouteDistance = next;
+                PlaceOnRoad(obstacle);
+            }
+        }
+
+        void PlaceOnRoad(SanityObstacle obstacle) {
+            RoutePose pose = shift.Tracker.Path.Evaluate(obstacle.RouteDistance);
+            Vector3 pos = pose.Offset(obstacle.Lateral, 0f);
+            pos.y = RoadHeight(pos) + spriteLift;
+            obstacle.transform.position = pos;
+            Rigidbody body = obstacle.GetComponent<Rigidbody>();
+            if (body != null) {
+                body.position = pos;
+            }
+        }
+
+        // The asphalt under the lane point. Only the world layer counts: a picture's own collider,
+        // or the bus, would walk the sprite up off the road. A wild hit falls back to the path.
         float RoadHeight(Vector3 pos) {
-            Vector3 origin = pos + Vector3.up * 6f;
-            if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 16f, ~0, QueryTriggerInteraction.Ignore)) {
+            float pathY = pos.y;
+            Vector3 origin = new Vector3(pos.x, pathY + 8f, pos.z);
+            if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 20f, Layers.Mask(Layers.World), QueryTriggerInteraction.Ignore)
+                    && Mathf.Abs(hit.point.y - pathY) < 2f) {
                 return hit.point.y;
             }
-            return pos.y;
+            return pathY;
         }
 
         void OnObstacleHit(SanityObstacle obstacle) {
@@ -392,12 +581,38 @@ namespace BusDriver.Gameplay.Sanity {
             obstacles.Clear();
         }
 
-        void ScheduleAll(SanityTier tier) {
-            // Full random waits — no front-loaded burst when a tier is entered
-            soundTimer = tier >= SanityTier.T1 ? Next(soundInterval) : 9999f;
-            flickerTimer = tier >= SanityTier.T1 ? Next(flickerInterval) : 9999f;
-            obstacleTimer = tier >= SanityTier.T2 ? Next(obstacleInterval) : 9999f;
-            cabinTimer = tier >= SanityTier.T2 ? Next(cabinFlickerGap) : 9999f;
+        // Schedules a band only when it turns on. Dropping from under 75 to under 50 leaves the
+        // sounds, the CCTV flicker and the cabin lights on their existing timers.
+        void ApplyBands(SanityTier tier) {
+            ApplyFogForTier(tier);
+            bool sounds = tier >= SanityTier.T1;
+            bool pictures = tier >= SanityTier.T2;
+            if (sounds && !under75) {
+                soundTimer = Next(soundInterval);
+                flickerTimer = Next(flickerInterval);
+                cabinTimer = Next(cabinFlickerGap);
+            }
+            if (!sounds && under75) {
+                soundTimer = 9999f;
+                flickerTimer = 9999f;
+                cabinTimer = 9999f;
+                if (shift != null && shift.CabinLights != null) {
+                    shift.CabinLights.Stop(lightOwner);
+                }
+            }
+            under75 = sounds;
+            if (pictures && !under50) {
+                obstacleTimer = Next(obstacleInterval);
+                knockTimer = Next(knockInterval);
+            }
+            if (!pictures && under50) {
+                obstacleTimer = 9999f;
+                knockTimer = 9999f;
+                knockActive = false;
+                ClearKnockFigure();
+                ClearObstacles();
+            }
+            under50 = pictures;
         }
 
         void CaptureFog() {

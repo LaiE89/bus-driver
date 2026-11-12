@@ -19,6 +19,14 @@ namespace BusDriver.Core.Data {
         public const string MonExpel = "mon.expel";
         public const string MonStarerSting = "mon.starer.sting";
         public const string MonStarerKill = "mon.starer.kill";
+        public const string MonGazerSprint = "mon.gazer.sprint";
+        public const string MonGazerKill = "mon.gazer.kill";
+        public const string MonGuestTweak = "mon.guest.tweak";
+        public const string MonGuestSprint = "mon.guest.sprint";
+        public const string MonGuestKill = "mon.guest.kill";
+        public const string MonMimicTake = "mon.mimic.take";
+        public const string MonMimicSprint = "mon.mimic.sprint";
+        public const string MonMimicKill = "mon.mimic.kill";
         public const string MonWhisperLoop = "mon.whisper_loop";
         public const string MonWhisperFeedLoop = "mon.whisper_feed_loop";
         public const string ScareStartleSting = "scare.startle_sting";
@@ -42,7 +50,10 @@ namespace BusDriver.Core.Data {
             CctvSwitch,
             AmbWind, AmbTunnel, AmbLampBuzz,
             PaxMutterLoop,
-            MonTelegraphRumble, MonExpel, MonStarerSting, MonStarerKill, MonWhisperLoop, MonWhisperFeedLoop,
+            MonTelegraphRumble, MonExpel, MonStarerSting, MonStarerKill,
+            MonGazerSprint, MonGazerKill, MonGuestTweak, MonGuestSprint, MonGuestKill,
+            MonMimicTake, MonMimicSprint, MonMimicKill,
+            MonWhisperLoop, MonWhisperFeedLoop,
             ScareStartleSting,
             HalFootstepsBehind, HalDoorChime, HalWindowKnock, HalStaticBurst, HalWhisperDriver,
             SanHeartbeatLoop, DeathFallWind, DeathFallImpact, DeathBlackout,

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: hal.door_chime
   clips:
-  - {fileID: 8300000, guid: f53be867439b64bfdb7ddd56a486f26b, type: 3}
+  - {fileID: 8300000, guid: 89dd5ce1bf1cb174dbbab7952ecc519d, type: 3}
   volume: 0.75
   volumeJitter: 0
   pitch: 1

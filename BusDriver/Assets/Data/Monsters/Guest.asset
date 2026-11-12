@@ -32,11 +32,11 @@ MonoBehaviour:
   ability:
     rid: 1543484118205726802
   journal:
-    sightingText: A rider on the step who is already smiling, and never says where it is going.
+    sightingText: A rider who never says where it is going.
     tellsText:
     - It talks like anyone else who just wants out of the cold.
     - It never says which stop is theirs.
-    hint: Do not let it on the bus.
+    hint: Don't talk to it. Don't carry it to the last stop.
     icon: {fileID: 0}
   logicPrefab: {fileID: 810000000000000102, guid: d44f1334e5f6708192a3b4c5d6e7f809, type: 3}
   references:
@@ -45,4 +45,5 @@ MonoBehaviour:
     - rid: 1543484118205726802
       type: {class: GuestStrikeConfig, ns: BusDriver.Core.Data, asm: BusDriver.Core}
       data:
-        killOnAccept: 1
+        rushMetresPerSecond: 8
+        reachMetres: 0.9

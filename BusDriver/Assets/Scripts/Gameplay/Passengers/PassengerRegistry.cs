@@ -21,7 +21,7 @@ namespace BusDriver.Gameplay.Passengers {
         public Passenger Passenger { get; internal set; }
         public RiderStatus Status { get; internal set; }
         // The stop this rider gets off at; the next stop once theirs is missed (§2.4).
-        // Empty for monsters: they never request a drop-off (§2.9).
+        // A monster's is the night's last stop. The guest never walks off there.
         public string DestinationStopId { get; internal set; }
         // Bound for a later stop because theirs was missed: dropped at the next stop, fare refunded
         public bool Retargeted { get; internal set; }
@@ -132,23 +132,25 @@ namespace BusDriver.Gameplay.Passengers {
         }
 
         // §2.4 End stop: the doors are fully open, so every non-monster rider aboard is delivered
-        // here, whatever their stop was. They still walk off through the doors (the alighting rule
-        // matches them); ShiftDirector waits until the cabin is empty before the Summary. Monsters
-        // stay aboard until kicked: no auto-delivery, no penalty, no bounty.
+        // §2.4 End stop: the doors are fully open, so everyone aboard is delivered here, whatever
+        // their stop was. They still walk off through the doors. The guest stays, because opening
+        // this door starts their sprint. No fare and no bounty for a monster who simply steps off.
         void HandleTerminus() {
             StopRecord end = progress.EndStop;
             delivering.Clear();
             for (int i = 0; i < aboard.Count; i++) {
-                if (!aboard[i].IsMonster) {
+                if (aboard[i].MonsterId != MonsterIds.Guest) {
                     delivering.Add(aboard[i]);
                 }
             }
             for (int i = 0; i < delivering.Count; i++) {
                 RiderRecord record = delivering[i];
                 if (end != null && record.DestinationStopId != end.StopId) {
-                    // Only a rider whose stop lies past the night's end (not in any manifest) gets here
+                    if (!record.IsMonster) {
+                        // Only a rider whose stop lies past the night's end (not in any manifest) gets here
+                        record.Retargeted = true;
+                    }
                     record.DestinationStopId = end.StopId;
-                    record.Retargeted = true;
                 }
                 record.ExitStopId = end != null ? end.StopId : CurrentStopId();
                 SetStatus(record, RiderStatus.Delivered);
@@ -162,6 +164,9 @@ namespace BusDriver.Gameplay.Passengers {
                 Status = RiderStatus.Waiting,
             };
             all.Add(record);
+            if (record.IsMonster && progress != null && progress.EndStop != null) {
+                record.DestinationStopId = progress.EndStop.StopId;
+            }
             if (passenger != null) {
                 byPassenger[passenger] = record;
             }
@@ -217,16 +222,32 @@ namespace BusDriver.Gameplay.Passengers {
         }
 
         // The rule BusStop runs when the doors open: this stop is their destination
+        // The rule BusStop runs when the doors open: this stop is their destination.
+        // Every monster is bound for the last stop, and the guest never steps off.
         bool AlightsAt(Passenger passenger, BusStop stop) {
             RiderRecord record = For(passenger);
-            return record != null && !record.IsMonster && record.DestinationStopId == stop.StopId;
+            if (record == null || stop == null || record.MonsterId == MonsterIds.Guest) {
+                return false;
+            }
+            if (record.IsMonster) {
+                StopRecord end = progress != null ? progress.EndStop : null;
+                return end != null && stop.StopId == end.StopId;
+            }
+            return record.DestinationStopId == stop.StopId;
         }
 
         void HandleBoarded(Passenger passenger) {
             RiderRecord record = For(passenger);
-            if (record != null) {
-                SetStatus(record, RiderStatus.Aboard);
+            if (record == null) {
+                return;
             }
+            if (record.IsMonster) {
+                StopRecord end = progress != null ? progress.EndStop : null;
+                if (end != null) {
+                    record.DestinationStopId = end.StopId;
+                }
+            }
+            SetStatus(record, RiderStatus.Aboard);
         }
 
         void HandleKicked(Passenger passenger) {

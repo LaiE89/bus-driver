@@ -44,6 +44,8 @@ namespace BusDriver.Gameplay.Passengers {
         public bool WasKicked { get; private set; }
         // Rang for their stop: the HUD's STOP REQUESTED line counts these (same as the MVP)
         public bool HasRequestedStop { get; private set; }
+        // Set once they leave the cabin list and start the walk away from the bus
+        bool departing;
         public string DisplayName { get { return displayName; } }
         // The logic head, for observation linecasts and "is it on camera"
         public Transform Head { get { return anchorHead; } }
@@ -130,8 +132,22 @@ namespace BusDriver.Gameplay.Passengers {
             }
         }
 
+        // Set the first time a human speaks, then reused so the greeting, the chat and the
+        // goodbye all come from the same kind of person.
+        int voice = -1;
+
         DialogueKind Kind(RiderRecord record) {
             return PassengerDialogue.KindFor(record != null ? record.MonsterId : "");
+        }
+
+        int VoiceFor(RiderRecord record) {
+            if (record != null && record.IsMonster) {
+                return -1;
+            }
+            if (voice < 0) {
+                voice = PassengerDialogue.RollVoice(DialogueRng());
+            }
+            return voice;
         }
 
         System.Random DialogueRng() {
@@ -146,7 +162,13 @@ namespace BusDriver.Gameplay.Passengers {
         }
 
         void UpdateRide() {
-            if (State != PassengerState.Seated || HasRequestedStop) {
+            if (State != PassengerState.Seated) {
+                return;
+            }
+            if (StepOffAtEnd()) {
+                return;
+            }
+            if (HasRequestedStop) {
                 return;
             }
             RiderRecord record = Record;
@@ -168,6 +190,26 @@ namespace BusDriver.Gameplay.Passengers {
             }
         }
 
+        // A monster already aboard when the last stop's doors are open walks off. The guest stays.
+        // A sprint in the aisle holds this until the aisle is free again.
+        bool StepOffAtEnd() {
+            RiderRecord record = Record;
+            if (record == null || !record.IsMonster || record.MonsterId == MonsterIds.Guest) {
+                return false;
+            }
+            if (Shift == null || Shift.Progress == null || Shift.Progress.EndStop == null || Cabin == null || Cabin.CurrentStop == null) {
+                return false;
+            }
+            if (Cabin.CurrentStop.StopId != Shift.Progress.EndStop.StopId || Cabin.Doors == null || !Cabin.Doors.OpenedByDriver) {
+                return false;
+            }
+            if (Cabin.MotionHeld) {
+                return true;
+            }
+            Leave();
+            return true;
+        }
+
         // Stepping aboard: humans name the stop they want, monsters say whatever they say.
         // Sticky so the box stays up until Accept / Refuse at the door.
         void SayGreeting() {
@@ -175,7 +217,7 @@ namespace BusDriver.Gameplay.Passengers {
             StopRecord destination = record != null && Shift.Progress != null
                 ? Shift.Progress.Find(record.DestinationStopId)
                 : null;
-            Speak(PassengerDialogue.Greeting(Kind(record), destination != null ? destination.DisplayName : "", DialogueRng()), sticky: true);
+            Speak(PassengerDialogue.Greeting(Kind(record), destination != null ? destination.DisplayName : "", DialogueRng(), VoiceFor(record)), sticky: true);
             RestoreChatSanity();
         }
 
@@ -190,22 +232,83 @@ namespace BusDriver.Gameplay.Passengers {
                 StopRecord stop = Shift.Progress.Find(Cabin.CurrentStop.StopId);
                 rating = stop != null ? stop.Rating : ArrivalRating.None;
             }
-            Speak(PassengerDialogue.Farewell(Kind(record), rating, kicked, DialogueRng()));
+            Speak(PassengerDialogue.Farewell(Kind(record), rating, kicked, DialogueRng(), VoiceFor(record)));
             if (!kicked && Cabin != null) {
                 Cabin.NotifyDropOff(this);
             }
         }
 
-        // The driver walked back for a chat. Ignored while anyone is mid-sentence, so holding the
-        // button cannot stack up a queue of lines. Talking to a human restores a little sanity.
+        // The driver walked back for a chat. While seated, a line already on screen has to finish.
+        // On foot, talking to someone cuts that line off and starts the new one immediately.
+        // Talking to a human restores a little sanity.
         public bool Chat() {
-            if (State != PassengerState.Seated || Shift == null || Shift.Dialogue == null || Shift.Dialogue.IsPlaying) {
+            if (State != PassengerState.Seated || Shift == null) {
                 return false;
             }
-            Speak(PassengerDialogue.Seated(Kind(Record), DialogueRng()));
+            if (ConsumedByChat()) {
+                return true;
+            }
+            if (Shift.Dialogue == null) {
+                return false;
+            }
+            bool onFoot = Shift.Mode != null && Shift.Mode.Mode == PlayerMode.OnFoot;
+            if (!onFoot && Shift.Dialogue.IsShowing) {
+                return false;
+            }
+            string line = PassengerDialogue.Seated(Kind(Record), DialogueRng(), VoiceFor(Record));
+            if (onFoot) {
+                Shift.Dialogue.SayImmediate(DisplayName, line);
+            } else {
+                Speak(line);
+            }
             OnChatted();
             RestoreChatSanity();
             return true;
+        }
+
+        // A monster that kills on a conversation takes the talk and says nothing.
+        bool ConsumedByChat() {
+            IChatHandler[] handlers = GetComponents<IChatHandler>();
+            for (int i = 0; i < handlers.Length; i++) {
+                if (handlers[i].OnChat(this)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Pulled off the bus without walking out. A stop request is cleared, and the night
+        // records them as died. Their seat is free the same frame.
+        public void VanishFromBus() {
+            if (State == PassengerState.Gone) {
+                return;
+            }
+            StopAllCoroutines();
+            HasRequestedStop = false;
+            State = PassengerState.Gone;
+            IsAboard = false;
+            RefreshInteractable();
+            if (Seat != null) {
+                Seat.Release(this);
+                Seat = null;
+            }
+            if (Shift != null && Shift.Riders != null) {
+                RiderRecord record = Shift.Riders.For(this);
+                if (record != null && record.Status == RiderStatus.Aboard) {
+                    Shift.Riders.SetStatus(record, RiderStatus.Died);
+                }
+            }
+            if (Cabin != null) {
+                if (Cabin.Doors != null) {
+                    Cabin.Doors.Exit(this);
+                    Cabin.Doors.Release(this);
+                }
+                Cabin.LeaveDoorQueue(this);
+                Cabin.LeaveExitQueue(this);
+                Cabin.Unregister(this);
+                Cabin = null;
+            }
+            Destroy(gameObject);
         }
 
         // Humans only. Monsters can talk, and that does not help.
@@ -354,6 +457,8 @@ namespace BusDriver.Gameplay.Passengers {
             if (State != PassengerState.Seated) {
                 return false;
             }
+            // Set before the coroutine runs, so a second check this frame does not start another walk
+            State = PassengerState.Leaving;
             StartCoroutine(LeaveRoutine(false));
             return true;
         }
@@ -476,7 +581,6 @@ namespace BusDriver.Gameplay.Passengers {
             if (Shift != null && Shift.Riders != null) {
                 Shift.Riders.MarkRefused(this);
             }
-            Speak(PassengerDialogue.Refused(Kind(Record), DialogueRng()));
             yield return WalkLocal(Cabin.DoorStepLocal);
             yield return StepOffAndVanish(doors);
         }
@@ -556,6 +660,10 @@ namespace BusDriver.Gameplay.Passengers {
             cabin.Unregister(this);
             OnLeft();
             cabin.NotifyLeft(this);
+            if (!departing) {
+                departing = true;
+                cabin.BeginDeparture();
+            }
 
             yield return WalkWorld(() => away, null);
             State = PassengerState.Gone;
@@ -566,6 +674,11 @@ namespace BusDriver.Gameplay.Passengers {
         IEnumerator WalkWorld(Func<Vector3> target, Func<bool> cancel) {
             SetLocomotion(walkSpeed);
             while (cancel == null || !cancel()) {
+                if (MotionHeld()) {
+                    SetLocomotion(0f);
+                    yield return null;
+                    continue;
+                }
                 Vector3 goal = target();
                 if ((goal - transform.position).sqrMagnitude < 0.0004f) {
                     break;
@@ -581,6 +694,11 @@ namespace BusDriver.Gameplay.Passengers {
         // leave once we are standing on it and `claim` succeeds.
         IEnumerator QueueWorld(Func<Vector3> spot, Func<bool> claim, Func<bool> cancel) {
             while (cancel == null || !cancel()) {
+                if (MotionHeld()) {
+                    SetLocomotion(0f);
+                    yield return null;
+                    continue;
+                }
                 Vector3 goal = spot();
                 Vector3 offset = goal - transform.position;
                 offset.y = 0f;
@@ -601,6 +719,11 @@ namespace BusDriver.Gameplay.Passengers {
 
         IEnumerator QueueLocal(Func<Vector3> spot, Func<bool> claim) {
             while (true) {
+                if (MotionHeld()) {
+                    SetLocomotion(0f);
+                    yield return null;
+                    continue;
+                }
                 Vector3 goal = spot();
                 Vector3 offset = goal - transform.localPosition;
                 offset.y = 0f;
@@ -622,6 +745,11 @@ namespace BusDriver.Gameplay.Passengers {
         IEnumerator WalkLocal(Vector3 goal) {
             SetLocomotion(walkSpeed);
             while ((goal - transform.localPosition).sqrMagnitude >= 0.0004f) {
+                if (MotionHeld()) {
+                    SetLocomotion(0f);
+                    yield return null;
+                    continue;
+                }
                 Face(goal - transform.localPosition, true);
                 transform.localPosition = Vector3.MoveTowards(transform.localPosition, goal, walkSpeed * Time.deltaTime);
                 yield return null;
@@ -636,10 +764,19 @@ namespace BusDriver.Gameplay.Passengers {
         }
 
         // Sitting down and standing up
+        bool MotionHeld() {
+            return Cabin != null && Cabin.MotionHeld;
+        }
+
         IEnumerator Slide(Vector3 localGoal, Quaternion localRotation) {
             Vector3 from = transform.localPosition;
             Quaternion fromRotation = transform.localRotation;
-            for (float t = 0f; t < 1f; t += Time.deltaTime / sitTime) {
+            for (float t = 0f; t < 1f;) {
+                if (MotionHeld()) {
+                    yield return null;
+                    continue;
+                }
+                t += Time.deltaTime / sitTime;
                 transform.localPosition = Vector3.Lerp(from, localGoal, t);
                 transform.localRotation = Quaternion.Slerp(fromRotation, localRotation, t);
                 yield return null;
@@ -732,6 +869,10 @@ namespace BusDriver.Gameplay.Passengers {
         }
 
         protected virtual void OnDestroy() {
+            if (departing && Cabin != null) {
+                Cabin.EndDeparture();
+                departing = false;
+            }
             if (Seat != null) {
                 Seat.Release(this);
             }

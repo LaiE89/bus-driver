@@ -32,7 +32,7 @@ namespace BusDriver.Gameplay.Items {
         }
 
         public float CoffeeSanity {
-            get { return shift != null && shift.Balance != null ? shift.Balance.coffeeSanity : 30f; }
+            get { return shift != null && shift.Balance != null ? shift.Balance.coffeeSanity : 40f; }
         }
 
         public int WalletCents {

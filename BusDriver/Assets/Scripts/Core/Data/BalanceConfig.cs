@@ -19,7 +19,7 @@ namespace BusDriver.Core.Data {
     // during play (§4.1 rule 2).
     public sealed class BalanceConfig : ScriptableObject {
         [Header("Money (§2.7), integer cents")]
-        [Tooltip("Credited when a rider boards, monsters too (D5, D34)")]
+        [Tooltip("Credited when a human steps off at the stop they asked for")]
         public int fareCents = 350;
         [Tooltip("An Early delivery's tip, as a percentage of the fare")]
         public int tipPercent = 50;
@@ -46,21 +46,22 @@ namespace BusDriver.Core.Data {
         [Header("Sanity (§2.15), per second or per event")]
         public float sanityBaselinePerSecond = -0.2f;
         public float tunnelSanityPerSecond = -0.5f;
-        public float doorsOpenAtStopSanityPerSecond = 0.5f;
-        public float deathWitnessSanity = -10f;
-        public float innocentKickSanity = -8f;
-        public float monsterKickSanity = 10f;
+        public float doorsOpenAtStopSanityPerSecond = 0f;
+        public float deathWitnessSanity = 0f;
+        public float innocentKickSanity = -15f;
+        public float monsterKickSanity = 30f;
         public float monsterScareSanity = -5f;
-        public float startleSanity = -2f;
+        public float startleSanity = -5f;
         [Tooltip("Talking to a human passenger, at the door or once they are seated")]
-        public float chatSanityRestore = 16f;
+        public float chatSanityRestore = 15f;
         [Tooltip("Thermos of coffee at the depot, in cents (§2.18)")]
         public int coffeeCents = 600;
         [Tooltip("Sanity restored by drinking a coffee")]
-        public float coffeeSanity = 30f;
-        [Tooltip("Next night: min(100, max(end + bonus, floor))")]
+        public float coffeeSanity = 40f;
+        [Tooltip("Added to the night's ending sanity before the floor. The next night still starts at 100 while the floor is 100.")]
         public float sanityCarryBonus = 30f;
-        public float sanityCarryFloor = 60f;
+        [Tooltip("Lowest sanity the next night can start at. 100 recovers fully.")]
+        public float sanityCarryFloor = 100f;
 
         [Header("Hallucinations (§2.16)")]
         [Tooltip("Seconds between hallucinations for tiers T1..T4")]

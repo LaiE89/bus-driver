@@ -9,9 +9,10 @@ using BusDriver.Gameplay.Route;
 using BusDriver.Gameplay.Shift;
 
 namespace BusDriver.Gameplay.Economy {
-    // Turns rider events into ledger entries (§2.7, §4.6): a fare when a rider boards (monsters
-    // too, D34), a tip or missed-stop refund when they speak their farewell on the step, a refund
-    // when an innocent is kicked or a rider is killed, and a bounty for a kicked monster.
+    // Turns rider events into ledger entries (§2.7, §4.6): the fare and any tip are paid when a
+    // human steps off at the stop they asked for. Nothing is charged for stepping on. A missed
+    // stop pays nothing, because the fare was never taken. A kick or a death before that also
+    // has nothing to refund. A kicked monster still pays its bounty.
     // Subscriptions only; it holds no state of its own beyond what each rider paid.
     public sealed class EconomyRules {
         readonly Dictionary<string, int> paid = new Dictionary<string, int>();
@@ -40,24 +41,13 @@ namespace BusDriver.Gameplay.Economy {
             clock = shift.Clock;
             cabin = shift.Cabin;
             BountyFor = monsterId => balance.defaultBountyCents;
-            cabin.OnPassengerBoarded += HandleBoarded;
             cabin.OnPassengerDropOff += HandleDropOff;
             riders.OnStatusChanged += HandleStatusChanged;
             progress.OnServed += HandleServed;
             shift.Debug.Register("Economy", ledger.WriteDebug);
         }
 
-        void HandleBoarded(Passenger passenger) {
-            RiderRecord record = riders.For(passenger);
-            if (record == null || paid.ContainsKey(record.RiderId)) {
-                return;
-            }
-            int fare = balance.fareCents;
-            paid[record.RiderId] = fare;
-            ledger.Record(new LedgerEntry(LedgerKind.Fare, fare, record.RiderId, record.Spec.boardStopId, Now()));
-        }
-
-        // Same moment as the drop-off dialogue: tip for an Early stop, fare back if their stop was missed
+        // Fare and tip land with the farewell. A rider carried past their stop, or a monster, pays nothing.
         void HandleDropOff(Passenger passenger) {
             RiderRecord record = riders.For(passenger);
             if (record == null || !settled.Add(record.RiderId)) {
@@ -66,10 +56,10 @@ namespace BusDriver.Gameplay.Economy {
             if (string.IsNullOrEmpty(record.ExitStopId) && cabin != null && cabin.CurrentStop != null) {
                 record.ExitStopId = cabin.CurrentStop.StopId;
             }
-            if (record.Retargeted) {
-                RefundFare(record, LedgerKind.Refund);
+            if (record.Retargeted || record.IsMonster) {
                 return;
             }
+            PayFare(record);
             StopRecord stop = progress.Find(record.ExitStopId);
             if (stop != null && stop.State == StopState.Pending) {
                 awaitingRating.Add(record);
@@ -78,13 +68,23 @@ namespace BusDriver.Gameplay.Economy {
             PayTip(record, stop);
         }
 
+        void PayFare(RiderRecord record) {
+            if (paid.ContainsKey(record.RiderId)) {
+                return;
+            }
+            int fare = balance.fareCents;
+            paid[record.RiderId] = fare;
+            string stopId = string.IsNullOrEmpty(record.ExitStopId) ? record.Spec.boardStopId : record.ExitStopId;
+            ledger.Record(new LedgerEntry(LedgerKind.Fare, fare, record.RiderId, stopId, Now()));
+        }
+
         void HandleStatusChanged(RiderRecord record) {
             switch (record.Status) {
                 case RiderStatus.Kicked:
                     if (record.IsMonster) {
-                        // The fare is kept (§2.7)
                         ledger.Record(new LedgerEntry(LedgerKind.Bounty, BountyFor(record.MonsterId), record.RiderId, record.ExitStopId, Now()));
                     }else {
+                        // They leave before paying, so there is no fare to hand back
                         RefundFare(record, LedgerKind.Refund);
                     }
                     break;

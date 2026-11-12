@@ -75,6 +75,10 @@ namespace BusDriver.Gameplay.World {
             yield return null;
             List<Passenger> sent = new List<Passenger>();
             while (cabin.Doors.IsOpenWanted && Contains(cabin)) {
+                if (cabin.MotionHeld) {
+                    yield return null;
+                    continue;
+                }
                 if (waiting.Count > 0 && cabin.FreeSeatCount > 0) {
                     Passenger passenger = waiting[0];
                     waiting.RemoveAt(0);
