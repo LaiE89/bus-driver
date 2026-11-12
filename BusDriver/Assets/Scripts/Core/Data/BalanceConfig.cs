@@ -44,7 +44,7 @@ namespace BusDriver.Core.Data {
         public float sanityThreatFactorAt0 = 1.5f;
 
         [Header("Sanity (§2.15), per second or per event")]
-        public float sanityBaselinePerSecond = -0.2f;
+        public float sanityBaselinePerSecond = -0.3f;
         public float tunnelSanityPerSecond = -0.5f;
         public float doorsOpenAtStopSanityPerSecond = 0f;
         public float deathWitnessSanity = 0f;

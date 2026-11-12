@@ -22,7 +22,7 @@ MonoBehaviour:
   onFootRange: 8
   mirrorRange: 6
   sanityThreatFactorAt0: 1.5
-  sanityBaselinePerSecond: -0.2
+  sanityBaselinePerSecond: -0.3
   tunnelSanityPerSecond: -0.5
   doorsOpenAtStopSanityPerSecond: 0
   deathWitnessSanity: 0

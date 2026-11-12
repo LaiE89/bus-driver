@@ -27,6 +27,11 @@ namespace BusDriver.Gameplay.Monsters {
         bool motionHeld;
         float stride;
         Transform trackedCamera;
+        bool shaking;
+        const float ShakeMetres = 0.012f;
+        const float ShakeHz = 14f;
+        // On foot the camera sees most of the aisle. The shake only starts when the gaze is on the gazer.
+        const float DirectLookDegrees = 12f;
 
         public float LookedSeconds { get { return looked; } }
         public bool IsRushing { get { return rushing; } }
@@ -40,13 +45,16 @@ namespace BusDriver.Gameplay.Monsters {
 
         void Update() {
             if (shift == null || brain == null || passenger == null || killing) {
+                StopShake();
                 return;
             }
             if (!brain.IsActive || shift.Director.State != ShiftState.Driving) {
                 ReleaseHead();
+                StopShake();
                 return;
             }
             TrackCamera();
+            TickShake();
             if (shift.Mode != null && shift.Mode.Mode == PlayerMode.OnFoot) {
                 if (!rushing) {
                     looked = 0f;
@@ -110,8 +118,62 @@ namespace BusDriver.Gameplay.Monsters {
         }
 
         void OnDestroy() {
+            StopShake();
             ReleaseSeat();
             ReleaseMotion();
+        }
+
+        // The cabin camera shakes it whenever that camera can see it. On foot it shakes only while
+        // the player is looking straight at it. The seated driver view does not.
+        void TickShake() {
+            Transform view = passenger.View != null ? passenger.View.transform : null;
+            if (view == null || !Watched()) {
+                StopShake();
+                return;
+            }
+            shaking = true;
+            float t = Time.time * ShakeHz;
+            view.localPosition = new Vector3(Mathf.Sin(t * 1.7f) * ShakeMetres, Mathf.Sin(t * 2.3f) * ShakeMetres * 0.65f, 0f);
+        }
+
+        void StopShake() {
+            if (!shaking || passenger == null || passenger.View == null) {
+                shaking = false;
+                return;
+            }
+            passenger.View.transform.localPosition = Vector3.zero;
+            shaking = false;
+        }
+
+        bool Watched() {
+            if (shift.Attention == null) {
+                return false;
+            }
+            ObserverKinds seen = shift.Attention.ObservedBy(passenger);
+            if (shift.Cctv != null && shift.Cctv.IsViewingCCTV && (seen & ObserverKinds.Cctv) != 0) {
+                return true;
+            }
+            return shift.Mode != null && shift.Mode.Mode == PlayerMode.OnFoot
+                && (seen & ObserverKinds.OnFoot) != 0 && LookingDirectly();
+        }
+
+        bool LookingDirectly() {
+            Camera camera = shift.OnFootCamera;
+            if (camera == null) {
+                return false;
+            }
+            Vector3 from = camera.transform.position;
+            Vector3 forward = camera.transform.forward;
+            return WithinGaze(from, forward, passenger.Head != null ? passenger.Head.position : passenger.transform.position)
+                || WithinGaze(from, forward, passenger.transform.position);
+        }
+
+        static bool WithinGaze(Vector3 from, Vector3 forward, Vector3 point) {
+            Vector3 to = point - from;
+            if (to.sqrMagnitude < 1e-6f) {
+                return true;
+            }
+            return Vector3.Angle(forward, to) <= DirectLookDegrees;
         }
 
         // While a cabin camera can see it, the head turns to that camera. Looking away lets it drop.

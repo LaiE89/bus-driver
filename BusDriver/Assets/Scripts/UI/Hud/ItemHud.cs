@@ -33,6 +33,7 @@ namespace BusDriver.UI.Hud {
 
         static readonly Color ScreenBackground = new Color(0f, 0f, 0f, 1f);
         static readonly Color RuleColor = new Color(0.92f, 0.92f, 0.9f, 0.18f);
+        static readonly Color PanelColor = new Color(0.14f, 0.14f, 0.13f, 1f);
 
         public void Bind(ShiftServices services, TMP_Text font) {
             Unbind();
@@ -183,61 +184,60 @@ namespace BusDriver.UI.Hud {
             dim.color = ScreenBackground;
             dim.raycastTarget = true;
 
-            const float column = 760f;
-
             // Title, the night, then the same kind of sentence the other screens use as a hint
             TMP_Text title = MakeText("Title", shop.transform, UIText.DepotTitle, ThemeRole.Title, TextAlignmentOptions.Center);
-            Place(title.rectTransform, new Vector2(0f, 400f), new Vector2(1400f, 150f));
+            Place(title.rectTransform, new Vector2(0f, 430f), new Vector2(1400f, 120f));
             TMP_Text night = MakeText("Night", shop.transform, "", ThemeRole.Body, TextAlignmentOptions.Center);
-            Place(night.rectTransform, new Vector2(0f, 262f), new Vector2(1400f, 44f));
+            Place(night.rectTransform, new Vector2(0f, 330f), new Vector2(1400f, 44f));
             if (director != null) {
                 night.text = string.Format(UIText.DepotNightLine, director.NightIndex, UIText.RouteName);
             }
             TMP_Text hint = MakeText("Hint", shop.transform, UIText.DepotHint, ThemeRole.Hint, TextAlignmentOptions.Center);
-            Place(hint.rectTransform, new Vector2(0f, 200f), new Vector2(1200f, 44f));
+            Place(hint.rectTransform, new Vector2(0f, 268f), new Vector2(1200f, 40f));
 
-            Image rule = NewImage("Rule", shop.transform, RuleColor, false);
-            Place(rule.rectTransform, new Vector2(0f, 162f), new Vector2(column, 1f));
+            const float panelWidth = 640f;
+            const float panelHeight = 400f;
+            const float inner = 560f;
+            RectTransform walletPanel = Panel("Wallet Panel", new Vector2(-370f, -20f), new Vector2(panelWidth, panelHeight));
+            RectTransform shopPanel = Panel("Shop Panel", new Vector2(370f, -20f), new Vector2(panelWidth, panelHeight));
 
-            // Ledger rows, matching the summary: the label on the left, the figure on the right
-            RectTransform walletRow = NewRect("Wallet Row", shop.transform);
-            Place(walletRow, new Vector2(0f, 104f), new Vector2(column, 64f));
-            TMP_Text walletLabel = MakeText("Wallet Label", walletRow, UIText.DepotWalletLabel, ThemeRole.Body, TextAlignmentOptions.MidlineLeft);
-            AnchorLeft(walletLabel.rectTransform, new Vector2(360f, 64f));
-            walletText = MakeText("Wallet", walletRow, "", ThemeRole.Screen, TextAlignmentOptions.MidlineRight);
-            AnchorRight(walletText.rectTransform, new Vector2(360f, 64f));
+            TMP_Text walletLabel = MakeText("Wallet Label", walletPanel, UIText.DepotWalletLabel, ThemeRole.Caption, TextAlignmentOptions.Center);
+            Place(walletLabel.rectTransform, new Vector2(0f, 140f), new Vector2(inner, 36f));
+            Paint(walletLabel, ThemeRole.Caption, ThemeColor.Disabled, 22f);
+            walletText = MakeText("Wallet", walletPanel, "", ThemeRole.Screen, TextAlignmentOptions.Center);
+            Place(walletText.rectTransform, new Vector2(0f, 52f), new Vector2(inner, 90f));
             Paint(walletText, ThemeRole.Screen, ThemeColor.Highlight, 0f);
 
-            Image itemRule = NewImage("Item Rule", shop.transform, RuleColor, false);
-            Place(itemRule.rectTransform, new Vector2(0f, 52f), new Vector2(column, 1f));
+            Image carryRule = NewImage("Carry Rule", walletPanel, RuleColor, false);
+            Place(carryRule.rectTransform, new Vector2(0f, -16f), new Vector2(inner, 1f));
+            TMP_Text carrying = MakeText("Carrying Label", walletPanel, UIText.DepotCarrying, ThemeRole.Caption, TextAlignmentOptions.Center);
+            Place(carrying.rectTransform, new Vector2(0f, -58f), new Vector2(inner, 32f));
+            Paint(carrying, ThemeRole.Caption, ThemeColor.Disabled, 22f);
+            carriedText = MakeText("Carried", walletPanel, "", ThemeRole.Body, TextAlignmentOptions.Center);
+            Place(carriedText.rectTransform, new Vector2(0f, -120f), new Vector2(inner, 48f));
 
-            RectTransform row = NewRect("Coffee Row", shop.transform);
-            Place(row, new Vector2(0f, 12f), new Vector2(column, 48f));
+            TMP_Text forSale = MakeText("For Sale", shopPanel, UIText.DepotForSale, ThemeRole.Caption, TextAlignmentOptions.Center);
+            Place(forSale.rectTransform, new Vector2(0f, 140f), new Vector2(inner, 36f));
+            Paint(forSale, ThemeRole.Caption, ThemeColor.Disabled, 22f);
+
+            RectTransform row = NewRect("Coffee Row", shopPanel);
+            Place(row, new Vector2(0f, 64f), new Vector2(inner, 48f));
             TMP_Text item = MakeText("Coffee", row, UIText.DepotCoffee, ThemeRole.Body, TextAlignmentOptions.MidlineLeft);
-            AnchorLeft(item.rectTransform, new Vector2(360f, 48f));
+            AnchorLeft(item.rectTransform, new Vector2(320f, 48f));
             priceText = MakeText("Price", row, "", ThemeRole.Body, TextAlignmentOptions.MidlineRight);
             AnchorRight(priceText.rectTransform, new Vector2(220f, 48f));
             Paint(priceText, ThemeRole.Body, ThemeColor.Highlight, 0f);
 
-            RectTransform meta = NewRect("Coffee Meta", shop.transform);
-            Place(meta, new Vector2(0f, -44f), new Vector2(column, 32f));
+            RectTransform meta = NewRect("Coffee Meta", shopPanel);
+            Place(meta, new Vector2(0f, 16f), new Vector2(inner, 32f));
             TMP_Text coffeeHint = MakeText("Coffee Hint", meta, UIText.DepotCoffeeHint, ThemeRole.Caption, TextAlignmentOptions.MidlineLeft);
-            AnchorLeft(coffeeHint.rectTransform, new Vector2(420f, 32f));
+            AnchorLeft(coffeeHint.rectTransform, new Vector2(280f, 32f));
             Paint(coffeeHint, ThemeRole.Caption, ThemeColor.Text, 22f);
             statusText = MakeText("Status", meta, "", ThemeRole.Caption, TextAlignmentOptions.MidlineRight);
-            AnchorRight(statusText.rectTransform, new Vector2(420f, 32f));
+            AnchorRight(statusText.rectTransform, new Vector2(280f, 32f));
 
-            Image carryRule = NewImage("Carry Rule", shop.transform, RuleColor, false);
-            Place(carryRule.rectTransform, new Vector2(0f, -80f), new Vector2(column, 1f));
-
-            TMP_Text carrying = MakeText("Carrying Label", shop.transform, UIText.DepotCarrying, ThemeRole.Caption, TextAlignmentOptions.Center);
-            Place(carrying.rectTransform, new Vector2(0f, -118f), new Vector2(column, 32f));
-            Paint(carrying, ThemeRole.Caption, ThemeColor.Disabled, 22f);
-            carriedText = MakeText("Carried", shop.transform, "", ThemeRole.Caption, TextAlignmentOptions.Center);
-            Place(carriedText.rectTransform, new Vector2(0f, -176f), new Vector2(column, 40f));
-
-            buyButton = MakeButton("Buy", shop.transform, UIText.DepotBuy, new Vector2(0f, -276f), new Vector2(460f, 76f), Buy);
-            startButton = MakeButton("Start", shop.transform, UIText.DepotStart, new Vector2(0f, -376f), new Vector2(460f, 80f), StartShift);
+            buyButton = MakeButton("Buy", shopPanel, UIText.DepotBuy, new Vector2(0f, -120f), new Vector2(420f, 72f), Buy);
+            startButton = MakeButton("Start", shop.transform, UIText.DepotStart, new Vector2(0f, -340f), new Vector2(520f, 80f), StartShift);
 
             Navigation buyNav = new Navigation { mode = Navigation.Mode.Explicit, selectOnDown = startButton };
             Navigation startNav = new Navigation { mode = Navigation.Mode.Explicit, selectOnUp = buyButton };
@@ -416,6 +416,12 @@ namespace BusDriver.UI.Hud {
             tex.Apply();
             buttonSprite = Sprite.Create(tex, new Rect(0f, 0f, 4f, 4f), new Vector2(0.5f, 0.5f), 100f);
             return buttonSprite;
+        }
+
+        RectTransform Panel(string name, Vector2 position, Vector2 size) {
+            Image image = NewImage(name, shop.transform, PanelColor, false);
+            Place(image.rectTransform, position, size);
+            return image.rectTransform;
         }
 
         static Image NewImage(string name, Transform parent, Color color, bool raycast) {

@@ -18,6 +18,7 @@ namespace BusDriver.UI.Screens {
         public const string DepotNightLine = "NIGHT {0}    {1}";
         public const string DepotHint = "Buy items before you start your shift";
         public const string DepotWalletLabel = "WALLET";
+        public const string DepotForSale = "FOR SALE";
         public const string DepotCoffee = "COFFEE";
         public const string DepotCoffeeHint = "Restores sanity";
         public const string DepotCarrying = "CARRYING";

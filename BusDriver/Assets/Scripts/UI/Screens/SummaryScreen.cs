@@ -95,7 +95,6 @@ namespace BusDriver.UI.Screens {
             int each = fares > 0 ? totals.Cents(LedgerKind.Fare) / fares : fareCents;
             Line(labels, amounts, string.Format(UIText.LedgerFares, fares, Money.Format(each)), totals.Cents(LedgerKind.Fare));
             Line(labels, amounts, UIText.LedgerTips, totals.Cents(LedgerKind.Tip));
-            Line(labels, amounts, UIText.LedgerRefunds, totals.Cents(LedgerKind.Refund));
             Line(labels, amounts, UIText.LedgerLost, totals.Cents(LedgerKind.Lost));
             Line(labels, amounts, UIText.LedgerBounties, totals.Cents(LedgerKind.Bounty));
             labels.Append('\n').Append(UIText.LedgerTotal);

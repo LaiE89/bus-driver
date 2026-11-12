@@ -119,7 +119,7 @@ namespace BusDriver.Gameplay.Sanity {
 #endif
 
             BalanceConfig balance = shift.Balance;
-            float baseline = balance != null ? balance.sanityBaselinePerSecond : -0.2f;
+            float baseline = balance != null ? balance.sanityBaselinePerSecond : -0.3f;
             core.SetDrain(BaselineSource, baseline);
 
             bool inTunnel = tunnel != null && tunnel.IsInside;
