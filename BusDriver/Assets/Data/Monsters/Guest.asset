@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88bd55ed3ff534f139d9154bd19e4097, type: 3}
+  m_Name: Guest
+  m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.MonsterDefinition
+  id: guest
+  displayName: The Guest
+  rules:
+  - condition: 0
+    ratePerSecond: 0
+  observerKinds: 0
+  graceSeconds: 10
+  seatZonePreference: 0
+  seatZoneFallback: 0
+  killTelegraphSeconds: 4
+  escape:
+    kind: 0
+    seconds: 0
+    resetThreat: 60
+  monsterScare: {fileID: 0}
+  killScare: {fileID: 11400000, guid: e7b31c4a9d2f4b6e8a0c1d5f3e7a9b24, type: 2}
+  bountyCents: 500
+  ability:
+    rid: 1543484118205726802
+  journal:
+    sightingText: A rider who never says where it is going.
+    tellsText:
+    - It talks like anyone else who just wants out of the cold.
+    - It never says which stop is theirs.
+    hint: Don't talk to it. Don't carry it to the last stop.
+    icon: {fileID: 0}
+  logicPrefab: {fileID: 810000000000000102, guid: d44f1334e5f6708192a3b4c5d6e7f809, type: 3}
+  references:
+    version: 2
+    RefIds:
+    - rid: 1543484118205726802
+      type: {class: GuestStrikeConfig, ns: BusDriver.Core.Data, asm: BusDriver.Core}
+      data:
+        rushMetresPerSecond: 8
+        reachMetres: 0.9

@@ -206,7 +206,7 @@ namespace BusDriver.Tests.PlayMode.Scares {
             shift.Scares.TelegraphActive = false;
             CollectionAssert.AreEqual(new[] { "test.startle_a", "test.kill" }, startedIds);
             Assert.AreEqual(-5f, shift.Game.Config.Scare("scare.starer.lens").SanityCost(shift.Balance), "a Monster scare costs 5 sanity");
-            Assert.AreEqual(-2f, first.SanityCost(shift.Balance), "a Startle costs 2");
+            Assert.AreEqual(-5f, first.SanityCost(shift.Balance), "a Startle costs 5");
         }
     }
 }

@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace BusDriver.Gameplay.Shift {
     // Advances the ShiftClock (§2.5, §4.6) with scaled time while the shift is in Driving, so the
-    // intro card, the summary, death and the pause all hold it. The dash clock, the CCTV timestamp,
-    // the GPS and the stop arrivals all read this one clock.
+    // depot, the intro card, the summary, death and the pause all hold it. The dash clock, the CCTV
+    // timestamp, the GPS and the stop arrivals all read this one clock.
     public sealed class ShiftClockDriver : MonoBehaviour {
         ShiftDirector director;
 

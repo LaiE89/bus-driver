@@ -27,6 +27,8 @@ MonoBehaviour:
   monsterPool:
   - starer
   - whisperer
+  - gazer
+  - guest
   - mimic
   minDistinctTypes: 3
   maxPerType: 0

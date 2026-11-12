@@ -15,10 +15,8 @@ MonoBehaviour:
   id: mimic
   displayName: The Mimic
   rules:
-  - condition: 1
-    ratePerSecond: 2.5
   - condition: 0
-    ratePerSecond: -1
+    ratePerSecond: 0
   observerKinds: 11
   graceSeconds: 10
   seatZonePreference: 0
@@ -28,17 +26,17 @@ MonoBehaviour:
     kind: 2
     seconds: 2
     resetThreat: 60
+  monsterScare: {fileID: 0}
+  killScare: {fileID: 0}
   bountyCents: 500
   ability:
     rid: 1543484118205726722
   journal:
-    sightingText: Someone on the bus who looks exactly like someone else on the bus.
+    sightingText: A rider who takes someone else's seat, and their face.
     tellsText:
-    - Two riders with the same face.
-    - It blinks out of sight for an instant, now and then.
-    - It casts no shadow.
-    - One of the cameras never shows it.
-    hint: Count the faces. Then look away.
+    - A passenger is gone, and someone else is sitting where they were.
+    - It wears their face.
+    hint: Kick it off before it is the last one aboard.
     icon: {fileID: 0}
   logicPrefab: {fileID: 5546065236913089274, guid: d1c7689da431e425ab87ec769ac1b0bb, type: 3}
   references:
@@ -47,7 +45,7 @@ MonoBehaviour:
     - rid: 1543484118205726722
       type: {class: MimicCopyConfig, ns: BusDriver.Core.Data, asm: BusDriver.Core}
       data:
-        replaceIntervalSeconds: 120
+        replaceIntervalSeconds: 20
         threatAfterReplace: 20
         replaceFlickerSeconds: 0.6
         flickerGapAtZero: 8

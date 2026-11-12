@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: amb.tunnel
   clips:
-  - {fileID: 8300000, guid: 9be113dbfeb5c459c9aa1db118528fe9, type: 3}
+  - {fileID: 8300000, guid: 531416c45b17acf4d9f1861e7c78ecfd, type: 3}
   volume: 0.35
   volumeJitter: 0
   pitch: 1

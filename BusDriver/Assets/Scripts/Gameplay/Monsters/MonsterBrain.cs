@@ -96,6 +96,15 @@ namespace BusDriver.Gameplay.Monsters {
             if (definition.Ability<WhispererDrainConfig>() != null && GetComponent<WhispererDrain>() == null) {
                 gameObject.AddComponent<WhispererDrain>();
             }
+            if (definition.Ability<GazerRushConfig>() != null && GetComponent<GazerRush>() == null) {
+                gameObject.AddComponent<GazerRush>();
+            }
+            if (definition.Ability<GuestStrikeConfig>() != null && GetComponent<GuestStrike>() == null) {
+                gameObject.AddComponent<GuestStrike>();
+            }
+            if (definition.Ability<MimicCopyConfig>() != null && GetComponent<MimicHunt>() == null) {
+                gameObject.AddComponent<MimicHunt>();
+            }
         }
 
         void OnDestroy() {

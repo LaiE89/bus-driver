@@ -5,7 +5,7 @@ using BusDriver.Core.Rules;
 using UnityEditor;
 
 namespace BusDriver.Editor.Builders {
-    // Seed data for Data/Monsters/Starer, Whisperer and Mimic (§2.10–§2.12, §4.8, T-M4-03): rules,
+    // Seed data for Data/Monsters/Starer, Whisperer, Gazer and Guest: rules,
     // observer kinds, grace, seating, the kill sequence's escape, bounty, ability numbers and
     // journal text. logicPrefab is filled by PrefabBuilder, not here (D98).
     public static class MonsterSeed {
@@ -20,7 +20,8 @@ namespace BusDriver.Editor.Builders {
         static readonly Entry[] Entries = {
             new Entry { Id = NightSeed.Starer, File = "Starer", Fill = FillStarer },
             new Entry { Id = NightSeed.Whisperer, File = "Whisperer", Fill = FillWhisperer },
-            new Entry { Id = NightSeed.Mimic, File = "Mimic", Fill = FillMimic },
+            new Entry { Id = NightSeed.Gazer, File = "Gazer", Fill = FillGazer },
+            new Entry { Id = NightSeed.Guest, File = "Guest", Fill = FillGuest },
         };
 
         public static IEnumerable<string> Ids {
@@ -113,22 +114,40 @@ namespace BusDriver.Editor.Builders {
             };
         }
 
-        // §2.12, D22: punishes watching one passenger too long; on foot doesn't count
-        static void FillMimic(MonsterDefinition m) {
-            m.displayName = "The Mimic";
-            m.rules = new[] { Rule(ThreatCondition.Observed, 2.5f), Rule(ThreatCondition.Always, -1f) };
-            m.observerKinds = ObserverKinds.Cctv | ObserverKinds.Driver | ObserverKinds.Mirror;
-            m.escape = new MonsterEscape(EscapeKind.UnobservedFor, 2f, 60f);
-            m.ability = new MimicCopyConfig();
+        // Looking through the cabin camera, or staring at it on foot, makes it sprint and kill.
+        static void FillGazer(MonsterDefinition m) {
+            m.displayName = "The Gazer";
+            m.rules = new[] { Rule(ThreatCondition.Always, 0f) };
+            m.observerKinds = ObserverKinds.Cctv | ObserverKinds.OnFoot;
+            m.seatZonePreference = SeatZone.Mid;
+            m.seatZoneFallback = SeatZone.Rear;
+            m.escape = new MonsterEscape(EscapeKind.None, 0f, 60f);
+            m.ability = new GazerRushConfig();
             m.journal = new MonsterJournal {
-                sightingText = "Someone on the bus who looks exactly like someone else on the bus.",
+                sightingText = "A rider who will not raise its eyes.",
                 tellsText = new[] {
-                    "Two riders with the same face.",
-                    "It blinks out of sight for an instant, now and then.",
-                    "It casts no shadow.",
-                    "One of the cameras never shows it.",
+                    "It boards looking at the floor.",
+                    "The cabin camera makes it lift its head.",
+                    "On foot, meeting its eyes is the same as the camera.",
                 },
-                hint = "Count the faces. Then look away.",
+                hint = "Don't watch it. Don't watch the camera while it rides.",
+            };
+        }
+
+        // Talking to it, or still carrying it at the last stop, kills. A kick does not.
+        static void FillGuest(MonsterDefinition m) {
+            m.displayName = "The Guest";
+            m.rules = new[] { Rule(ThreatCondition.Always, 0f) };
+            m.observerKinds = ObserverKinds.None;
+            m.escape = new MonsterEscape(EscapeKind.None, 0f, 60f);
+            m.ability = new GuestStrikeConfig();
+            m.journal = new MonsterJournal {
+                sightingText = "A rider who never says where it is going.",
+                tellsText = new[] {
+                    "It talks like anyone else who just wants out of the cold.",
+                    "It never says which stop is theirs.",
+                },
+                hint = "Don't talk to it. Don't carry it to the last stop.",
             };
         }
 

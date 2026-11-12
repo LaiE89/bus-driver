@@ -22,16 +22,19 @@ MonoBehaviour:
   onFootRange: 8
   mirrorRange: 6
   sanityThreatFactorAt0: 1.5
-  sanityBaselinePerSecond: -0.05
+  sanityBaselinePerSecond: -0.3
   tunnelSanityPerSecond: -0.5
-  doorsOpenAtStopSanityPerSecond: 0.5
-  deathWitnessSanity: -10
-  innocentKickSanity: -8
-  monsterKickSanity: 10
+  doorsOpenAtStopSanityPerSecond: 0
+  deathWitnessSanity: 0
+  innocentKickSanity: -15
+  monsterKickSanity: 30
   monsterScareSanity: -5
-  startleSanity: -2
+  startleSanity: -5
+  chatSanityRestore: 15
+  coffeeCents: 600
+  coffeeSanity: 40
   sanityCarryBonus: 30
-  sanityCarryFloor: 60
+  sanityCarryFloor: 100
   hallucinationIntervals:
   - min: 30
     max: 45

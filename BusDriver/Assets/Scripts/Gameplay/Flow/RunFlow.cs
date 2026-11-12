@@ -189,7 +189,7 @@ namespace BusDriver.Gameplay.Flow {
             }
             BalanceConfig balance = game.Config != null ? game.Config.balance : null;
             float bonus = balance != null ? balance.sanityCarryBonus : 30f;
-            float floor = balance != null ? balance.sanityCarryFloor : 60f;
+            float floor = balance != null ? balance.sanityCarryFloor : 100f;
             Run.walletCents = result.WalletAfterCents;
             Run.sanity = EconomyMath.CarriedSanity(result.sanityEnd, bonus, floor);
             result.AddTo(Run.stats);

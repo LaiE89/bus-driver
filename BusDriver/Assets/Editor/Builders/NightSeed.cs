@@ -11,6 +11,8 @@ namespace BusDriver.Editor.Builders {
         public const string Starer = MonsterIds.Starer;
         public const string Whisperer = MonsterIds.Whisperer;
         public const string Mimic = MonsterIds.Mimic;
+        public const string Gazer = MonsterIds.Gazer;
+        public const string Guest = MonsterIds.Guest;
 
         public static string RelativePath(int nightIndex) {
             return Folder + "/Night" + nightIndex + ".asset";
@@ -38,7 +40,7 @@ namespace BusDriver.Editor.Builders {
             night.maxPerType = 0;
             night.mimicBoardFirstStop = "";
             night.mimicBoardLastStop = "";
-            string[] all = { Starer, Whisperer, Mimic };
+            string[] all = { Starer, Whisperer, Gazer, Guest, Mimic };
             switch (index) {
                 case 1:
                     night.threatRateMultiplier = 1f;
@@ -65,7 +67,8 @@ namespace BusDriver.Editor.Builders {
                     night.riderCountMax = 10;
                     night.decoyCount = 1;
                     night.monsterCountMin = night.monsterCountMax = 2;
-                    night.requiredMonsters = new[] { Starer, Whisperer };
+                    night.monsterPool = all;
+                    night.maxPerType = 1;
                     night.monsterBoardFirstStop = "farm_gate";
                     night.monsterBoardLastStop = "campground";
                     night.quotaCents = 2100;
@@ -76,12 +79,10 @@ namespace BusDriver.Editor.Builders {
                     night.riderCountMax = 11;
                     night.decoyCount = 2;
                     night.monsterCountMin = night.monsterCountMax = 2;
-                    night.requiredMonsters = new[] { Mimic };
-                    night.monsterPool = new[] { Starer, Whisperer };
+                    night.monsterPool = all;
+                    night.maxPerType = 1;
                     night.monsterBoardFirstStop = "farm_gate";
                     night.monsterBoardLastStop = "church";
-                    night.mimicBoardFirstStop = "gas_station";
-                    night.mimicBoardLastStop = "campground";
                     night.quotaCents = 2450;
                     break;
                 case 4:

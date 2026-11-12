@@ -2,6 +2,7 @@ using UnityEngine;
 using BusDriver.Gameplay.Bus;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Input;
+using BusDriver.Gameplay.Shift;
 
 namespace BusDriver.Gameplay.Player {
     // Seated head look, sits on the pivot that parents the driver camera
@@ -21,12 +22,14 @@ namespace BusDriver.Gameplay.Player {
         SettingsService settings;
         PauseService pause;
         InputService input;
+        ShiftDirector director;
 
         // ShiftContext, with the input adapters (§4.5 step 3)
         public void Init(ShiftServices shift) {
             settings = shift.Game.Settings;
             pause = shift.Game.Pause;
             input = shift.Game.Input;
+            director = shift.Director;
         }
 
         internal float Sensitivity {
@@ -50,15 +53,23 @@ namespace BusDriver.Gameplay.Player {
         }
 
         void Update() {
-            if (input == null || (pause != null && pause.IsPaused) || (cctv != null && cctv.IsViewingCCTV)) {
+            if (input == null || (pause != null && pause.IsPaused) || (cctv != null && cctv.IsViewingCCTV) || ResultsUp()) {
                 return;
             }
-            Vector2 look = input.Actions.DrivingLook.ReadValue<Vector2>() * InputService.MouseAxisScale;
+            Vector2 look = InputService.ReadLook(input.Actions.DrivingLook);
             float sens = Sensitivity;
             yaw = Mathf.Clamp(yaw + look.x * sens * sensScale, -yawLimit, yawLimit);
             // Positive pitch looks up
             pitch = Mathf.Clamp(pitch + look.y * PitchSign * sens * sensScale, pitchMin, pitchMax);
             transform.localRotation = Quaternion.Euler(-pitch, yaw, 0f);
+        }
+
+        bool ResultsUp() {
+            if (director == null) {
+                return false;
+            }
+            ShiftState state = director.State;
+            return state == ShiftState.Summary || state == ShiftState.GameOver || state == ShiftState.RunWon;
         }
     }
 }

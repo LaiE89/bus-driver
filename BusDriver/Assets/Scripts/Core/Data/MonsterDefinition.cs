@@ -57,17 +57,40 @@ namespace BusDriver.Core.Data {
     public sealed class WhispererDrainConfig : MonsterAbilityConfig {
         [Tooltip("Dormant, Unsettled, Aggressive, Lethal — positive = sanity lost per second")]
         public float[] drainPerSecondByStage = { 0.4f, 0.8f, 1.4f, 2.2f };
-        [Tooltip("Dormant, Unsettled, Aggressive, Lethal — whisper bed volume (very quiet at Dormant)")]
-        public float[] whisperVolumeByStage = { 0.02f, 0.12f, 0.4f, 0.85f };
+        [Tooltip("Dormant, Unsettled, Aggressive, Lethal — whisper bed volume. Quiet, then louder at each stage")]
+        public float[] whisperVolumeByStage = { 0.08f, 0.22f, 0.5f, 1f };
         [Tooltip("How fast volume eases toward the current stage target, per second")]
-        public float whisperVolumeLerpPerSecond = 0.35f;
+        public float whisperVolumeLerpPerSecond = 0.12f;
     }
 
-    // §2.12 and D22: it copies a seated rider, then replaces them
+    // After it sits, a long look through the cabin camera — or a long stare on foot — makes it sprint and kill.
+    [Serializable]
+    public sealed class GazerRushConfig : MonsterAbilityConfig {
+        [Tooltip("Continuous seconds of camera view, or of being stared at on foot, before it runs")]
+        public float lookSeconds = 3f;
+        [Tooltip("Sprint speed toward the driver, metres per second")]
+        public float rushMetresPerSecond = 8f;
+        [Tooltip("It kills once it is this close to the driver, metres")]
+        public float reachMetres = 0.9f;
+    }
+
+    // Talking to it while it sits kills immediately. Reaching the last stop while it sits
+    // makes it sprint the aisle. Kicking it off does not.
+    [Serializable]
+    public sealed class GuestStrikeConfig : MonsterAbilityConfig {
+        [Tooltip("Sprint speed toward the driver at the last stop, metres per second")]
+        public float rushMetresPerSecond = 8f;
+        [Tooltip("It kills once it is this close to the driver, metres")]
+        public float reachMetres = 0.9f;
+    }
+
+    // It boards and sits. Every interval it takes a seated human's seat and look. The interval
+    // pauses on foot and while a camera is up. With nobody left, and after at least one take, it
+    // sprints the aisle.
     [Serializable]
     public sealed class MimicCopyConfig : MonsterAbilityConfig {
-        [Tooltip("A replace happens this long after boarding or the last replace, if Aggressive didn't trigger one first")]
-        public float replaceIntervalSeconds = 120f;
+        [Tooltip("Seconds between takes, while the driver is seated and not on a camera")]
+        public float replaceIntervalSeconds = 30f;
         [Tooltip("The threat after a replace")]
         public float threatAfterReplace = 20f;
         [Tooltip("The cabin lights flicker this long on a replace")]

@@ -20,9 +20,9 @@ MonoBehaviour:
   pitch: 1
   pitchJitter: 0
   group: 3
-  spatial: 0
+  spatial: 1
   minDistance: 1
-  maxDistance: 40
+  maxDistance: 12
   loop: 1
   maxVoices: 1
   priority: 16

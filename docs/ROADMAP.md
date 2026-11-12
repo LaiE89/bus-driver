@@ -4174,46 +4174,35 @@ Update the status as tickets move: `Todo`, `Doing`, `Blocked (<reason>)` or `Don
 | Id | Group | 2D/3D | Loop | Existing clip / notes | Caption |
 |---|---|---|---|---|---|
 | `bus.engine_loop` | SfxBus | 2D | ✓ | `amb_driving_lp_01.wav` (pitch follows speed) | |
-| `bus.accel` / `bus.decel` | SfxBus | 2D | | Placeholders | |
 | `bus.handbrake` | SfxBus | 2D | | `sfx_airbrake.wav`. Plays once when a handbrake stop reaches 0 km/h (the PR #5 behaviour) | |
-| `bus.door_open` / `bus.door_close` | SfxBus | 3D | | | |
+| `bus.door_open` / `bus.door_close` | SfxBus | 3D | | Plays when the panels start opening or closing | |
 | `bus.fare_tap` | SfxCabin | 3D | | `sfx_cardtap_nl_01.wav` | |
 | `bus.rumble_strip` | SfxBus | 2D | ✓ | | |
-| `bus.crash_minor` / `bus.crash_major` | SfxBus | 2D | | | |
-| `bus.horn` | SfxBus | 2D | | | `[horn]` |
-| `cctv.switch` / `cctv.static_loop` | SfxCabin | 2D | – / ✓ | `sfx_cameraswitch_nl_01.wav` / — | |
+| `cctv.switch` | SfxCabin | 2D | | `sfx_cameraswitch_nl_01.wav` | |
 | `amb.wind` | Ambience | 2D | ✓ | `Wind Ambience.wav` | |
-| `amb.forest_night` / `amb.tunnel` / `amb.cabin_hum` | Ambience | 2D | ✓ | | |
+| `amb.tunnel` | Ambience | 2D | ✓ | | |
 | `amb.lamp_buzz` | Ambience | 3D | ✓ | | |
-| `player.footstep_bus` / `player.footstep_gravel` / `pax.footstep` | SfxCabin / SfxWorld | 3D | | | |
 | `pax.mutter_loop` | Voice | 3D | ✓ | | `[muttering]` |
-| `pax.death` / `pax.kick_out` | SfxCabin | 3D | | | |
 | `mon.telegraph_rumble` | Scares | 2D | | | |
 | `mon.expel` | Scares | 3D | | | |
 | `mon.starer.sting` / `mon.starer.kill` | Scares | 2D | | | |
 | `mon.whisper_loop` | Voice | 3D | ✓ | | `[whispering]` |
 | `mon.whisper_feed_loop` | Voice | 2D | ✓ | | |
-| `mon.whisper.driver` | Voice | 2D (hard pan) | | | `[whisper] driver…` |
-| `mon.whisperer.kill` | Scares | 2D | | | |
-| `mon.mimic.sting` / `mon.mimic.kill` | Scares | 2D | | | |
-| `mon.mimic.reveal` | Scares | 3D | | | |
 | `mon.angel.scrape` | SfxCabin | 3D | ✓ | Stone scraping while it moves | `[stone scraping]` |
 | `mon.angel.sting` / `mon.angel.kill` | Scares | 2D | | | |
-| `scare.startle_sting` / `scare.lights_out` | Scares | 2D | | | |
+| `scare.startle_sting` | Scares | 2D | | | |
 | `hal.footsteps_behind` | SfxCabin | 3D | | | `[footsteps behind you]` |
 | `hal.door_chime` | SfxCabin | 3D | | | `[door chime]` |
 | `hal.window_knock` | Scares | 3D | | | `[knock on the window]` |
 | `hal.static_burst` | SfxCabin | 2D | | | |
-| `hal.whisper_driver` | Voice | 2D | | A different take from `mon.whisper.driver` | `[whisper] driver…` |
-| `san.heartbeat_loop` | Scares | 2D | ✓ | | |
+| `hal.whisper_driver` | Voice | 2D | | A whispered line in the cabin | `[whisper] driver…` |
+| `san.heartbeat_loop` | Scares | 2D | ✓ | Plays while driving below sanity 25. Assign the clip; leave placeholder off | |
 | `death.fall_wind` | Scares | 2D | ✓ | | |
 | `death.fall_impact` / `death.blackout` | Scares | 2D | | | |
-| `item.coffee` / `item.earplugs` | SfxCabin | 2D | | | |
 | `ui.click` | Ui | 2D | | `UI Click.wav` | |
-| `ui.hover` / `ui.purchase` / `ui.error` / `ui.money_up` / `ui.money_down` / `ui.night_card` | Ui | 2D | | | |
+| `ui.money_up` / `ui.money_down` | Ui | 2D | | | |
 | `ui.type_tick` | Ui | 2D | | `Dialogue.wav` (intro-card typewriter) | |
-| `menu.distant_engine` / `menu.bus_arrive` | Ambience / SfxWorld | 3D | | | |
-| `mus.summary_sting` / `mus.gameover_sting` | Music | 2D | | | |
+| `mus.gameover_sting` | Music | 2D | | | |
 
 ### A.4 Environment
 - **Road:** the road is **generated**. Deliver tiling materials instead of meshes:

@@ -74,7 +74,6 @@ namespace BusDriver.Editor.Builders {
                 case "mon.whisper_loop":
                 case "mon.whisper_feed_loop":
                 case "hal.whisper_driver":
-                case "mon.whisper.driver":
                     return WhisperMurmur(hash, random, id.Contains("feed") ? 3f : 2.5f);
                 case "hal.window_knock":
                     return WindowKnock(hash, random);

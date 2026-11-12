@@ -31,11 +31,8 @@ namespace BusDriver.Tests.PlayMode.Flow {
             FlowTestUtil.DeleteSaveRoot(saveRoot);
         }
 
-        // Serve farm_gate (look01 → campground, look02 → church), then straight to the church: the
-        // doors open, look02 walks off, and the empty bus ends the night. The Summary shows the ledger
-        // (two fares, a tip for look02 if the church was Early, none for look01 whose stop was missed);
-        // Continue saves the
-        // run and loads night 2 with the new wallet.
+        // Serve farm_gate (look01 → campground), then straight to the church. look01's stop was
+        // missed, so they step off without paying. Continue saves the run and loads night 2.
         [UnityTest, Timeout(900000)]
         public IEnumerator Night_CompletesToSummary() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
@@ -45,7 +42,6 @@ namespace BusDriver.Tests.PlayMode.Flow {
             ShiftContext night = Object.FindAnyObjectByType<ShiftContext>();
             ShiftServices shift = night.Shift;
             ShiftDirector director = shift.Director;
-            BalanceConfig balance = shift.Balance;
 
             Time.timeScale = TimeScale;
             yield return NightDrive.ServeStop(night, "farm_gate");
@@ -55,16 +51,14 @@ namespace BusDriver.Tests.PlayMode.Flow {
             yield return FlowTestUtil.WaitFor(() => director.State == ShiftState.Summary, 60f, "the Summary after the bus empties");
             Time.timeScale = 1f;
 
-            StopRecord church = shift.Progress.Find("church");
-            int tip = church.Rating == ArrivalRating.Early ? EconomyMath.Tip(balance.fareCents, balance.tipPercent) : 0;
-            int expected = 2 * balance.fareCents + tip;
+            int expected = 0;
             NightResult result = director.Result;
             Assert.IsNotNull(result);
             Assert.AreEqual(1, result.nightIndex);
-            Assert.AreEqual(2 * balance.fareCents, result.totals.Cents(LedgerKind.Fare));
-            Assert.AreEqual(tip, result.totals.Cents(LedgerKind.Tip), "only look02 can earn a tip; look01 was carried from a missed stop");
+            Assert.AreEqual(0, result.totals.Cents(LedgerKind.Fare), "look01 missed campground, so the drop-off pays nothing");
+            Assert.AreEqual(0, result.totals.Cents(LedgerKind.Tip));
             Assert.AreEqual(expected, result.NetCents);
-            Assert.AreEqual(2, result.stats.ridersDelivered);
+            Assert.AreEqual(1, result.stats.ridersDelivered);
             Assert.AreEqual(4, result.arrivals.Count, "night 1's four stops, farm_gate to church");
             Assert.AreEqual(ArrivalRating.Missed, result.arrivals[1].rating);
             Assert.AreEqual(ArrivalRating.Missed, result.arrivals[2].rating);
@@ -87,7 +81,7 @@ namespace BusDriver.Tests.PlayMode.Flow {
             Assert.AreEqual(expected, run.walletCents);
             Assert.AreEqual(2, run.nightIndex);
             Assert.AreEqual(1, run.nights.Count);
-            Assert.AreEqual(2, run.stats.ridersDelivered);
+            Assert.AreEqual(1, run.stats.ridersDelivered);
             Assert.IsFalse(run.nightInProgress);
             CaptureUtil.CaptureWithCanvas("summary", shift.DriverCamera, summary.GetComponentInParent<Canvas>().rootCanvas);
 

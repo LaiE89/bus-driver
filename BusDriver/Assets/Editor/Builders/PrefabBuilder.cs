@@ -69,7 +69,7 @@ namespace BusDriver.Editor.Builders {
         // One front cabin camera (Home ↔ CAM 1). Observe range covers the aisle so rear seats
         // still count as watched when this view is up.
         public static readonly CctvSpec[] Cctv = {
-            new CctvSpec { Anchor = "Anchor_CCTV_Front", CameraName = "CAM 1 Front", Label = "CAM 1  FRONT", Position = new Vector3(0.3f, 3.2f, 5.3f), Euler = new Vector3(22f, 180f, 0f) },
+            new CctvSpec { Anchor = "Anchor_CCTV_Front", CameraName = "CAM 1 Front", Label = "CAM 1  FRONT", Position = new Vector3(0.3f, 2.9f, 5.3f), Euler = new Vector3(22f, 180f, 0f) },
         };
         public const float CctvFov = 95f;
         public const float CctvObserveRange = 14f;
@@ -145,7 +145,7 @@ namespace BusDriver.Editor.Builders {
             BuildWheelColliders(root, tuning, out front, out rear);
 
             List<Object> seats = BuildSeats(root);
-            Transform aisleAtDoor = Node(root, "Anchor_AisleAtDoor", new Vector3(0f, FloorTop, DoorZ));
+            Transform aisleAtDoor = Node(root, "Anchor_AisleAtDoor", new Vector3(0.12f, FloorTop, DoorZ));
             Transform doorStep = Node(root, "Anchor_DoorStep", new Vector3(1f, FloorTop, DoorZ));
             // Height is found with a raycast at run time: road or kerb
             Transform doorOutside = Node(root, "DoorOutside", new Vector3(1.9f, 0f, DoorZ));
@@ -657,6 +657,15 @@ namespace BusDriver.Editor.Builders {
                 }
                 if (monster.ability is WhispererDrainConfig) {
                     instance.AddComponent<WhispererDrain>();
+                }
+                if (monster.ability is GazerRushConfig) {
+                    instance.AddComponent<GazerRush>();
+                }
+                if (monster.ability is GuestStrikeConfig) {
+                    instance.AddComponent<GuestStrike>();
+                }
+                if (monster.ability is MimicCopyConfig) {
+                    instance.AddComponent<MimicHunt>();
                 }
                 GameObject saved = SaveOrOverwritePrefab(instance, MonsterPath(monster.id));
                 Object.DestroyImmediate(instance);

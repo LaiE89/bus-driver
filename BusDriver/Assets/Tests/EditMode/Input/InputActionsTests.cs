@@ -98,6 +98,7 @@ namespace BusDriver.Tests.EditMode.Input {
             Assert.AreEqual("<Keyboard>/q", KeyboardPath("Driving/Doors"));
             Assert.AreEqual("<Keyboard>/e", KeyboardPath("Driving/LeaveSeat"));
             Assert.AreEqual("<Keyboard>/space", KeyboardPath("Driving/CycleCamera"));
+            Assert.AreEqual("<Keyboard>/f2", KeyboardPath("Driving/ResetBus"));
             // The MVP's door decision: interact waves them on, the kick button turns them away
             Assert.AreEqual("<Mouse>/rightButton", KeyboardPath("Driving/AcceptRider"));
             Assert.AreEqual("<Mouse>/leftButton", KeyboardPath("Driving/RefuseRider"));

@@ -20,14 +20,31 @@ namespace BusDriver.Gameplay.Views {
 
         Quaternion steeringRest = Quaternion.identity;
         MaterialPropertyBlock block;
+        ArtBus art;
 
         void Awake() {
             if (steeringWheel != null) {
                 steeringRest = steeringWheel.localRotation;
             }
+            Transform rig = transform.parent != null ? transform.parent : transform;
+            art = ArtBus.TryAttach(rig);
+            if (art != null) {
+                art.HideShell(transform);
+                art.PlaceScreens(dashAnchors);
+                if (!art.HasDoors && doorPanel != null) {
+                    Renderer panel = doorPanel.GetComponent<Renderer>();
+                    if (panel != null) {
+                        panel.enabled = true;
+                    }
+                }
+            }
         }
 
         public override void SetDoorOpen(float open01) {
+            if (art != null && art.HasDoors) {
+                art.SetDoorOpen(open01);
+                return;
+            }
             if (doorPanel != null) {
                 doorPanel.localPosition = Vector3.Lerp(doorClosedLocalPos, doorOpenLocalPos, Mathf.SmoothStep(0f, 1f, open01));
             }
@@ -35,6 +52,10 @@ namespace BusDriver.Gameplay.Views {
 
         // The wheel is a cylinder, so its own Y is the column
         public override void SetSteering(float wheelAngleDeg) {
+            if (art != null) {
+                art.SetSteering(wheelAngleDeg, steeringRatio);
+                return;
+            }
             if (steeringWheel != null) {
                 steeringWheel.localRotation = steeringRest * Quaternion.Euler(0f, wheelAngleDeg * steeringRatio, 0f);
             }
@@ -42,6 +63,9 @@ namespace BusDriver.Gameplay.Views {
 
         // The view sits at the bus root with no offset, so root-local is view-local
         public override void SetWheelPose(int wheelIndex, Vector3 localPos, Quaternion localRot) {
+            if (art != null && art.SetWheelPose(wheelIndex, localRot)) {
+                return;
+            }
             if (wheelIndex < 0 || wheelIndex >= wheels.Length || wheels[wheelIndex] == null) {
                 return;
             }

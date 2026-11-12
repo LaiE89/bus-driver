@@ -83,9 +83,8 @@ namespace BusDriver.Tests.PlayMode.Flow {
             Assert.AreEqual(LedgerKind.Bounty, last.Kind);
             Assert.AreEqual(record.RiderId, last.RiderId);
             Assert.AreEqual(0, shift.Ledger.Totals.Cents(LedgerKind.Refund), "a monster's fare is kept");
-            // §2.13 sanity +10: SanitySystem arrives in M5 and applies KickRules to the Kicked status
-            // this rider now has (D105)
-            Assert.AreEqual(10f, KickRules.SanityDelta(record.IsMonster, shift.Balance));
+            // Kicking a monster restores 30 sanity, from KickRules.
+            Assert.AreEqual(30f, KickRules.SanityDelta(record.IsMonster, shift.Balance));
             Assert.AreEqual(ShiftState.Driving, shift.Director.State);
             Assert.AreEqual(PlayerMode.Driving, shift.Mode.Mode);
             Assert.AreEqual(0, errors, "no errors");

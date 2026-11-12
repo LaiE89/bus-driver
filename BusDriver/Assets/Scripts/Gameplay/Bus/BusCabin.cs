@@ -42,17 +42,50 @@ namespace BusDriver.Gameplay.Bus {
         public Transform PassengerRoot { get { return passengerRoot; } }
         public IReadOnlyList<Passenger> Passengers { get { return passengers; } }
         public bool IsWalkable { get; private set; }
+        // A sprint is using the aisle. Walks wait until it is released.
+        int motionHolds;
+        public bool MotionHeld { get { return motionHolds > 0; } }
 
-        // Nobody still registered aboard (seated, walking the aisle, or on the step). The night
-        // waits for this at the end stop before the Summary opens.
+        public void HoldMotion() {
+            motionHolds++;
+        }
+
+        public void ReleaseMotion() {
+            if (motionHolds > 0) {
+                motionHolds--;
+            }
+        }
+
+        // Fires after the driver opens the doors and before anyone stands up to leave.
+        public event Action<BusStop> BeforeStopExchange;
+
+        // Riders drop off the cabin list at the doorway so the next person can exit. They are
+        // still walking away from the bus until this returns to zero.
+        int departing;
+
+        // Nobody still aboard, and nobody still walking away from the door. The night waits
+        // for this at the end stop before the Summary opens.
         public bool IsEmpty {
             get {
+                if (departing > 0) {
+                    return false;
+                }
                 for (int i = 0; i < passengers.Count; i++) {
                     if (passengers[i] != null) {
                         return false;
                     }
                 }
                 return true;
+            }
+        }
+
+        public void BeginDeparture() {
+            departing++;
+        }
+
+        public void EndDeparture() {
+            if (departing > 0) {
+                departing--;
             }
         }
 
@@ -104,10 +137,12 @@ namespace BusDriver.Gameplay.Bus {
 
         void OnEnable() {
             doors.OnChanged += HandleDoorsChanged;
+            doors.OnDriverOpened += BeginStopExchange;
         }
 
         void OnDisable() {
             doors.OnChanged -= HandleDoorsChanged;
+            doors.OnDriverOpened -= BeginStopExchange;
         }
 
         void Start() {
@@ -429,10 +464,19 @@ namespace BusDriver.Gameplay.Bus {
         }
 
         void HandleDoorsChanged(bool opening) {
-            if (!opening) {
+            if (opening) {
+                BeginStopExchange();
+            }
+        }
+
+        // Riders whose stop this is get off, then the line outside boards (§2.4). A kick holds the
+        // doors so that one rider can step off; that hold must not start the exchange.
+        void BeginStopExchange() {
+            if (doors == null || !doors.OpenedByDriver) {
                 return;
             }
             BusStop stop = CurrentStop;
+            BeforeStopExchange?.Invoke(stop);
             if (stop != null) {
                 stop.BeginBoarding(this);
             }

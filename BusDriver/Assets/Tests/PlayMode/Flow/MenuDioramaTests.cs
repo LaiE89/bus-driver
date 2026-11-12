@@ -50,9 +50,7 @@ namespace BusDriver.Tests.PlayMode.Flow {
             LightFlicker lamp = Object.FindAnyObjectByType<LightFlicker>();
             Assert.IsNotNull(lamp, "the stop has no lamp");
             Assert.AreEqual(FlickerMode.Subtle, lamp.Mode);
-            LampBuzz buzz = Object.FindAnyObjectByType<LampBuzz>();
-            Assert.IsTrue(buzz != null && buzz.IsPlaying, "the lamp buzz isn't playing");
-            // No ambience bed until a real forest clip lands; the lamp buzz carries the scene
+            Assert.IsNull(Object.FindAnyObjectByType<LampBuzz>(), "the menu lamp should not buzz");
             Assert.IsNotNull(Object.FindAnyObjectByType<SceneAmbience>(), "the menu has no SceneAmbience");
             Assert.IsNotNull(GameObject.Find("Waiting Figure"), "no waiting figure");
 

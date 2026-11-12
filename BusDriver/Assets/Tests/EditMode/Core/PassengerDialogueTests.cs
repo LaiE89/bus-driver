@@ -5,8 +5,8 @@ using BusDriver.Core.Util;
 using NUnit.Framework;
 
 namespace BusDriver.Tests.EditMode.Core {
-    // The rider line tables (§4.13): the right kind speaks, humans name their stop, and the same
-    // seed draws the same lines.
+    // The rider line tables (§4.13): the right kind speaks, a human never names their stop,
+    // and the same seed draws the same lines.
     public class PassengerDialogueTests {
         static Random Stream() {
             return new RngStreams(1234).Get(RngStreams.Dialogue);
@@ -16,21 +16,24 @@ namespace BusDriver.Tests.EditMode.Core {
         public void EveryMonsterIdMapsToItsOwnKind() {
             Assert.AreEqual(DialogueKind.Starer, PassengerDialogue.KindFor(MonsterIds.Starer));
             Assert.AreEqual(DialogueKind.Whisperer, PassengerDialogue.KindFor(MonsterIds.Whisperer));
+            Assert.AreEqual(DialogueKind.Gazer, PassengerDialogue.KindFor(MonsterIds.Gazer));
+            Assert.AreEqual(DialogueKind.Guest, PassengerDialogue.KindFor(MonsterIds.Guest));
+            Assert.AreEqual(DialogueKind.Mimic, PassengerDialogue.KindFor(MonsterIds.Mimic));
         }
 
-        // D34: it is pretending to be a passenger, so it has to sound like one
         [Test]
-        public void TheMimicAndAnUnknownIdBothSpeakAsHumans() {
-            Assert.AreEqual(DialogueKind.Human, PassengerDialogue.KindFor(MonsterIds.Mimic));
+        public void AnUnknownIdSpeaksAsAHuman() {
             Assert.AreEqual(DialogueKind.Human, PassengerDialogue.KindFor(""));
             Assert.AreEqual(DialogueKind.Human, PassengerDialogue.KindFor(null));
         }
 
         [Test]
-        public void AHumanGreetingNamesTheStop() {
+        public void AHumanGreetingNeverNamesTheStop() {
             Random rng = Stream();
-            for (int i = 0; i < 50; i++) {
-                StringAssert.Contains("Oak Hill", PassengerDialogue.Greeting(DialogueKind.Human, "Oak Hill", rng));
+            for (int i = 0; i < 80; i++) {
+                string line = PassengerDialogue.Greeting(DialogueKind.Human, "Oak Hill", rng);
+                Assert.IsFalse(line.Contains("{0}"), "an unformatted line reached the screen: " + line);
+                Assert.IsFalse(line.Contains("Oak Hill"), line);
             }
         }
 
@@ -45,13 +48,12 @@ namespace BusDriver.Tests.EditMode.Core {
         [Test]
         public void MonsterLinesAreNeverFormatStrings() {
             Random rng = Stream();
-            DialogueKind[] kinds = { DialogueKind.Starer, DialogueKind.Whisperer };
+            DialogueKind[] kinds = { DialogueKind.Starer, DialogueKind.Whisperer, DialogueKind.Mimic };
             foreach (DialogueKind kind in kinds) {
                 for (int i = 0; i < 50; i++) {
                     Assert.IsFalse(PassengerDialogue.Greeting(kind, "Oak Hill", rng).Contains("Oak Hill"));
                     Assert.IsNotEmpty(PassengerDialogue.Seated(kind, rng));
                     Assert.IsNotEmpty(PassengerDialogue.Farewell(kind, ArrivalRating.Early, false, rng));
-                    Assert.IsNotEmpty(PassengerDialogue.Refused(kind, rng));
                 }
             }
         }
@@ -63,9 +65,12 @@ namespace BusDriver.Tests.EditMode.Core {
                 string line = PassengerDialogue.Farewell(DialogueKind.Human, ArrivalRating.Early, true, rng);
                 Assert.IsFalse(line.IndexOf("star", StringComparison.OrdinalIgnoreCase) >= 0, line);
                 Assert.IsTrue(
-                    line.IndexOf("throwing", StringComparison.OrdinalIgnoreCase) >= 0
-                    || line.IndexOf("fare", StringComparison.OrdinalIgnoreCase) >= 0
-                    || line.IndexOf("dark", StringComparison.OrdinalIgnoreCase) >= 0,
+                    line.IndexOf("throw", StringComparison.OrdinalIgnoreCase) >= 0
+                    || line.IndexOf("dark", StringComparison.OrdinalIgnoreCase) >= 0
+                    || line.IndexOf("what did i do", StringComparison.OrdinalIgnoreCase) >= 0
+                    || line.IndexOf("leave me", StringComparison.OrdinalIgnoreCase) >= 0
+                    || line.IndexOf("surviv", StringComparison.OrdinalIgnoreCase) >= 0
+                    || line.IndexOf("manager", StringComparison.OrdinalIgnoreCase) >= 0,
                     line);
             }
         }

@@ -17,7 +17,7 @@ namespace BusDriver.Gameplay.Shift {
         None = 0, Depot = 1, Intro = 2, Driving = 3, Summary = 4, Dying = 5, GameOver = 6, RunWon = 7
     }
 
-    // The night's state machine (§2.1, §4.6): Depot (nights 2–5) → Intro → Driving → Summary, or
+    // The night's state machine (§2.1, §4.6): Depot → Intro → Driving → Summary, or
     // Driving → Dying → GameOver; night 5's Summary leads to RunWon. It owns DriveLock.Scripted (the
     // bus only moves in Driving), decides when pausing is allowed (§4.11) and pushes the input
     // context for its states. DeathDirector moves it to Dying, then to GameOver once the death
@@ -34,6 +34,9 @@ namespace BusDriver.Gameplay.Shift {
         PlayerModeController mode;
         RouteProgress progress;
         float stateTime;
+        // Depot, the night-complete screen, and game over are menus: scaled time stays at 0
+        bool worldHeld;
+        bool endScreenAudio;
 
         public ShiftState State { get; private set; } = ShiftState.None;
         public float IntroSeconds { get { return introSeconds; } }
@@ -74,6 +77,8 @@ namespace BusDriver.Gameplay.Shift {
             if (progress != null) {
                 progress.OnTerminus -= HandleTerminus;
             }
+            ReleaseWorld();
+            ApplyEndScreenAudio(ShiftState.None);
             // The next scene's root decides again
             if (game != null && game.Pause.CanPause == (Func<bool>)CanPause) {
                 game.Pause.CanPause = null;
@@ -90,8 +95,8 @@ namespace BusDriver.Gameplay.Shift {
             if (progress != null) {
                 progress.OnTerminus += HandleTerminus;
             }
-            // The depot shop opens before nights 2–5 (D33)
-            SetState(NightIndex > 1 ? ShiftState.Depot : ShiftState.Intro);
+            // The depot shop opens before every night, so last night's wallet can be spent
+            SetState(ShiftState.Depot);
         }
 
         // The depot's Start shift (§2.18)
@@ -133,9 +138,10 @@ namespace BusDriver.Gameplay.Shift {
             }
         }
 
-        // §4.11: pausing is allowed in Driving (which includes on foot), Depot and Dying
+        // §4.11: pausing is allowed in Driving (which includes on foot) and Dying. The depot is a
+        // menu, like the intro card: Esc does nothing there.
         public bool CanPause() {
-            return State == ShiftState.Driving || State == ShiftState.Depot || State == ShiftState.Dying;
+            return State == ShiftState.Driving || State == ShiftState.Dying;
         }
 
         void Update() {
@@ -148,9 +154,6 @@ namespace BusDriver.Gameplay.Shift {
             }
             if (State == ShiftState.Intro && stateTime >= introSeconds) {
                 SetState(ShiftState.Driving);
-            }else if (State == ShiftState.Depot) {
-                // The depot shop arrives in T-M7-05; until then the depot is passed straight through
-                ConfirmDepot();
             }else if (State == ShiftState.Driving) {
                 // End stop served earlier while someone was still walking off: finish once empty
                 TryFinishNight();
@@ -162,8 +165,9 @@ namespace BusDriver.Gameplay.Shift {
             FinishNight();
         }
 
-        // Doors fully open at the end stop: humans start walking off; the night finishes once none
-        // are left aboard (monsters must be kicked first)
+        // Doors fully open at the end stop: riders start walking off, monsters included. The night
+        // finishes once they have left the bus, including the walk away from the door. A guest
+        // still aboard does not walk off.
         void HandleTerminus() {
             TryFinishNight();
         }
@@ -207,6 +211,7 @@ namespace BusDriver.Gameplay.Shift {
             if (ledger != null) {
                 result.totals = ledger.Totals.Clone();
                 result.walletBeforeCents = ledger.WalletBeforeCents;
+                result.spentCents = ledger.SpentCents;
             }else {
                 result.walletBeforeCents = shift.Setup.Run.walletCents;
             }
@@ -261,6 +266,12 @@ namespace BusDriver.Gameplay.Shift {
             ShiftState previous = State;
             State = next;
             stateTime = 0f;
+            if (HoldsWorld(next)) {
+                HoldWorld();
+            }else if (HoldsWorld(previous)) {
+                ReleaseWorld();
+            }
+            ApplyEndScreenAudio(next);
             // The bus is only released while driving (§2.3)
             bus.SetDriveLock(DriveLock.Scripted, next != ShiftState.Driving);
             ApplyInputContext(next);
@@ -268,6 +279,43 @@ namespace BusDriver.Gameplay.Shift {
             if (OnStateChanged != null) {
                 OnStateChanged(next);
             }
+        }
+
+        // The depot shop, the night-complete screen, game over, and the run-won beat
+        static bool HoldsWorld(ShiftState state) {
+            return state == ShiftState.Depot || state == ShiftState.Summary
+                || state == ShiftState.GameOver || state == ShiftState.RunWon;
+        }
+
+        void HoldWorld() {
+            if (worldHeld) {
+                return;
+            }
+            worldHeld = true;
+            Time.timeScale = 0f;
+        }
+
+        void ReleaseWorld() {
+            if (!worldHeld) {
+                return;
+            }
+            worldHeld = false;
+            if (game == null || !game.Pause.IsPaused) {
+                Time.timeScale = 1f;
+            }
+        }
+
+        // The end screens quiet the bus. UI sounds ignore the listener pause.
+        void ApplyEndScreenAudio(ShiftState state) {
+            bool end = state == ShiftState.Summary || state == ShiftState.GameOver || state == ShiftState.RunWon;
+            if (end == endScreenAudio) {
+                return;
+            }
+            endScreenAudio = end;
+            if (game != null && game.Pause.IsPaused) {
+                return;
+            }
+            AudioListener.pause = end;
         }
 
         // §4.10: screens take UI input; driving hands the context to the mode switch's body; the

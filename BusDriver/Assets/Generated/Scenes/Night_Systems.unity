@@ -443,8 +443,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15016de58d32968459e586b72f8e8094, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BusDriver.Gameplay::BusDriver.Gameplay.Dialogue.DialogueService
-  secondsPerCharacter: 0.02
-  holdSeconds: 2
+  secondsPerCharacter: 0.008
+  holdSeconds: 1
   charactersPerBlip: 3
   maxQueued: 8
 --- !u!114 &620547198

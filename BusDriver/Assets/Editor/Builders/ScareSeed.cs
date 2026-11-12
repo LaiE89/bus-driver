@@ -11,6 +11,7 @@ namespace BusDriver.Editor.Builders {
         public const string Folder = "Scares";
         public const string StarerLens = "scare.starer.lens";
         public const string StarerKill = "scare.starer.kill";
+        public const string GuestKill = "scare.guest.kill";
         public const string BlackoutGeneric = "scare.blackout.generic";
         public const string TelegraphGeneric = "scare.telegraph.generic";
 
@@ -21,6 +22,7 @@ namespace BusDriver.Editor.Builders {
         public static IEnumerable<Seed> Seeds() {
             yield return Seed.Of<ScareDefinition>(RelativePath(StarerLens), FillStarerLens);
             yield return Seed.Of<ScareDefinition>(RelativePath(StarerKill), FillStarerKill);
+            yield return Seed.Of<ScareDefinition>(RelativePath(GuestKill), FillGuestKill);
             yield return Seed.Of<ScareDefinition>(RelativePath(BlackoutGeneric), FillBlackout);
             yield return Seed.Of<ScareDefinition>(RelativePath(TelegraphGeneric), FillTelegraph);
         }
@@ -57,6 +59,22 @@ namespace BusDriver.Editor.Builders {
             };
         }
 
+        // The Starer kill, with the face in the center of the driver view instead of over the shoulder
+        static void FillGuestKill(ScareDefinition scare) {
+            scare.id = GuestKill;
+            scare.tier = ScareTier.Kill;
+            scare.steps = new[] {
+                Step(0f, ScareStepKind.LockInput, 2.2f),
+                Step(0f, ScareStepKind.ForceHomeView),
+                Step(0f, ScareStepKind.ShowScareHead, 1.6f, anchor: ScareAnchors.DriverView),
+                Step(0f, ScareStepKind.PlaySound, soundId: SoundIds.MonStarerKill),
+                Step(0f, ScareStepKind.CameraShake, 0.6f, intensity: 0.5f),
+                Step(0f, ScareStepKind.FlickerCabinLights, 1.2f),
+                Step(1.2f, ScareStepKind.Blackout, 0.4f),
+                Step(1.6f, ScareStepKind.Wait, 0.6f),
+            };
+        }
+
         // §2.14 SanityZero without a Whisperer aboard: the heartbeat stops, fade to black over 2 s
         static void FillBlackout(ScareDefinition scare) {
             scare.id = BlackoutGeneric;
@@ -83,7 +101,7 @@ namespace BusDriver.Editor.Builders {
         public static void Adopt(string root, GameRootConfig config) {
             List<ScareDefinition> scares = new List<ScareDefinition>(config.scares ?? new ScareDefinition[0]);
             scares.RemoveAll(s => s == null);
-            foreach (string id in new[] { StarerLens, StarerKill, BlackoutGeneric, TelegraphGeneric }) {
+            foreach (string id in new[] { StarerLens, StarerKill, GuestKill, BlackoutGeneric, TelegraphGeneric }) {
                 ScareDefinition scare = AssetDatabase.LoadAssetAtPath<ScareDefinition>(root + "/" + RelativePath(id));
                 if (scare != null && !scares.Contains(scare)) {
                     scares.Add(scare);
@@ -91,6 +109,16 @@ namespace BusDriver.Editor.Builders {
             }
             config.scares = scares.ToArray();
             AdoptMonsterScares(root, NightSeed.Starer, StarerLens, StarerKill);
+            MonsterDefinition gazer = MonsterSeed.Load(root, NightSeed.Gazer);
+            if (gazer != null && gazer.killScare == null) {
+                gazer.killScare = AssetDatabase.LoadAssetAtPath<ScareDefinition>(root + "/" + RelativePath(StarerKill));
+                EditorUtility.SetDirty(gazer);
+            }
+            MonsterDefinition guest = MonsterSeed.Load(root, NightSeed.Guest);
+            if (guest != null && guest.killScare == null) {
+                guest.killScare = AssetDatabase.LoadAssetAtPath<ScareDefinition>(root + "/" + RelativePath(GuestKill));
+                EditorUtility.SetDirty(guest);
+            }
         }
 
         static void AdoptMonsterScares(string root, string monsterId, string monsterScareId, string killScareId) {

@@ -27,6 +27,7 @@ namespace BusDriver.Gameplay.Bus {
         }
         // Whichever camera is rendering right now
         public Camera ActiveCamera { get { return IsViewingCCTV ? cameras[ActiveIndex].Camera : homeCamera; } }
+        public Camera HomeCamera { get { return homeCamera; } }
         public CctvCamera ActiveCctv { get { return IsViewingCCTV ? cameras[ActiveIndex] : null; } }
         public IReadOnlyList<CctvCamera> Cameras { get { return cameras; } }
         // CCTV cameras plus the home view, one full cycle

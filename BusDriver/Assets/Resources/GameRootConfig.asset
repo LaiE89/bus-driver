@@ -45,9 +45,17 @@ MonoBehaviour:
   monsters:
   - {fileID: 11400000, guid: bb8149314fbba4fe0bbded8a9ad355c3, type: 2}
   - {fileID: 11400000, guid: 1d552c969b5814490a4f54f46f12fe52, type: 2}
+  - {fileID: 11400000, guid: a11ce001b2c34d5e6f708192a3b4c5d6, type: 2}
+  - {fileID: 11400000, guid: b22df112c3d45e6f708192a3b4c5d6e7, type: 2}
   - {fileID: 11400000, guid: 794d8086dfb544ebda198390b814d582, type: 2}
   scares:
   - {fileID: 11400000, guid: 4cfec3d0c737a436eb629b7837d74711, type: 2}
   - {fileID: 11400000, guid: 8bd38dd69ad2848b7b1d3282e67cd90e, type: 2}
+  - {fileID: 11400000, guid: e7b31c4a9d2f4b6e8a0c1d5f3e7a9b24, type: 2}
   - {fileID: 11400000, guid: a85e46303087e4d1e853c992a1e168d0, type: 2}
   - {fileID: 11400000, guid: f9374a038d29e4e969b8180161833d68, type: 2}
+  sanityObstacles:
+  - {fileID: -7481374227488608755, guid: e63e388cfc671224bb46bd9dc8c33c2a, type: 3}
+  - {fileID: 7474382371745018684, guid: 477448f7892b8494287ca177a875b87c, type: 3}
+  - {fileID: 3920132343172585965, guid: 524753d5281bf3c4b9b10de1664e0894, type: 3}
+  - {fileID: 8049073737804780326, guid: 830ee9679938aea4688c1bf7f80301a8, type: 3}

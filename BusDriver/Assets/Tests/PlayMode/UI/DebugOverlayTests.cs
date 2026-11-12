@@ -74,7 +74,16 @@ namespace BusDriver.Tests.PlayMode.UI {
             registry.AddCheat(new DebugCheat("Test", "Count", () => runs++));
             Assert.AreEqual(before + 1, overlay.CheatButtonCount);
             overlay.SetOpen(true);
-            UnityEngine.UI.Button button = GameObject.Find("Cheat Count").GetComponent<UnityEngine.UI.Button>();
+            UnityEngine.UI.Button button = null;
+            UnityEngine.UI.Button[] buttons = overlay.GetComponentsInChildren<UnityEngine.UI.Button>(true);
+            for (int i = 0; i < buttons.Length; i++) {
+                if (buttons[i].name == "Cheat Count") {
+                    button = buttons[i];
+                    break;
+                }
+            }
+            Assert.IsNotNull(button, "the cheat was not registered");
+            Assert.IsFalse(button.gameObject.activeInHierarchy, "cheat buttons stay off the F1 screen");
             button.onClick.Invoke();
             Assert.AreEqual(1, runs);
         }

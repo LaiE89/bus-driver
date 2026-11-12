@@ -2,6 +2,7 @@ using UnityEngine;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Flow;
 using BusDriver.Gameplay.Input;
+using BusDriver.Gameplay.Shift;
 
 namespace BusDriver.Gameplay.Player {
     // Walking around inside the parked bus. The rig lives at the scene root, not under the
@@ -30,6 +31,7 @@ namespace BusDriver.Gameplay.Player {
         SettingsService settings;
         PauseService pause;
         InputService input;
+        ShiftDirector director;
         float yaw;
         float pitch;
         float fallSpeed;
@@ -39,6 +41,7 @@ namespace BusDriver.Gameplay.Player {
             settings = shift.Game.Settings;
             pause = shift.Game.Pause;
             input = shift.Game.Input;
+            director = shift.Director;
         }
 
         internal float Sensitivity {
@@ -91,12 +94,12 @@ namespace BusDriver.Gameplay.Player {
         }
 
         void Update() {
-            if (pause != null && pause.IsPaused) {
+            if ((pause != null && pause.IsPaused) || ResultsUp()) {
                 return;
             }
             Vector2 move = ExternalMove;
             if (!ExternalControl && input != null) {
-                Vector2 look = input.Actions.OnFootLook.ReadValue<Vector2>() * InputService.MouseAxisScale;
+                Vector2 look = InputService.ReadLook(input.Actions.OnFootLook);
                 float sens = Sensitivity;
                 yaw += look.x * sens * sensScale;
                 pitch = Mathf.Clamp(pitch + look.y * PitchSign * sens * sensScale, -pitchLimit, pitchLimit);
@@ -114,6 +117,14 @@ namespace BusDriver.Gameplay.Player {
             fallSpeed = controller.isGrounded ? -1f : fallSpeed + gravity * Time.deltaTime;
             velocity.y = fallSpeed;
             controller.Move(velocity * Time.deltaTime);
+        }
+
+        bool ResultsUp() {
+            if (director == null) {
+                return false;
+            }
+            ShiftState state = director.State;
+            return state == ShiftState.Summary || state == ShiftState.GameOver || state == ShiftState.RunWon;
         }
     }
 }

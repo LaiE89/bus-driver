@@ -224,6 +224,7 @@ namespace BusDriver.Gameplay.Scares {
             ScareOverlayState state = shift.ScareOverlay;
             instance.Overlay = true;
             state.Overlay = step.overlay != null ? (Texture)step.overlay : defaultOverlay;
+            state.OverlayScale = 1f;
             yield return Flash(step, value => state.OverlayAlpha = value);
             state.OverlayAlpha = 0f;
         }

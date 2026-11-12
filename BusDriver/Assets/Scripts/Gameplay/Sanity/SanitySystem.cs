@@ -10,6 +10,9 @@ using BusDriver.Gameplay.Scares;
 using BusDriver.Gameplay.Shift;
 using BusDriver.Gameplay.World;
 using UnityEngine;
+#if UNITY_EDITOR || BUSDRIVER_DEV
+using UnityEngine.InputSystem;
+#endif
 
 namespace BusDriver.Gameplay.Sanity {
     // The night's sanity (§2.15, §4.6): value, drains, tiers. Hidden from the HUD; the F1 overlay
@@ -111,8 +114,12 @@ namespace BusDriver.Gameplay.Sanity {
                 return;
             }
 
+#if UNITY_EDITOR || BUSDRIVER_DEV
+            TickSanityKeys();
+#endif
+
             BalanceConfig balance = shift.Balance;
-            float baseline = balance != null ? balance.sanityBaselinePerSecond : -0.05f;
+            float baseline = balance != null ? balance.sanityBaselinePerSecond : -0.3f;
             core.SetDrain(BaselineSource, baseline);
 
             bool inTunnel = tunnel != null && tunnel.IsInside;
@@ -134,6 +141,23 @@ namespace BusDriver.Gameplay.Sanity {
             }
             CheckDepleted();
         }
+
+#if UNITY_EDITOR || BUSDRIVER_DEV
+        // Editor and development builds only. 75 is the calm tier, 50 starts the sounds, 25 starts the road pictures.
+        void TickSanityKeys() {
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard == null) {
+                return;
+            }
+            if (keyboard.f3Key.wasPressedThisFrame) {
+                Set(75f, SanityReason.Cheat);
+            } else if (keyboard.f4Key.wasPressedThisFrame) {
+                Set(50f, SanityReason.Cheat);
+            } else if (keyboard.f5Key.wasPressedThisFrame) {
+                Set(25f, SanityReason.Cheat);
+            }
+        }
+#endif
 
         void HandleStatusChanged(RiderRecord record) {
             if (record == null || shift == null || shift.Balance == null) {

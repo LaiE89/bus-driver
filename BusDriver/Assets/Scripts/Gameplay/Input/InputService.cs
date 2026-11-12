@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BusDriver.Core.Data;
 using BusDriver.Core.Util;
 using BusDriver.Gameplay.Flow;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace BusDriver.Gameplay.Input {
@@ -33,6 +34,14 @@ namespace BusDriver.Gameplay.Input {
         // Mouse delta is in pixels; the legacy "Mouse X/Y" axes were pixels × 0.1, and the look
         // sensitivity was tuned on those (§4.10: yaw += delta.x × 0.1 × sensitivity × 0.02)
         public const float MouseAxisScale = 0.1f;
+        // Degrees per second at the default look sensitivity. The stick is a held rate; mouse
+        // delta is pixels since the last frame, so the two cannot share MouseAxisScale.
+        public const float StickLookDegreesPerSecond = 160f;
+        const float DefaultLookProduct = 60f * 0.02f;
+
+        static bool deviceHooked;
+        static string activeGroup = KeyboardMouseGroup;
+        string shownGroup = KeyboardMouseGroup;
 
         // Mouse axes and position can never be bound (D48); mouse buttons can
         static readonly string[] UnbindablePaths = { "<Mouse>/delta", "<Mouse>/position", "<Mouse>/scroll", "<Pointer>/delta", "<Pointer>/position" };
@@ -121,6 +130,7 @@ namespace BusDriver.Gameplay.Input {
                 settings.OnChanged += HandleSettingsChanged;
             }
             ApplyContext();
+            HookDevices();
         }
 
         // The maps each context enables (§4.10). Cinematic keeps only Global/Pause live.
@@ -173,6 +183,10 @@ namespace BusDriver.Gameplay.Input {
         public void Tick() {
             if (!IsApplied()) {
                 ApplyContext();
+            }
+            if (shownGroup != activeGroup) {
+                shownGroup = activeGroup;
+                RaiseBindingsChanged();
             }
         }
 
@@ -251,8 +265,8 @@ namespace BusDriver.Gameplay.Input {
 
         // ------------------------------------------------------------------ display strings
 
-        // What a prompt shows for an action on keyboard and mouse (controller-ready rule 3,
-        // §4.10). M4b switches the group with the active device.
+        // What a prompt shows. Keyboard and mouse until a pad button or stick moves, then the
+        // gamepad binding (§4.10). A key or mouse move switches the prompt back.
         public string GetDisplayString(string actionId) {
             InputAction action = Actions.Find(actionId);
             if (action == null) {
@@ -263,7 +277,88 @@ namespace BusDriver.Gameplay.Input {
         }
 
         public string GetDisplayString(InputAction action) {
-            return action.GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
+            string text = action.GetBindingDisplayString(InputBinding.MaskByGroup(activeGroup));
+            if (string.IsNullOrEmpty(text) && activeGroup != KeyboardMouseGroup) {
+                text = action.GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
+            }
+            return text;
+        }
+
+        // Mouse delta stays in pixels. A stick bound to the same action is only −1..1, and scaling
+        // it like pixels left the camera almost still.
+        public static Vector2 ReadLook(InputAction action) {
+            if (action == null) {
+                return Vector2.zero;
+            }
+            var controls = action.controls;
+            if (controls.Count == 0) {
+                return action.ReadValue<Vector2>() * MouseAxisScale;
+            }
+            Vector2 mouse = Vector2.zero;
+            Vector2 stick = Vector2.zero;
+            for (int i = 0; i < controls.Count; i++) {
+                InputControl<Vector2> vector = controls[i] as InputControl<Vector2>;
+                if (vector == null) {
+                    continue;
+                }
+                Vector2 value = vector.ReadValue();
+                if (vector.device is Gamepad) {
+                    if (value.sqrMagnitude > stick.sqrMagnitude) {
+                        stick = value;
+                    }
+                }else if (vector.device is Mouse) {
+                    if (value.sqrMagnitude > mouse.sqrMagnitude) {
+                        mouse = value;
+                    }
+                }
+            }
+            float stickUnits = StickLookDegreesPerSecond / DefaultLookProduct;
+            return mouse * MouseAxisScale + stick * stickUnits * Time.deltaTime;
+        }
+
+        static void HookDevices() {
+            if (deviceHooked) {
+                return;
+            }
+            deviceHooked = true;
+            InputSystem.onActionChange += OnActionChange;
+        }
+
+        static void OnActionChange(object obj, InputActionChange change) {
+            if (change != InputActionChange.ActionPerformed) {
+                return;
+            }
+            InputAction action = obj as InputAction;
+            InputControl control = action != null ? action.activeControl : null;
+            if (control == null) {
+                return;
+            }
+            string next = GroupFor(control);
+            if (next == null || next == activeGroup) {
+                return;
+            }
+            activeGroup = next;
+        }
+
+        // A resting stick or a one-pixel mouse twitch must not flip the prompts.
+        static string GroupFor(InputControl control) {
+            InputControl<Vector2> axis = control as InputControl<Vector2>;
+            if (control.device is Gamepad) {
+                if (axis != null && axis.ReadValue().sqrMagnitude < 0.04f) {
+                    return null;
+                }
+                return GamepadGroup;
+            }
+            if (control.device is Keyboard) {
+                return KeyboardMouseGroup;
+            }
+            if (control.device is Mouse) {
+                if (axis != null && axis.ReadValue().sqrMagnitude < 4f) {
+                    return null;
+                }
+                return KeyboardMouseGroup;
+            }
+            return null;
         }
 
         public string GetBindingDisplayString(InputAction action, int bindingIndex) {

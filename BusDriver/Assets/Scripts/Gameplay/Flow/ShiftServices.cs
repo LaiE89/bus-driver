@@ -6,6 +6,7 @@ using BusDriver.Gameplay.Death;
 using BusDriver.Gameplay.Debug;
 using BusDriver.Gameplay.Dialogue;
 using BusDriver.Gameplay.Economy;
+using BusDriver.Gameplay.Items;
 using BusDriver.Gameplay.Monsters;
 using BusDriver.Gameplay.Passengers;
 using BusDriver.Gameplay.Player;
@@ -67,6 +68,8 @@ namespace BusDriver.Gameplay.Flow {
         public DialogueService Dialogue;
         // The night's money (§2.7, §4.6)
         public ShiftLedger Ledger;
+        // Depot coffee and the three consumable slots (§2.18)
+        public ItemService Items;
         public EconomyRules Economy;
         // Hidden sanity (§2.15, §4.6)
         public SanitySystem Sanity;

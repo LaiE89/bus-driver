@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: san.heartbeat_loop
   clips:
-  - {fileID: 8300000, guid: 571b4e73ab0ff4d9dadba3dfe7043f24, type: 3}
-  volume: 0.35
+  - {fileID: 8300000, guid: fc04b3c68efd8234388ff5e76b31b69f, type: 3}
+  volume: 0.7
   volumeJitter: 0
   pitch: 1
   pitchJitter: 0
@@ -28,4 +28,4 @@ MonoBehaviour:
   priority: 64
   cooldown: 0
   caption: 
-  placeholder: 1
+  placeholder: 0

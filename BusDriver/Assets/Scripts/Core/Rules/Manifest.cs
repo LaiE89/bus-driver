@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using BusDriver.Core.Data;
 
 namespace BusDriver.Core.Rules {
-    // A night's riders, in spawn order (§2.19). Built from the night's scripted list for now; the
-    // generator (ManifestGenerator, T-M7-01) produces the same shape for nights 2–5.
+    // A night's riders, in spawn order (§2.19). Night 1 is FromScripted. Nights 2–5 are
+    // ManifestGenerator, from that night's rider counts and monster pool.
     public sealed class Manifest {
         public readonly int NightIndex;
         public readonly List<RiderSpec> Riders = new List<RiderSpec>();
@@ -12,9 +12,10 @@ namespace BusDriver.Core.Rules {
             NightIndex = nightIndex;
         }
 
-        // The night's scripted riders, or the fallback night's when it has none (until T-M7-01,
-        // nights 2–5 reuse night 1's list). Monsters keep no drop-off (§2.9); they stay aboard
-        // until kicked. noMonsters drops every monster rider (the debug flag, T-M3-03).
+        // The night's scripted riders, or the fallback night's when it has none. ManifestSpawner
+        // uses this for night 1. Nights without a script go through ManifestGenerator first.
+        // Monsters keep no drop-off (§2.9); they stay aboard until kicked. noMonsters drops every
+        // monster rider (the debug flag, T-M3-03).
         public static Manifest FromScripted(NightDefinition night, NightDefinition fallback, bool noMonsters) {
             Manifest manifest = new Manifest(night != null ? night.nightIndex : 0);
             NightDefinition source = night != null && night.IsScripted ? night : fallback;

@@ -33,6 +33,7 @@ namespace BusDriver.Gameplay.Player {
         [SerializeField] GameObject driverAvatar;
 
         GameServices game;
+        int seatLocks;
 
         public PlayerMode Mode { get; private set; }
         public event Action<PlayerMode> OnModeChanged;
@@ -40,12 +41,24 @@ namespace BusDriver.Gameplay.Player {
         public Camera DriverCamera { get { return driverCamera; } }
         bool IsViewingCCTV { get { return cctv != null && cctv.IsViewingCCTV; } }
 
-        // Only from a complete stop, and not while the screen is showing a CCTV feed
+        // Only from a complete stop, and not while the screen is showing a CCTV feed.
+        // A sprint holds the driver in the seat until it is over.
         public bool CanLeaveSeat {
             get {
-                return Mode == PlayerMode.Driving
+                return seatLocks == 0
+                    && Mode == PlayerMode.Driving
                     && bus != null && bus.IsStopped
                     && !IsViewingCCTV;
+            }
+        }
+
+        public void LockSeat() {
+            seatLocks++;
+        }
+
+        public void UnlockSeat() {
+            if (seatLocks > 0) {
+                seatLocks--;
             }
         }
 
@@ -109,6 +122,9 @@ namespace BusDriver.Gameplay.Player {
                 Log.Error(LogCat.Flow, "PlayerModeController.SetMode: missing scene refs, skipping mode change");
                 return;
             }
+            if (mode == PlayerMode.OnFoot && seatLocks > 0) {
+                return;
+            }
             Mode = mode;
             if (mode == PlayerMode.OnFoot) {
                 busInput.enabled = false;
@@ -162,8 +178,8 @@ namespace BusDriver.Gameplay.Player {
             }
         }
 
-        // Somebody is standing on the step: wave them aboard or turn them away (§2.4). They hold
-        // the doors open until this is answered, so the bus can't pull away from them.
+        // Somebody is standing on the step. The driver can wave them aboard, and cannot turn
+        // them away. They hold the doors open until this is answered, so the bus can't pull away.
         void HandleDoorDecision() {
             Passenger atDoor = cabin != null ? cabin.PassengerAtDoor : null;
             if (atDoor == null) {
@@ -171,8 +187,6 @@ namespace BusDriver.Gameplay.Player {
             }
             if (game.Input.Actions.AcceptRider.WasPressedThisFrame()) {
                 atDoor.AcceptAboard();
-            }else if (game.Input.Actions.RefuseRider.WasPressedThisFrame()) {
-                atDoor.RefuseAtDoor();
             }
         }
     }

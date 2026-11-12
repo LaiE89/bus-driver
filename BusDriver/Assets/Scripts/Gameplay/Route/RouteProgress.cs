@@ -43,6 +43,7 @@ namespace BusDriver.Gameplay.Route {
                 ? services.Night.endStopId : route.terminusStopId;
             core = new StopProgress(route, endStop);
             doors.OnFullyOpened += HandleDoorsFullyOpened;
+            doors.OnDriverOpened += HandleDriverOpened;
             services.Debug.Register("Stops", WriteDebug);
         }
 
@@ -58,6 +59,7 @@ namespace BusDriver.Gameplay.Route {
         void OnDestroy() {
             if (doors != null) {
                 doors.OnFullyOpened -= HandleDoorsFullyOpened;
+                doors.OnDriverOpened -= HandleDriverOpened;
             }
         }
 
@@ -76,7 +78,24 @@ namespace BusDriver.Gameplay.Route {
             }
         }
 
+        // Doors a kick held open are already fully open, so the driver's request has to serve the
+        // stop itself; the panels will not reach fully open a second time.
+        void HandleDriverOpened() {
+            if (doors != null && doors.IsFullyOpen) {
+                ServeStopUnderTheDoor();
+            }
+        }
+
         void HandleDoorsFullyOpened() {
+            ServeStopUnderTheDoor();
+        }
+
+        // A stop is served when the driver opens the doors in its zone (§2.4). A kick opens them
+        // too, so the rider can step off, and that must not count as serving the stop.
+        void ServeStopUnderTheDoor() {
+            if (doors != null && !doors.OpenedByDriver) {
+                return;
+            }
             BusStop stop = cabin.CurrentStop;
             if (stop == null || !core.TryServe(stop.StopId, NowGameSeconds(), out StopRecord record)) {
                 return;

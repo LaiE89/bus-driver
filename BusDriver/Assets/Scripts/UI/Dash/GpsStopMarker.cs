@@ -6,7 +6,7 @@ namespace BusDriver.UI.Dash {
     // One stop on the GPS (§4.13): a ✓ once served, a ring for the next stop, a dot for the stops
     // still to come, a small grey dot once missed. Shapes differ as well as colours (§2.23).
     public sealed class GpsStopMarker : MonoBehaviour {
-        const float Size = 24f;
+        const float Size = 34f;
 
         UIPolygon dot;
         UILineRenderer ring;
@@ -34,15 +34,15 @@ namespace BusDriver.UI.Dash {
             marker.upcoming = upcomingColor;
             marker.missed = missedColor;
             marker.dot = Child<UIPolygon>(rect, "Dot");
-            marker.dot.SetPoints(UIPolygon.Circle(5f, 12));
+            marker.dot.SetPoints(UIPolygon.Circle(7f, 12));
             marker.ring = Child<UILineRenderer>(rect, "Ring");
-            marker.ring.Configure(3f, false, true, 0f, 0f);
-            Vector2[] circle = UIPolygon.Circle(9f, 16);
+            marker.ring.Configure(3.5f, false, true, 0f, 0f);
+            Vector2[] circle = UIPolygon.Circle(12f, 16);
             marker.ring.SetPoints(circle);
             marker.ring.color = next;
             marker.check = Child<UILineRenderer>(rect, "Check");
-            marker.check.Configure(3.5f, false, false, 0f, 0f);
-            marker.check.SetPoints(new[] { new Vector2(-7f, 0f), new Vector2(-2f, -6f), new Vector2(8f, 7f) });
+            marker.check.Configure(4f, false, false, 0f, 0f);
+            marker.check.SetPoints(new[] { new Vector2(-10f, 0f), new Vector2(-3f, -8f), new Vector2(11f, 10f) });
             marker.check.color = served;
             marker.Show(null, false);
             return marker;

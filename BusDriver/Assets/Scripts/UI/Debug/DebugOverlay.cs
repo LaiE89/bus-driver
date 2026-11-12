@@ -8,10 +8,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace BusDriver.UI.Debug {
-    // The F1 overlay (§4.18): every registered section's readout, refreshed four times a second,
-    // and a button per cheat. Development builds and the Editor only: in a release build it
-    // removes itself before anything can see it. The mouse is free for the cheat buttons whenever
-    // the cursor is (paused, on a screen).
+    // The F1 overlay (§4.18): every registered section's readout, refreshed four times a second.
+    // The cheat list stays built for tests, but it is not shown. Development builds and the Editor
+    // only: in a release build it removes itself before anything can see it.
     public sealed class DebugOverlay : MonoBehaviour, IShiftBindable {
         const float RefreshSeconds = 0.25f;
 

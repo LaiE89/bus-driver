@@ -16,9 +16,9 @@ namespace BusDriver.Gameplay.World {
         [SerializeField] Vector3 waitLocalStep = new Vector3(0.3f, 0f, 1.2f);
 
         [Header("Zone the bus door has to be in, stop-local")]
-        [SerializeField] float zoneMinX = 1.8f;
-        [SerializeField] float zoneMaxX = 4.4f;
-        [SerializeField] float zoneHalfLength = 6f;
+        [SerializeField] float zoneMinX = 0.8f;
+        [SerializeField] float zoneMaxX = 6.5f;
+        [SerializeField] float zoneHalfLength = 12f;
         [SerializeField] float boardInterval = 1.2f;
 
         public string StopId { get { return stopId; } }
@@ -37,7 +37,7 @@ namespace BusDriver.Gameplay.World {
             if (local.x < zoneMinX || local.x > zoneMaxX || Mathf.Abs(local.z) > zoneHalfLength) {
                 return false;
             }
-            return Vector3.Dot(cabin.transform.forward, transform.forward) >= 0.8f;
+            return Vector3.Dot(cabin.transform.forward, transform.forward) >= 0.65f;
         }
 
         public void AddWaiting(Passenger passenger) {
@@ -75,6 +75,10 @@ namespace BusDriver.Gameplay.World {
             yield return null;
             List<Passenger> sent = new List<Passenger>();
             while (cabin.Doors.IsOpenWanted && Contains(cabin)) {
+                if (cabin.MotionHeld) {
+                    yield return null;
+                    continue;
+                }
                 if (waiting.Count > 0 && cabin.FreeSeatCount > 0) {
                     Passenger passenger = waiting[0];
                     waiting.RemoveAt(0);

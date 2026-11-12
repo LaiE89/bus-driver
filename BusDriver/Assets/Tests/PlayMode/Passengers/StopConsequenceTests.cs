@@ -27,9 +27,9 @@ namespace BusDriver.Tests.PlayMode.Passengers {
             FlowTestUtil.DeleteSaveRoot(saveRoot);
         }
 
-        // Serve farm_gate (look01 → campground, look02 → church), then drive straight to the church:
-        // gas_station and campground are missed. Waiting riders walk away; look01 is retargeted to
-        // the next stop (church), gets off there, and takes the fare back.
+        // Serve farm_gate (look01 → campground), then drive straight to the church: gas_station and
+        // campground are missed. Waiting riders walk away. look01 is carried to the church and
+        // steps off there without paying, because the fare is only taken at the stop they asked for.
         [UnityTest, Timeout(900000)]
         public IEnumerator MissedStop_RidersLostAndCarried() {
             GameServices game = FlowTestUtil.Reboot(saveRoot).Services;
@@ -72,14 +72,10 @@ namespace BusDriver.Tests.PlayMode.Passengers {
             Assert.AreEqual(RiderStatus.Delivered, look02.Status);
             Assert.AreEqual("church", look01.ExitStopId);
             Assert.AreEqual("church", look02.ExitStopId);
-            Assert.AreEqual(0, shift.Ledger.Totals.Cents(LedgerKind.Refund),
-                "the missed-stop refund waits until their farewell on the step");
+            Assert.AreEqual(0, shift.Ledger.Totals.Cents(LedgerKind.Refund));
+            Assert.AreEqual(0, shift.Ledger.Totals.Cents(LedgerKind.Fare), "a missed stop does not pay a fare");
             Assert.AreEqual(0, shift.Riders.Aboard.Count, "no non-monster rider is left aboard at the end stop");
             Assert.AreEqual(StopState.Served, progress.Find("church").State, "the end stop can't be missed");
-            // Farewell (and refund) fire on the doorstep; then they finish walking off
-            yield return FlowTestUtil.WaitFor(
-                () => shift.Ledger.Totals.Cents(LedgerKind.Refund) == -shift.Balance.fareCents, 60f,
-                "the missed-stop rider taking their fare back at farewell");
             yield return FlowTestUtil.WaitFor(() => shift.Cabin.Passengers.Count == 0, 60f, "the delivered riders getting off");
         }
     }

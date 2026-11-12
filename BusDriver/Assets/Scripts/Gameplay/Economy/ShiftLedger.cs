@@ -6,9 +6,9 @@ using BusDriver.Core.Rules;
 using BusDriver.Core.Util;
 
 namespace BusDriver.Gameplay.Economy {
-    // The night's money (§2.7, §4.6): every entry, the totals, and the wallet as it stands now. The
-    // run's wallet in RunState only takes the night's net when the night is completed (RunFlow), so
-    // a death mid-night never half-applies it (D3).
+    // The night's money (§2.7, §4.6): every entry, the totals, and the wallet as it stands now.
+    // RunFlow copies WalletNow (last night's wallet, minus depot purchases, plus this night's net)
+    // onto the run when the night is completed, so a death mid-night never half-applies it (D3).
     public sealed class ShiftLedger {
         readonly Ledger core = new Ledger();
 
@@ -16,12 +16,23 @@ namespace BusDriver.Gameplay.Economy {
         public LedgerTotals Totals { get { return core.Totals; } }
         // RunState.walletCents when the night began
         public int WalletBeforeCents { get; }
-        public int WalletNowCents { get { return WalletBeforeCents + core.Totals.NetCents; } }
+        // Depot purchases this night. They come off the wallet that carries into the next night.
+        public int SpentCents { get; private set; }
+        public int WalletNowCents { get { return WalletBeforeCents - SpentCents + core.Totals.NetCents; } }
 
         public event Action<LedgerEntry> OnEntry;
 
         public ShiftLedger(int walletBeforeCents) {
             WalletBeforeCents = walletBeforeCents;
+        }
+
+        // A depot purchase. Refused when the wallet can't cover it, so the carried money never goes negative.
+        public bool TrySpend(int cents) {
+            if (cents <= 0 || cents > WalletNowCents) {
+                return false;
+            }
+            SpentCents += cents;
+            return true;
         }
 
         public void Record(LedgerEntry entry) {

@@ -32,7 +32,7 @@ namespace BusDriver.Core.Data {
         public Texture2D overlay;
         [Tooltip("ShowOverlay and CctvStatic: opacity; CameraShake: amplitude (0–1)")]
         [Range(0f, 1f)] public float intensity;
-        [Tooltip("DriverShoulder, DriverWindow, CabinCenter, CctvLens:<n> or CctvLens (the scare's camera) (§4.8)")]
+        [Tooltip("DriverShoulder, DriverWindow, DriverView, CabinCenter, CctvLens:<n> or CctvLens (the scare's camera) (§4.8)")]
         public string anchor;
         [Tooltip("Per kind: CutToCctv's camera, ShowScareHead's \"lookAt\", AllPassengersReact's ReactionId")]
         public string param;
@@ -49,7 +49,7 @@ namespace BusDriver.Core.Data {
         public ScareStep[] steps = new ScareStep[0];
         [Tooltip("Phase B: a Timeline (PlayableAsset) that replaces the steps. Typed loosely because Core doesn't reference Timeline")]
         public ScriptableObject timelineOverride;
-        [Tooltip("Off: the tier's default sanity cost (Monster −5, Startle −2, none otherwise, §2.15)")]
+        [Tooltip("Off: the tier's default sanity cost (Monster −5, Startle −5, none otherwise)")]
         public bool overrideSanityCost;
         public float sanityCost;
 
@@ -71,7 +71,7 @@ namespace BusDriver.Core.Data {
             }
             switch (tier) {
                 case ScareTier.Monster: return balance != null ? balance.monsterScareSanity : -5f;
-                case ScareTier.Startle: return balance != null ? balance.startleSanity : -2f;
+                case ScareTier.Startle: return balance != null ? balance.startleSanity : -5f;
                 default: return 0f;
             }
         }

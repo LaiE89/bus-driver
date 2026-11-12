@@ -15,6 +15,8 @@ namespace BusDriver.Editor.Builders {
             public Color? Emission;
             // GPU instancing, for the many identical trees (§4.17)
             public bool Instanced;
+            public bool Transparent;
+            public float Smoothness;
         }
 
         // The MVP palette, unchanged (the art swap replaces views, not these)
@@ -36,7 +38,7 @@ namespace BusDriver.Editor.Builders {
             New("Tyre", new Color(0.04f, 0.04f, 0.04f)),
             New("LampWhite", Color.white, new Color(1f, 0.95f, 0.8f) * 3f),
             New("LampRed", new Color(0.8f, 0.05f, 0.05f), new Color(1f, 0.05f, 0.05f) * 2f),
-            New("Door", new Color(0.3f, 0.33f, 0.36f)),
+            Glass("Door", new Color(0.62f, 0.78f, 0.86f, 0.32f)),
             New("Passenger", new Color(0.65f, 0.55f, 0.5f)),
             New("PassengerOdd", new Color(0.25f, 0.2f, 0.22f)),
             New("Player", new Color(0.35f, 0.55f, 0.85f)),
@@ -74,18 +76,42 @@ namespace BusDriver.Editor.Builders {
         }
 
         static Spec New(string name, Color baseColor, Color? emission = null) {
-            return new Spec { Name = name, BaseColor = baseColor, Emission = emission };
+            return new Spec { Name = name, BaseColor = baseColor, Emission = emission, Smoothness = 0.15f };
+        }
+
+        static Spec Glass(string name, Color baseColor) {
+            Spec spec = New(name, baseColor);
+            spec.Transparent = true;
+            spec.Smoothness = 0.9f;
+            return spec;
         }
 
         [MenuItem("Tools/Bus Driver/Builders/Material Library")]
         public static void Build() {
             BuilderUtil.EnsureFolder(Folder);
             foreach (Spec spec in Specs) {
-                Material mat = BuilderUtil.GetOrCreateMaterial(PathOf(spec.Name), spec.BaseColor, spec.Emission);
+                Material mat = BuilderUtil.GetOrCreateMaterial(PathOf(spec.Name), spec.BaseColor, spec.Emission, spec.Smoothness);
                 mat.enableInstancing = spec.Instanced;
+                if (spec.Transparent) {
+                    ApplyGlass(mat);
+                }
             }
             HullPhysics();
             AssetDatabase.SaveAssets();
+        }
+
+        // URP Lit alpha blend, both sides, so a thin door panel reads as glass
+        static void ApplyGlass(Material mat) {
+            mat.SetFloat("_Surface", 1f);
+            mat.SetFloat("_Blend", 0f);
+            mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            mat.SetFloat("_ZWrite", 0f);
+            mat.SetFloat("_Cull", 0f);
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.SetOverrideTag("RenderType", "Transparent");
+            mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            mat.SetShaderPassEnabled("ShadowCaster", false);
         }
 
         public static string PathOf(string name) {

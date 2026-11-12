@@ -34,6 +34,13 @@ namespace BusDriver.UI.Dash {
             return new GpsProjection(scale, (min + max) * 0.5f, area.center);
         }
 
+        // North-up, centred on one world point, with metresAcross of the ground filling the shorter side.
+        public static GpsProjection Around(Vector3 world, float metresAcross, Rect area) {
+            float span = Mathf.Max(1f, metresAcross);
+            float scale = Mathf.Min(area.width, area.height) / span;
+            return new GpsProjection(scale, new Vector2(world.x, world.z), area.center);
+        }
+
         public Vector2 ToMap(Vector3 world) {
             return AreaCentre + (new Vector2(world.x, world.z) - WorldCentre) * Scale;
         }

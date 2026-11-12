@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: bus.stop_request
   clips:
-  - {fileID: 8300000, guid: 7e4c9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 3}
+  - {fileID: 8300000, guid: c8bcc4ba9eefc514ca28fda3a2cb7d60, type: 3}
   volume: 0.7
   volumeJitter: 0
   pitch: 1

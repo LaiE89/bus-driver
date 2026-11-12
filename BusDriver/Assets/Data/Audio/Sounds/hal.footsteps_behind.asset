@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BusDriver.Core::BusDriver.Core.Data.SoundDefinition
   id: hal.footsteps_behind
   clips:
-  - {fileID: 8300000, guid: db4431adc8c734ead970e55ed6dd7c62, type: 3}
+  - {fileID: 8300000, guid: 5c223a06652c7c246bb395c36616c81d, type: 3}
   volume: 0.75
   volumeJitter: 0
   pitch: 1

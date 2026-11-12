@@ -47,11 +47,14 @@ namespace BusDriver.Core.Data {
         [Tooltip("Every passenger look (Data/Looks), in id order")]
         public PassengerLookDefinition[] looks = new PassengerLookDefinition[0];
 
-        [Tooltip("Every monster type (Data/Monsters): starer, whisperer, mimic")]
+        [Tooltip("Every monster type (Data/Monsters): starer, whisperer, gazer, guest")]
         public MonsterDefinition[] monsters = new MonsterDefinition[0];
 
         [Tooltip("Every scare (Data/Scares)")]
         public ScareDefinition[] scares = new ScareDefinition[0];
+
+        [Tooltip("PNG sprites that appear on the road at low sanity. Import each file as Sprite (2D and UI), then drop it here. One is picked at random per spawn.")]
+        public Sprite[] sanityObstacles = new Sprite[0];
 
         public RouteDefinition Route(string routeId) {
             for (int i = 0; i < routes.Length; i++) {
